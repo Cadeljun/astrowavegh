@@ -1,100 +1,213 @@
+'use client';
 
-import { Heart, Star, Zap, Globe, Users, TrendingUp } from "lucide-react";
+import React from 'react';
+import { motion } from 'framer-motion';
+import { Eye, Target, Palette, Handshake, Star, Lightbulb, Globe, Shield, ChevronDown } from 'lucide-react';
+import { SectionHeading } from '@/components/ui/SectionHeading';
+import { SectionLabel } from '@/components/ui/SectionLabel';
+import { Card } from '@/components/ui/Card';
+import { Divider } from '@/components/ui/Divider';
+import CTABanner from '@/components/sections/CTABanner';
+import { fadeUp, fadeIn, staggerContainer, scaleIn, heroTextReveal } from '@/lib/animations';
+import { cn } from '@/lib/utils';
 
 export default function AboutPage() {
   const values = [
-    { title: "Creativity", icon: <Star />, desc: "Pushing the boundaries of the imaginative landscape." },
-    { title: "Collaboration", icon: <Users />, desc: "Building bridges across industries and cultures." },
-    { title: "Excellence", icon: <Zap />, desc: "Setting the gold standard in every experience we deliver." },
-    { title: "Innovation", icon: <Globe />, desc: "Harnessing technology to amplify African narratives." },
-    { title: "Community", icon: <Heart />, desc: "Nurturing the ecosystem that empowers our youth." },
-    { title: "Authenticity", icon: <TrendingUp />, desc: "Staying true to the roots while reaching for the stars." },
+    { icon: Palette, title: 'Creativity', desc: 'Encouraging originality, imagination, and artistic freedom.', color: 'gold' as const },
+    { icon: Handshake, title: 'Collaboration', desc: 'Building strong partnerships between artists, brands, and communities.', color: 'purple' as const },
+    { icon: Star, title: 'Excellence', desc: 'Delivering high-quality experiences, productions, and services.', color: 'cyan' as const },
+    { icon: Lightbulb, title: 'Innovation', desc: 'Using new ideas and technology to shape the future of entertainment.', color: 'gold' as const },
+    { icon: Globe, title: 'Community', desc: 'Creating spaces where people feel connected, included, and empowered.', color: 'purple' as const },
+    { icon: Shield, title: 'Authenticity', desc: 'Representing real African culture, sounds, and stories without imitation.', color: 'cyan' as const },
+  ];
+
+  const valueIconColors = {
+    gold: 'text-[var(--color-gold)]',
+    purple: 'text-[var(--color-purple)]',
+    cyan: 'text-[var(--color-cyan)]',
+  };
+
+  const problems = [
+    { id: '01', title: 'Lack of Platforms for Young Creatives', desc: 'Talent exists in abundance, but structured opportunities are scarce.' },
+    { id: '02', title: 'Ordinary Entertainment Experiences', desc: 'The youth demand more than just a party; they crave immersive storytelling.' },
+    { id: '03', title: 'Disconnection Between Creatives', desc: 'Silos prevent the cross-pollination of ideas that drive industry growth.' },
+    { id: '04', title: 'Limited Industry Structure', desc: 'Professional management and PR are often the missing links to global success.' },
+    { id: '05', title: 'Lack of Community-Focused Entertainment', desc: 'Entertainment should empower, educate, and give back to its roots.' },
   ];
 
   return (
     <div className="flex flex-col w-full">
       {/* Hero */}
-      <section className="relative min-h-[70vh] flex items-center justify-center overflow-hidden pt-20">
-        <div className="absolute inset-0 bg-brand-surface">
-           <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-brand-black" />
-        </div>
+      <section className="relative h-screen w-full flex items-center justify-center overflow-hidden bg-[var(--color-black)]">
+        <div 
+          className="absolute inset-0 z-0 opacity-40"
+          style={{ 
+            background: 'radial-gradient(ellipse 80% 60% at 50% 40%, rgba(168, 85, 247, 0.15), transparent 70%)' 
+          }}
+        />
         <div className="relative z-10 text-center px-6 max-w-4xl">
-          <h1 className="font-headline text-7xl md:text-[8rem] tracking-tight text-primary neon-gold mb-6 uppercase">
-            Our Story
-          </h1>
-          <p className="text-xl md:text-2xl text-muted-foreground font-light leading-relaxed">
-            Founded by Calvin Mensah Delali (Cadel), AstroWave is more than a brand. It is a creative pulse resonating through Ghana and beyond.
-          </p>
+          <motion.div variants={fadeIn} initial="hidden" animate="show" transition={{ delay: 0.2 }}>
+            <SectionLabel className="justify-center">WHO WE ARE</SectionLabel>
+          </motion.div>
+          <motion.h1 
+            variants={heroTextReveal} 
+            initial="hidden" 
+            animate="show" 
+            className="display-2xl text-glow-purple mb-6 whitespace-pre-line"
+          >
+            THE WAVE{'\n'}BEGINS HERE.
+          </motion.h1>
+          <motion.p 
+            variants={fadeUp} 
+            initial="hidden" 
+            animate="show" 
+            transition={{ delay: 0.8 }}
+            className="body-lg text-[var(--color-muted)] max-w-xl mx-auto"
+          >
+            Born in Accra. Built for Africa. Destined for the world.
+          </motion.p>
+        </div>
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
+          <ChevronDown size={28} className="text-[var(--color-muted)]" />
         </div>
       </section>
 
       {/* Brand Story */}
-      <section className="py-24 px-6 lg:px-12 bg-brand-surface border-y border-white/5">
-        <div className="max-w-4xl mx-auto space-y-12">
-          <div className="space-y-6">
-            <h2 className="font-headline text-4xl md:text-6xl tracking-widest uppercase">The Vision</h2>
-            <p className="text-lg md:text-xl text-muted-foreground leading-relaxed">
-              AstroWave emerged from a desire to redefine how African entertainment is perceived and consumed. Our founder, Calvin Mensah Delali, envisioned a platform where creativity, luxury, and raw energy could coexist seamlessly.
-            </p>
-            <p className="text-lg md:text-xl text-muted-foreground leading-relaxed">
-              We started with a single party and grew into a multi-divisional powerhouse. Today, we manage some of the brightest DJs and artists, curate the country's most talked-about events, and are building the infrastructure for the next generation of African sound.
-            </p>
-          </div>
+      <section className="py-32 px-6 lg:px-12 bg-[var(--color-black)]">
+        <div className="max-w-screen-2xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
+          <motion.div variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }}>
+            <SectionLabel>OUR STORY</SectionLabel>
+            <h2 className="display-md mb-8">From a Vision{'\n'}To a Movement.</h2>
+            <div className="space-y-6 text-[var(--color-muted)] body-lg">
+              <p>
+                AstroWave was founded by Calvin Mensah Delali, known as Uzy — a visionary creative with a passion for music, culture, and the energy of African youth.
+              </p>
+              <p>
+                The brand was built to solve a real problem: young African creatives had immense talent but lacked platforms, management, and world-class experiences to match their ambition.
+              </p>
+              <p>
+                AstroWave was created to change that — bringing together events, talent management, music, and community under one bold identity.
+              </p>
+            </div>
+          </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="glass p-8 border-primary/20">
-              <h3 className="font-headline text-3xl tracking-widest text-primary mb-4 uppercase">Mission</h3>
-              <p className="text-muted-foreground">To elevate African creative talent and culture to the global stage through premium, immersive experiences and strategic management.</p>
-            </div>
-            <div className="glass p-8 border-secondary/20">
-              <h3 className="font-headline text-3xl tracking-widest text-secondary mb-4 uppercase">Vision</h3>
-              <p className="text-muted-foreground">To be the primary catalyst for the new African creative renaissance, known globally for excellence, innovation, and vibes beyond the horizon.</p>
-            </div>
-          </div>
+          <motion.div variants={scaleIn} initial="hidden" whileInView="show" viewport={{ once: true }}>
+            <Card className="p-10 border-t-2 border-t-[var(--color-gold)] bg-[var(--color-card)] relative overflow-hidden group">
+              <span className="absolute -top-4 -right-4 text-[10rem] font-display text-[var(--color-gold)] opacity-[0.05] leading-none pointer-events-none">"</span>
+              <p className="font-display text-[2rem] md:text-[2.5rem] text-white leading-tight mb-8">
+                "WE&apos;RE NOT JUST BUILDING A BRAND. WE&apos;RE BUILDING A GENERATION."
+              </p>
+              <div className="flex flex-col">
+                <span className="font-body font-bold text-white">— Calvin Mensah Delali (Uzy)</span>
+                <span className="font-body text-[var(--color-muted)] text-sm">Founder</span>
+              </div>
+            </Card>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Vision & Mission */}
+      <section 
+        className="bg-[var(--color-surface)] py-32 px-6 lg:px-12 relative"
+        style={{ clipPath: 'polygon(0 40px, 100% 0, 100% 100%, 0 100%)' }}
+      >
+        <div className="max-w-screen-2xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
+          <motion.div variants={scaleIn} initial="hidden" whileInView="show" viewport={{ once: true }}>
+            <Card className="p-10 h-full border-t-2 border-t-[var(--color-gold)]" glowColor="gold">
+              <Eye size={32} className="text-[var(--color-gold)] mb-6" />
+              <h3 className="display-md mb-4 text-white">OUR VISION</h3>
+              <p className="body-md text-[var(--color-muted)]">
+                To become Africa&apos;s leading creative powerhouse — uniting music, culture, and innovation to inspire, entertain, and empower the next generation.
+              </p>
+            </Card>
+          </motion.div>
+
+          <motion.div variants={scaleIn} initial="hidden" whileInView="show" viewport={{ once: true }} transition={{ delay: 0.2 }}>
+            <Card className="p-10 h-full border-t-2 border-t-[var(--color-purple)]" glowColor="purple">
+              <Target size={32} className="text-[var(--color-purple)] mb-6" />
+              <h3 className="display-md mb-4 text-white">OUR MISSION</h3>
+              <p className="body-md text-[var(--color-muted)]">
+                To redefine entertainment by creating world-class events, nurturing creative talent, producing authentic African music, and driving positive change through community-focused initiatives.
+              </p>
+            </Card>
+          </motion.div>
         </div>
       </section>
 
       {/* Core Values */}
-      <section className="py-24 px-6 lg:px-12">
+      <section className="py-32 px-6 lg:px-12">
         <div className="max-w-screen-2xl mx-auto">
-          <h2 className="font-headline text-5xl md:text-7xl tracking-widest text-center uppercase mb-20">Core <span className="text-primary">Values</span></h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {values.map((v, i) => (
-              <div key={i} className="glass p-10 hover:border-primary/50 transition-all group">
-                <div className="text-primary mb-6 transition-transform group-hover:scale-110">
-                  {v.icon}
-                </div>
-                <h4 className="font-headline text-3xl tracking-widest uppercase mb-3">{v.title}</h4>
-                <p className="text-muted-foreground leading-relaxed">{v.desc}</p>
-              </div>
-            ))}
-          </div>
+          <SectionHeading 
+            label="WHAT DRIVES US" 
+            title="OUR CORE VALUES" 
+            align="center" 
+            className="mb-20"
+          />
+          <motion.div 
+            variants={staggerContainer} 
+            initial="hidden" 
+            whileInView="show" 
+            viewport={{ once: true }}
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+          >
+            {values.map((v, i) => {
+              const Icon = v.icon;
+              return (
+                <motion.div key={i} variants={scaleIn}>
+                  <Card className="p-10 text-center group" glowColor={v.color}>
+                    <Icon 
+                      size={32} 
+                      className={cn(
+                        "mx-auto mb-6 transition-transform group-hover:scale-110",
+                        valueIconColors[v.color]
+                      )} 
+                    />
+                    <h4 className="font-display text-[1.8rem] text-white uppercase tracking-wider mb-4">{v.title}</h4>
+                    <p className="body-md text-[var(--color-muted)]">{v.desc}</p>
+                  </Card>
+                </motion.div>
+              );
+            })}
+          </motion.div>
         </div>
       </section>
 
-      {/* Goals / Problem List */}
-      <section className="py-24 px-6 lg:px-12 bg-brand-surface relative overflow-hidden">
-        <div className="max-w-4xl mx-auto space-y-16">
-          <div className="space-y-8">
-            <h2 className="font-headline text-5xl md:text-7xl tracking-widest uppercase text-center">What Problem We <span className="text-accent italic">Solve</span></h2>
-            <div className="space-y-8 pt-8">
-              {[
-                { n: "01", t: "Fragmented Representation", d: "Artists and DJs often lack structured management that understands both the creative and business sides." },
-                { n: "02", t: "Lack of Immersive Branding", d: "Events in the region frequently miss the mark on cinematic, cohesive storytelling." },
-                { n: "03", t: "Youth Empowerment Gaps", d: "AstroWave creates a hub for the youth to see creative careers as viable, professional, and world-class." },
-              ].map((item, i) => (
-                <div key={i} className="flex gap-8 group">
-                  <span className="font-headline text-6xl text-primary/20 group-hover:text-primary transition-colors">{item.n}</span>
+      {/* What We Solve */}
+      <section className="py-32 px-6 lg:px-12 bg-[var(--color-surface)]">
+        <div className="max-w-4xl mx-auto">
+          <SectionHeading 
+            label="THE PROBLEM" 
+            title="WHY ASTROWAVE EXISTS" 
+            className="mb-20"
+          />
+          <motion.div 
+            variants={staggerContainer} 
+            initial="hidden" 
+            whileInView="show" 
+            viewport={{ once: true }}
+            className="space-y-12"
+          >
+            {problems.map((p, i) => (
+              <motion.div key={i} variants={fadeUp} className="group">
+                <div className="flex flex-col md:flex-row md:items-start gap-6">
+                  <span className="font-display text-[5rem] text-[var(--color-gold)] opacity-30 leading-none">
+                    {p.id}
+                  </span>
                   <div className="space-y-2">
-                    <h4 className="font-headline text-3xl tracking-widest uppercase">{item.t}</h4>
-                    <p className="text-muted-foreground text-lg">{item.d}</p>
+                    <h4 className="font-display text-[1.8rem] text-white uppercase tracking-wider group-hover:text-[var(--color-gold)] transition-colors">
+                      {p.title}
+                    </h4>
+                    <p className="body-md text-[var(--color-muted)]">{p.desc}</p>
                   </div>
                 </div>
-              ))}
-            </div>
-          </div>
+                {i < problems.length - 1 && <Divider className="opacity-10 mt-12" />}
+              </motion.div>
+            ))}
+          </motion.div>
         </div>
       </section>
+
+      <CTABanner />
     </div>
   );
 }
