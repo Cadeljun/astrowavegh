@@ -1,142 +1,275 @@
+'use client';
 
-"use client";
+import React, { useState, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Calendar, MapPin, Search, PlusCircle, Lock } from 'lucide-react';
+import { collection, query, where } from 'firebase/firestore';
+import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { SectionLabel } from '@/components/ui/SectionLabel';
+import { SectionHeading } from '@/components/ui/SectionHeading';
+import { Button } from '@/components/ui/Button';
+import { Badge } from '@/components/ui/Badge';
+import { Card } from '@/components/ui/Card';
+import { Divider } from '@/components/ui/Divider';
+import EventCard from '@/components/events/EventCard';
+import { fadeUp, fadeIn, staggerContainer, scaleIn } from '@/lib/animations';
+import { cn } from '@/lib/utils';
 
-import { useState } from "react";
-import Image from "next/image";
-import Link from "next/link";
-import { Calendar, MapPin, Tag, ChevronRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { PlaceHolderImages } from "@/lib/placeholder-images";
-import { cn } from "@/lib/utils";
-
-const categories = ["All", "Parties", "Concerts", "Networking", "Nightlife"];
-
-const events = [
-  {
-    name: "Mask Mirage",
-    category: "Nightlife",
-    date: "Dec 31, 2025",
-    venue: "Secret Garden, Accra",
-    price: "Premium",
-    img: PlaceHolderImages.find(i => i.id === 'mask-mirage')?.imageUrl,
-    description: "An immersive masquerade experience where elegance meets mystery. Dress code: Black Tie & Masks."
-  },
-  {
-    name: "Splash & Seduction",
-    category: "Parties",
-    date: "Jan 1, 2026",
-    venue: "Sunkissed Villas, Ada",
-    price: "Tickets Req.",
-    img: PlaceHolderImages.find(i => i.id === 'splash-seduction')?.imageUrl,
-    description: "The ultimate all-day pool party celebrating the arrival of the New Year. Live DJs, Cabanas, and Vibes."
-  },
-  {
-    name: "Horizon Concert",
-    category: "Concerts",
-    date: "Feb 14, 2026",
-    venue: "Black Star Square",
-    price: "Free Early Bird",
-    img: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?q=80&w=800&h=600&auto=format&fit=crop",
-    description: "A showcase of the brightest talents in the AstroWave ecosystem. Music from the future."
-  },
-  {
-    name: "Wave Network",
-    category: "Networking",
-    date: "March 5, 2026",
-    venue: "The Rooftop Lounge",
-    price: "Invite Only",
-    img: "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?q=80&w=800&h=600&auto=format&fit=crop",
-    description: "Connecting brands, artists, and creators in an intimate setting."
-  }
-];
+const categories = ['All', 'Parties', 'Concerts', 'Nightlife', 'Networking', 'Festivals'];
 
 export default function EventsPage() {
-  const [filter, setFilter] = useState("All");
+  const [activeTab, setActiveTab] = useState('All');
+  const db = useFirestore();
 
-  const filteredEvents = filter === "All" 
-    ? events 
-    : events.filter(e => e.category === filter);
+  // Firestore query for active events
+  const eventsQuery = useMemoFirebase(() => {
+    return query(collection(db, 'events'), where('active', '==', true));
+  }, [db]);
+
+  const { data: events, loading } = useCollection(eventsQuery);
+
+  // Filter logic
+  const filteredEvents = useMemo(() => {
+    if (!events) return [];
+    if (activeTab === 'All') return events;
+    return events.filter((e: any) => e.category === activeTab);
+  }, [events, activeTab]);
 
   return (
-    <div className="flex flex-col w-full pt-32 pb-24">
-      {/* Header */}
-      <div className="max-w-screen-2xl mx-auto px-6 lg:px-12 mb-16 space-y-8">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
-          <div className="space-y-4">
-            <h1 className="font-headline text-7xl lg:text-9xl tracking-widest text-primary neon-gold uppercase">Experiences</h1>
-            <p className="text-xl text-muted-foreground max-w-2xl">Curating the most immersive and culture-defining moments in Ghana.</p>
-          </div>
-          
-          <Tabs defaultValue="All" className="w-full md:w-auto">
-            <TabsList className="bg-brand-surface border border-white/5 h-12 p-1">
-              {categories.map(cat => (
-                <TabsTrigger 
-                  key={cat} 
-                  value={cat} 
-                  onClick={() => setFilter(cat)}
-                  className="data-[state=active]:bg-primary data-[state=active]:text-background font-bold tracking-widest uppercase text-xs h-10 px-6 rounded-none"
-                >
-                  {cat}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-          </Tabs>
+    <div className="flex flex-col w-full">
+      {/* SECTION 1: HERO */}
+      <section className="relative h-[60vh] w-full flex items-center justify-center overflow-hidden bg-black">
+        <div 
+          className="absolute inset-0 z-0 opacity-40 grayscale"
+          style={{ 
+            backgroundImage: `url('https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=1200&h=800&auto=format&fit=crop')`,
+            backgroundPosition: 'center',
+            backgroundSize: 'cover'
+          }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black z-10" />
+        
+        <div className="relative z-20 text-center px-6">
+          <motion.div variants={fadeIn} initial="hidden" animate="show">
+            <SectionLabel className="justify-center">LIVE EXPERIENCES</SectionLabel>
+          </motion.div>
+          <motion.h1 
+            variants={fadeUp} 
+            initial="hidden" 
+            animate="show" 
+            className="display-xl text-glow-gold mb-4"
+          >
+            THE EVENTS
+          </motion.h1>
+          <motion.p 
+            variants={fadeUp} 
+            initial="hidden" 
+            animate="show" 
+            transition={{ delay: 0.2 }}
+            className="body-lg text-muted max-w-2xl mx-auto"
+          >
+            Immersive. Energetic. Unforgettable.<br />
+            This is what AstroWave feels like.
+          </motion.p>
+        </div>
+      </section>
+
+      {/* SECTION 2: FILTER TABS */}
+      <div className="sticky top-[64px] lg:top-[72px] z-[100] bg-black/80 backdrop-blur-xl border-b border-border-dark py-4 px-6 lg:px-12 overflow-x-auto scrollbar-hide">
+        <div className="max-w-screen-2xl mx-auto flex items-center justify-start lg:justify-center gap-4">
+          {categories.map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setActiveTab(cat)}
+              className={cn(
+                "whitespace-nowrap px-6 py-2.5 rounded-full border text-[0.8rem] font-semibold tracking-widest uppercase transition-all duration-300",
+                activeTab === cat 
+                  ? "bg-gold-dim text-gold border-gold" 
+                  : "bg-transparent text-muted border-border-dark hover:text-white"
+              )}
+            >
+              {cat}
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* Grid */}
-      <div className="max-w-screen-2xl mx-auto px-6 lg:px-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-12">
-        {filteredEvents.map((event, i) => (
-          <div key={i} className="group relative glass border-white/5 overflow-hidden">
-            <div className="relative aspect-video overflow-hidden">
-              <Image
-                src={event.img || ""}
-                alt={event.name}
-                fill
-                className="object-cover transition-transform duration-700 group-hover:scale-110"
-                data-ai-hint="concert crowd event"
-              />
-              <div className="absolute top-4 left-4">
-                 <span className="bg-primary text-black font-bold text-[10px] tracking-widest uppercase px-3 py-1">
-                   {event.category}
-                 </span>
+      {/* SECTION 3: FEATURED SPOTLIGHT */}
+      <section className="py-24 px-6 lg:px-12 bg-black space-y-12">
+        <div className="max-w-screen-2xl mx-auto space-y-12">
+          {/* Spotlight 1: Mask Mirage */}
+          <motion.div 
+            variants={fadeUp} 
+            initial="hidden" 
+            whileInView="show" 
+            viewport={{ once: true }}
+            className="relative h-[520px] rounded-lg overflow-hidden group border border-white/5"
+          >
+            <div 
+              className="absolute inset-0 bg-cover bg-center transition-transform duration-[2s] group-hover:scale-105"
+              style={{ backgroundImage: `url('https://images.unsplash.com/photo-1514525253361-bee8a187449b?q=80&w=1200&h=800&auto=format&fit=crop')` }}
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-black via-black/60 to-transparent z-10" />
+            <div className="relative z-20 h-full flex flex-col justify-center px-8 lg:px-20 max-w-3xl space-y-6">
+              <Badge variant="active" className="w-fit bg-purple-dim text-purple border-purple">NIGHTLIFE</Badge>
+              <h2 className="display-xl text-white text-glow-purple tracking-tighter">MASK MIRAGE</h2>
+              <p className="body-md text-white font-medium italic opacity-90 tracking-widest uppercase">"Identity. Music. Mystery."</p>
+              <div className="flex flex-wrap items-center gap-6 text-muted text-sm font-medium">
+                <span className="flex items-center gap-2"><Calendar size={16} className="text-purple" /> TBA 2025</span>
+                <span className="flex items-center gap-2"><MapPin size={16} className="text-purple" /> Accra, Ghana</span>
               </div>
-              <div className="absolute top-4 right-4">
-                 <span className="bg-white/10 backdrop-blur-md text-white font-bold text-[10px] tracking-widest uppercase px-3 py-1 border border-white/20">
-                   {event.price}
-                 </span>
-              </div>
-            </div>
-            <div className="p-8 space-y-6">
-              <div className="flex flex-col sm:flex-row sm:items-center gap-6 text-sm font-bold tracking-widest text-primary uppercase">
-                <span className="flex items-center gap-2"><Calendar size={18} /> {event.date}</span>
-                <span className="flex items-center gap-2"><MapPin size={18} /> {event.venue}</span>
-              </div>
-              <h3 className="font-headline text-4xl tracking-widest uppercase text-white group-hover:text-primary transition-colors">{event.name}</h3>
-              <p className="text-muted-foreground leading-relaxed">
-                {event.description}
+              <p className="body-md text-muted max-w-xl line-clamp-3">
+                A mysterious high-energy nightlife experience centered around masks, identity, music, fashion, and the culture of the night. An evening where you become whoever you want to be.
               </p>
-              <Button asChild className="w-full bg-white text-black font-bold tracking-widest uppercase rounded-none h-14 hover:bg-primary transition-all">
-                <Link href="/contact">Book Experience</Link>
-              </Button>
+              <div className="flex gap-4 pt-4">
+                <Button size="lg">GET TICKETS</Button>
+                <Button variant="ghost">LEARN MORE</Button>
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          </motion.div>
 
-      {/* Gallery Placeholder */}
-      <section className="mt-32 px-6 lg:px-12">
-        <div className="max-w-screen-2xl mx-auto border-t border-white/5 pt-24 text-center space-y-12">
-          <h2 className="font-headline text-5xl md:text-7xl tracking-widest uppercase">Past <span className="text-muted-foreground">Vibrations</span></h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 opacity-40">
-             {[...Array(6)].map((_, i) => (
-               <div key={i} className="aspect-square bg-brand-surface border border-white/10 flex items-center justify-center italic text-muted-foreground text-xs">
-                 Gallery Coming Soon
-               </div>
-             ))}
+          {/* Spotlight 2: Splash & Seduction */}
+          <motion.div 
+            variants={fadeUp} 
+            initial="hidden" 
+            whileInView="show" 
+            viewport={{ once: true }}
+            className="relative h-[520px] rounded-lg overflow-hidden group border border-white/5"
+          >
+            <div 
+              className="absolute inset-0 bg-cover bg-center transition-transform duration-[2s] group-hover:scale-105"
+              style={{ backgroundImage: `url('https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?q=80&w=1200&h=800&auto=format&fit=crop')` }}
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-black via-black/60 to-transparent z-10" />
+            <div className="relative z-20 h-full flex flex-col justify-center px-8 lg:px-20 max-w-3xl space-y-6">
+              <Badge variant="active" className="w-fit bg-cyan-dim text-cyan border-cyan">ALL DAY PARTY</Badge>
+              <h2 className="display-xl text-white text-glow-cyan tracking-tighter">SPLASH & SEDUCTION</h2>
+              <p className="body-md text-white font-medium italic opacity-90 tracking-widest uppercase">"Sun. Pool. Vibes. Night."</p>
+              <div className="flex flex-wrap items-center gap-6 text-muted text-sm font-medium">
+                <span className="flex items-center gap-2"><Calendar size={16} className="text-cyan" /> TBA 2025</span>
+                <span className="flex items-center gap-2"><MapPin size={16} className="text-cyan" /> Accra, Ghana</span>
+              </div>
+              <p className="body-md text-muted max-w-xl line-clamp-3">
+                Daytime pool vibes collide with nighttime energy in one complete lifestyle experience. From sunrise to the last song — this is the all-day party redefined.
+              </p>
+              <div className="flex gap-4 pt-4">
+                <Button size="lg">GET TICKETS</Button>
+                <Button variant="ghost">LEARN MORE</Button>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* SECTION 4: ALL EVENTS GRID */}
+      <section className="py-32 px-6 lg:px-12 bg-surface" style={{ clipPath: 'polygon(0 40px, 100% 0, 100% 100%, 0 100%)' }}>
+        <div className="max-w-screen-2xl mx-auto">
+          <SectionHeading 
+            label="ALL EXPERIENCES"
+            title="UPCOMING EVENTS"
+            className="mb-16"
+          />
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 min-h-[400px]">
+            {loading ? (
+              [1, 2, 3].map((i) => (
+                <div key={i} className="h-[480px] bg-white/5 animate-pulse rounded-lg border border-white/5" />
+              ))
+            ) : filteredEvents.length > 0 ? (
+              <AnimatePresence mode="popLayout">
+                {filteredEvents.map((event: any) => (
+                  <motion.div
+                    key={event.id}
+                    layout
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <EventCard 
+                      name={event.name}
+                      category={event.category}
+                      date={new Date(event.date).toLocaleDateString()}
+                      venue={event.venue}
+                      description={event.description}
+                      imageUrl={event.imageUrl || 'https://images.unsplash.com/photo-1514525253361-bee8a187449b?q=80&w=800&h=600&auto=format&fit=crop'}
+                    />
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            ) : (
+              <div className="col-span-full flex flex-col items-center justify-center py-20 text-center space-y-4">
+                <Calendar size={64} className="text-muted opacity-20" />
+                <h3 className="display-md text-muted">No events currently scheduled.</h3>
+                <p className="body-md text-muted/60">Check back soon — something big is coming.</p>
+              </div>
+            )}
           </div>
         </div>
+      </section>
+
+      {/* SECTION 5: PAST EVENTS GALLERY */}
+      <section className="py-32 px-6 lg:px-12 bg-black">
+        <div className="max-w-screen-2xl mx-auto">
+          <SectionHeading 
+            label="MEMORIES"
+            title="PAST EVENTS"
+            className="mb-16"
+          />
+
+          <motion.div 
+            variants={staggerContainer}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true }}
+            className="grid grid-cols-2 md:grid-cols-4 gap-4"
+          >
+            {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+              <motion.div 
+                key={i}
+                variants={scaleIn}
+                className="relative aspect-square rounded-md overflow-hidden group cursor-pointer"
+              >
+                <img 
+                  src={`https://picsum.photos/seed/${i + 50}/600/600`} 
+                  alt="Past Event"
+                  className="w-full h-full object-cover grayscale transition-all duration-500 group-hover:grayscale-0 group-hover:scale-110"
+                />
+                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center text-center p-4">
+                   <p className="font-display text-lg text-white mb-1">EVENT NAME</p>
+                   <p className="font-body text-[0.7rem] text-gold uppercase tracking-widest">DEC 2024</p>
+                </div>
+              </motion.div>
+            ))}
+          </motion.div>
+          
+          <div className="mt-12 text-center">
+            <p className="body-md text-muted italic">Gallery coming soon. The wave is just getting started.</p>
+          </div>
+        </div>
+      </section>
+
+      {/* SECTION 6: HOST AN EVENT CTA */}
+      <section className="py-24 px-6 lg:px-12 bg-black">
+        <motion.div 
+          variants={scaleIn} 
+          initial="hidden" 
+          whileInView="show" 
+          viewport={{ once: true }}
+          className="max-w-screen-2xl mx-auto"
+        >
+          <Card className="relative p-12 lg:p-20 text-center space-y-8 overflow-hidden">
+            <div 
+              className="absolute inset-0 pointer-events-none opacity-[0.08]"
+              style={{ background: 'linear-gradient(45deg, var(--color-purple), var(--color-gold))' }}
+            />
+            <h2 className="display-lg">WANT TO HOST WITH ASTROWAVE?</h2>
+            <p className="body-lg text-muted max-w-2xl mx-auto">
+              Partner with us to create unforgettable experiences. We handle production, talent, marketing and everything in between.
+            </p>
+            <Button size="lg" className="px-12">GET IN TOUCH</Button>
+          </Card>
+        </motion.div>
       </section>
     </div>
   );
