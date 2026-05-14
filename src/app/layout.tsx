@@ -1,9 +1,20 @@
 
-import type {Metadata} from 'next';
+import type { Metadata } from 'next';
+import { Bebas_Neue, Outfit } from 'next/font/google';
 import './globals.css';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
-import LoadingScreen from '@/components/LoadingScreen';
+import { Toaster } from '@/components/ui/toaster';
+import { FirebaseClientProvider } from '@/firebase';
+
+const bebasNeue = Bebas_Neue({
+  weight: '400',
+  subsets: ['latin'],
+  variable: '--font-bebas-neue',
+});
+
+const outfit = Outfit({
+  subsets: ['latin'],
+  variable: '--font-outfit',
+});
 
 export const metadata: Metadata = {
   title: 'AstroWave | Vibes Beyond the Horizon',
@@ -12,22 +23,17 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;600&display=swap" rel="stylesheet" />
-      </head>
-      <body className="font-body antialiased bg-background text-foreground min-h-screen">
-        <LoadingScreen />
-        <div className="grain-overlay" />
-        <Navbar />
-        <main>{children}</main>
-        <Footer />
+    <html lang="en" suppressHydrationWarning className={`${bebasNeue.variable} ${outfit.variable}`}>
+      <body className="font-body antialiased bg-black text-white min-h-screen">
+        <FirebaseClientProvider>
+          <div className="grain-overlay" />
+          <main>{children}</main>
+          <Toaster />
+        </FirebaseClientProvider>
       </body>
     </html>
   );

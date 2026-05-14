@@ -1,0 +1,81 @@
+
+{
+  "entities": {
+    "Event": {
+      "title": "Event",
+      "description": "AstroWave events, parties, and concerts.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "date": { "type": "string", "format": "date-time" },
+        "venue": { "type": "string" },
+        "category": { "type": "string", "enum": ["Parties", "Concerts", "Networking", "Nightlife"] },
+        "description": { "type": "string" },
+        "imageUrl": { "type": "string", "description": "Cloudinary public ID or full URL" },
+        "ticketLink": { "type": "string" },
+        "active": { "type": "boolean" }
+      },
+      "required": ["name", "date", "venue", "category", "active"]
+    },
+    "Talent": {
+      "title": "Talent",
+      "description": "DJs and artists managed by AstroWave.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "role": { "type": "string" },
+        "bio": { "type": "string" },
+        "imageUrl": { "type": "string" },
+        "instagram": { "type": "string" },
+        "soundcloud": { "type": "string" },
+        "active": { "type": "boolean" }
+      },
+      "required": ["name", "role", "active"]
+    },
+    "Contact": {
+      "title": "Contact",
+      "description": "User inquiries and messages.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "subject": { "type": "string" },
+        "message": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "email", "message", "timestamp"]
+    },
+    "Waitlist": {
+      "title": "Waitlist",
+      "description": "Users waiting for Records or Cares divisions.",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string", "format": "email" },
+        "division": { "type": "string", "enum": ["Records", "Cares"] },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["email", "division", "timestamp"]
+    }
+  },
+  "auth": {
+    "providers": ["google.com", "password"]
+  },
+  "firestore": {
+    "/events/{eventId}": {
+      "schema": "#/entities/Event",
+      "description": "Collection of AstroWave events"
+    },
+    "/talent/{talentId}": {
+      "schema": "#/entities/Talent",
+      "description": "Collection of managed talent"
+    },
+    "/contacts/{contactId}": {
+      "schema": "#/entities/Contact",
+      "description": "Inquiries from the contact form"
+    },
+    "/waitlist/{waitlistId}": {
+      "schema": "#/entities/Waitlist",
+      "description": "Division waitlists"
+    }
+  }
+}

@@ -1,7 +1,7 @@
 
-import type {Config} from 'tailwindcss';
+import type { Config } from 'tailwindcss';
 
-export default {
+const config: Config = {
   darkMode: ['class'],
   content: [
     './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
@@ -11,57 +11,43 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        body: ['Outfit', 'sans-serif'],
-        headline: ['Bebas Neue', 'sans-serif'],
-        code: ['monospace'],
+        display: ['var(--font-bebas-neue)', 'cursive'],
+        body: ['var(--font-outfit)', 'sans-serif'],
       },
       colors: {
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
+        black: '#050505',
+        dark: '#0A0A0F',
+        surface: '#111118',
         card: {
-          DEFAULT: 'hsl(var(--card))',
+          DEFAULT: '#16161F',
           foreground: 'hsl(var(--card-foreground))',
         },
-        popover: {
-          DEFAULT: 'hsl(var(--popover))',
-          foreground: 'hsl(var(--popover-foreground))',
-        },
-        primary: {
-          DEFAULT: 'hsl(var(--primary))',
-          foreground: 'hsl(var(--primary-foreground))',
-        },
-        secondary: {
-          DEFAULT: 'hsl(var(--secondary))',
-          foreground: 'hsl(var(--secondary-foreground))',
-        },
+        'border-dark': '#1E1E2E',
+        gold: '#FFD166',
+        purple: '#A855F7',
+        cyan: '#06B6D4',
+        white: '#F8F8FF',
         muted: {
-          DEFAULT: 'hsl(var(--muted))',
+          DEFAULT: '#7B7B9A',
           foreground: 'hsl(var(--muted-foreground))',
         },
-        accent: {
-          DEFAULT: 'hsl(var(--accent))',
-          foreground: 'hsl(var(--accent-foreground))',
+        primary: {
+          DEFAULT: '#FFD166',
+          foreground: '#050505',
         },
-        destructive: {
-          DEFAULT: 'hsl(var(--destructive))',
-          foreground: 'hsl(var(--destructive-foreground))',
+        secondary: {
+          DEFAULT: '#A855F7',
+          foreground: '#F8F8FF',
+        },
+        accent: {
+          DEFAULT: '#06B6D4',
+          foreground: '#F8F8FF',
         },
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
-        brand: {
-          black: '#050505',
-          dark: '#0A0A0F',
-          surface: '#111118',
-          card: '#16161F',
-          border: '#1E1E2E',
-          gold: '#FFD166',
-          purple: '#A855F7',
-          cyan: '#06B6D4',
-          white: '#F8F8FF',
-          muted: '#7B7B9A',
-          vermillion: '#FF5400',
-        }
       },
       borderRadius: {
         lg: 'var(--radius)',
@@ -71,4 +57,6 @@ export default {
     },
   },
   plugins: [require('tailwindcss-animate')],
-} satisfies Config;
+};
+
+export default config;
