@@ -1,19 +1,21 @@
-
 import type { Metadata } from 'next';
-import { Bebas_Neue, Outfit } from 'next/font/google';
+import { Outfit, Bebas_Neue } from 'next/font/google';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { FirebaseClientProvider } from '@/firebase';
 
-const bebasNeue = Bebas_Neue({
-  weight: '400',
-  subsets: ['latin'],
-  variable: '--font-bebas-neue',
-});
-
 const outfit = Outfit({
   subsets: ['latin'],
-  variable: '--font-outfit',
+  weight: ['300', '400', '500', '600'],
+  variable: '--font-body',
+  display: 'swap',
+});
+
+const bebasNeue = Bebas_Neue({
+  subsets: ['latin'],
+  weight: ['400'],
+  variable: '--font-display',
+  display: 'swap',
 });
 
 export const metadata: Metadata = {
@@ -30,7 +32,6 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning className={`${bebasNeue.variable} ${outfit.variable}`}>
       <body className="font-body antialiased bg-black text-white min-h-screen">
         <FirebaseClientProvider>
-          <div className="grain-overlay" />
           <main>{children}</main>
           <Toaster />
         </FirebaseClientProvider>
