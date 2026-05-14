@@ -201,3 +201,48 @@ body::before {
   opacity: 0.3;
   margin: var(--space-xl) 0;
 }
+
+/* Static Color Classes */
+.text-gold {
+  color: var(--color-gold);
+}
+
+.text-purple {
+  color: var(--color-purple);
+}
+
+.text-cyan {
+  color: var(--color-cyan);
+}
+
+.text-muted {
+  color: var(--color-muted);
+}
+
+.text-white {
+  color: var(--color-white);
+}
+
+.border-gold {
+  border-color: var(--color-gold);
+}
+
+.border-purple {
+  border-color: var(--color-purple);
+}
+
+.border-cyan {
+  border-color: var(--color-cyan);
+}
+
+.bg-gold-dim {
+  background-color: var(--color-gold-dim);
+}
+
+.bg-purple-dim {
+  background-color: var(--color-purple-dim);
+}
+
+.bg-cyan-dim {
+  background-color: var(--color-cyan-dim);
+}

@@ -13,10 +13,10 @@ interface CardProps {
 
 const Card = ({ children, className, glowColor = 'gold' }: CardProps) => {
   const glows = {
-    gold: 'hover:border-[var(--color-gold)] hover:shadow-[0_0_20px_rgba(255,209,102,0.2)]',
-    purple: 'hover:border-[var(--color-purple)] hover:shadow-[0_0_20px_rgba(168,85,247,0.2)]',
-    cyan: 'hover:border-[var(--color-cyan)] hover:shadow-[0_0_20px_rgba(6,182,212,0.2)]',
-    muted: 'hover:border-[var(--color-border)]',
+    gold: 'hover:border-gold hover:shadow-[0_0_20px_rgba(255,209,102,0.2)]',
+    purple: 'hover:border-purple hover:shadow-[0_0_20px_rgba(168,85,247,0.2)]',
+    cyan: 'hover:border-cyan hover:shadow-[0_0_20px_rgba(6,182,212,0.2)]',
+    muted: 'hover:border-dark',
   };
 
   return (

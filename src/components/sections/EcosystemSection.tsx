@@ -51,12 +51,12 @@ const divisions = [
 
 const colorStyles = {
   gold: {
-    iconBg: 'bg-gold/15',
+    iconBg: 'bg-gold-dim',
     iconColor: 'text-gold',
     ctaColor: 'text-gold'
   },
   purple: {
-    iconBg: 'bg-purple/15',
+    iconBg: 'bg-purple-dim',
     iconColor: 'text-purple',
     ctaColor: 'text-purple'
   },
