@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { Instagram, Music, Youtube } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
@@ -22,29 +23,43 @@ export default function TalentCard({
   imageUrl,
   className
 }: TalentCardProps) {
+  const roleStyles = {
+    DJ: {
+      badge: 'bg-purple-dim text-purple border-purple',
+      hoverBorder: 'hover:border-purple',
+    },
+    Artist: {
+      badge: 'bg-gold-dim text-gold border-gold',
+      hoverBorder: 'hover:border-gold',
+    }
+  };
+
+  const currentStyle = roleStyles[role];
+
   return (
     <motion.div
       variants={cardHover}
       initial="rest"
       whileHover="hover"
       className={cn(
-        'glass group border-[var(--color-border)] p-4 transition-all duration-300',
-        role === 'DJ' ? 'hover:border-[var(--color-purple)]' : 'hover:border-[var(--color-gold)]',
+        'glass group border-border-dark p-4 transition-all duration-300',
+        currentStyle.hoverBorder,
         className
       )}
     >
       <div className="relative aspect-square rounded-[var(--radius-md)] overflow-hidden mb-6">
-        <img 
+        <Image 
           src={imageUrl} 
           alt={name}
-          className="w-full h-full object-cover grayscale transition-all duration-500 group-hover:grayscale-0 group-hover:scale-105"
+          fill
+          className="object-cover grayscale transition-all duration-500 group-hover:grayscale-0 group-hover:scale-105"
+          sizes="(max-width: 768px) 100vw, 33vw"
+          loading="lazy"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60" />
         
         <div className="absolute bottom-4 left-4">
-          <Badge variant="active" className={cn(
-            role === 'DJ' ? 'bg-[var(--color-purple-dim)] text-[var(--color-purple)] border-[var(--color-purple)]' : 'bg-[var(--color-gold-dim)] text-[var(--color-gold)] border-[var(--color-gold)]'
-          )}>
+          <Badge variant="active" className={currentStyle.badge}>
             {role}
           </Badge>
         </div>
@@ -54,18 +69,18 @@ export default function TalentCard({
         <h3 className="font-display text-[1.8rem] text-white leading-tight uppercase tracking-wide">
           {name}
         </h3>
-        <p className="font-body text-[0.85rem] text-[var(--color-muted)] leading-relaxed line-clamp-2">
+        <p className="font-body text-[0.85rem] text-muted leading-relaxed line-clamp-2">
           {bio}
         </p>
 
         <div className="flex items-center gap-4 pt-2">
-          <a href="#" className="text-[var(--color-muted)] hover:text-[var(--color-gold)] transition-colors">
+          <a href="#" className="text-muted hover:text-gold transition-colors">
             <Instagram size={18} />
           </a>
-          <a href="#" className="text-[var(--color-muted)] hover:text-[var(--color-gold)] transition-colors">
+          <a href="#" className="text-muted hover:text-gold transition-colors">
             <Music size={18} />
           </a>
-          <a href="#" className="text-[var(--color-muted)] hover:text-[var(--color-gold)] transition-colors">
+          <a href="#" className="text-muted hover:text-gold transition-colors">
             <Youtube size={18} />
           </a>
         </div>

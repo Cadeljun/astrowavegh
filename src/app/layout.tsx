@@ -2,13 +2,14 @@
 
 import React, { useState, useEffect } from 'react';
 import { Outfit, Bebas_Neue } from 'next/font/google';
-import { AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { FirebaseClientProvider } from '@/firebase';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import LoadingScreen from '@/components/ui/LoadingScreen';
+import { ScrollToTop } from '@/components/ui/ScrollToTop';
 
 const outfit = Outfit({
   subsets: ['latin'],
@@ -47,10 +48,17 @@ export default function RootLayout({
           </AnimatePresence>
           
           <Navbar />
-          <main className="pt-[64px] lg:pt-[72px] min-h-[calc(100vh-64px)] lg:min-h-[calc(100vh-72px)]">
-            {children}
-          </main>
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+          >
+            <main className="pt-[64px] lg:pt-[72px] min-h-[calc(100vh-64px)] lg:min-h-[calc(100vh-72px)]">
+              {children}
+            </main>
+          </motion.div>
           <Footer />
+          <ScrollToTop />
           <Toaster />
         </FirebaseClientProvider>
       </body>
