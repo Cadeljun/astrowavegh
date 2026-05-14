@@ -49,29 +49,28 @@ const divisions = [
   }
 ];
 
-// Static styles map to avoid dynamic Tailwind class generation errors
 const colorStyles = {
   gold: {
-    iconBg: 'bg-[var(--color-gold-dim)]',
-    iconColor: 'text-[var(--color-gold)]',
-    ctaColor: 'text-[var(--color-gold)]'
+    iconBg: 'bg-gold/15',
+    iconColor: 'text-gold',
+    ctaColor: 'text-gold'
   },
   purple: {
-    iconBg: 'bg-[var(--color-purple-dim)]',
-    iconColor: 'text-[var(--color-purple)]',
-    ctaColor: 'text-[var(--color-purple)]'
+    iconBg: 'bg-purple/15',
+    iconColor: 'text-purple',
+    ctaColor: 'text-purple'
   },
   muted: {
-    iconBg: 'bg-[var(--color-surface)]',
-    iconColor: 'text-[var(--color-muted)]',
-    ctaColor: 'text-[var(--color-muted)]'
+    iconBg: 'bg-surface',
+    iconColor: 'text-muted',
+    ctaColor: 'text-muted'
   }
 };
 
 export default function EcosystemSection() {
   return (
     <section 
-      className="bg-[var(--color-surface)] py-32 px-6 lg:px-12 relative"
+      className="bg-surface py-32 px-6 lg:px-12 relative"
       style={{ clipPath: 'polygon(0 40px, 100% 0, 100% 100%, 0 100%)' }}
     >
       <div className="max-w-screen-2xl mx-auto">
@@ -116,7 +115,7 @@ export default function EcosystemSection() {
                         <h3 className="font-display text-[1.8rem] tracking-wide text-white uppercase">
                           {div.title}
                         </h3>
-                        <p className="body-md text-[var(--color-muted)]">
+                        <p className="body-md text-muted">
                           {div.desc}
                         </p>
                       </div>
@@ -130,7 +129,7 @@ export default function EcosystemSection() {
                             {div.cta}
                           </Link>
                         ) : (
-                          <div className="flex items-center gap-2 font-body text-[0.85rem] font-bold tracking-widest uppercase text-[var(--color-muted)]">
+                          <div className="flex items-center gap-2 font-body text-[0.85rem] font-bold tracking-widest uppercase text-muted">
                             <Lock size={12} />
                             {div.cta}
                           </div>

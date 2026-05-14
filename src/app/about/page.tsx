@@ -21,11 +21,11 @@ export default function AboutPage() {
     { icon: Shield, title: 'Authenticity', desc: 'Representing real African culture, sounds, and stories without imitation.', color: 'cyan' as const },
   ];
 
-  // Static color mapping to prevent dynamic Tailwind class generation errors
   const iconColorMap = {
-    gold: 'text-[var(--color-gold)]',
-    purple: 'text-[var(--color-purple)]',
-    cyan: 'text-[var(--color-cyan)]',
+    gold: 'text-gold',
+    purple: 'text-purple',
+    cyan: 'text-cyan',
+    muted: 'text-muted'
   };
 
   const problems = [
@@ -38,8 +38,7 @@ export default function AboutPage() {
 
   return (
     <div className="flex flex-col w-full">
-      {/* Hero */}
-      <section className="relative h-screen w-full flex items-center justify-center overflow-hidden bg-[var(--color-black)]">
+      <section className="relative h-screen w-full flex items-center justify-center overflow-hidden bg-black">
         <div 
           className="absolute inset-0 z-0 opacity-40"
           style={{ 
@@ -63,23 +62,22 @@ export default function AboutPage() {
             initial="hidden" 
             animate="show" 
             transition={{ delay: 0.8 }}
-            className="body-lg text-[var(--color-muted)] max-w-xl mx-auto"
+            className="body-lg text-muted max-w-xl mx-auto"
           >
             Born in Accra. Built for Africa. Destined for the world.
           </motion.p>
         </div>
         <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
-          <ChevronDown size={28} className="text-[var(--color-muted)]" />
+          <ChevronDown size={28} className="text-muted" />
         </div>
       </section>
 
-      {/* Brand Story */}
-      <section className="py-32 px-6 lg:px-12 bg-[var(--color-black)]">
+      <section className="py-32 px-6 lg:px-12 bg-black">
         <div className="max-w-screen-2xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
           <motion.div variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }}>
             <SectionLabel>OUR STORY</SectionLabel>
             <h2 className="display-md mb-8">From a Vision{'\n'}To a Movement.</h2>
-            <div className="space-y-6 text-[var(--color-muted)] body-lg">
+            <div className="space-y-6 text-muted body-lg">
               <p>
                 AstroWave was founded by Calvin Mensah Delali, known as Uzy — a visionary creative with a passion for music, culture, and the energy of African youth.
               </p>
@@ -93,41 +91,40 @@ export default function AboutPage() {
           </motion.div>
 
           <motion.div variants={scaleIn} initial="hidden" whileInView="show" viewport={{ once: true }}>
-            <Card className="p-10 border-t-2 border-t-[var(--color-gold)] bg-[var(--color-card)] relative overflow-hidden group">
-              <span className="absolute -top-4 -right-4 text-[10rem] font-display text-[var(--color-gold)] opacity-[0.05] leading-none pointer-events-none">"</span>
+            <Card className="p-10 border-t-2 border-t-gold bg-card relative overflow-hidden group">
+              <span className="absolute -top-4 -right-4 text-[10rem] font-display text-gold opacity-[0.05] leading-none pointer-events-none">"</span>
               <p className="font-display text-[2rem] md:text-[2.5rem] text-white leading-tight mb-8">
                 "WE'RE NOT JUST BUILDING A BRAND. WE'RE BUILDING A GENERATION."
               </p>
               <div className="flex flex-col">
                 <span className="font-body font-bold text-white">— Calvin Mensah Delali (Uzy)</span>
-                <span className="font-body text-[var(--color-muted)] text-sm">Founder</span>
+                <span className="font-body text-muted text-sm">Founder</span>
               </div>
             </Card>
           </motion.div>
         </div>
       </section>
 
-      {/* Vision & Mission */}
       <section 
-        className="bg-[var(--color-surface)] py-32 px-6 lg:px-12 relative"
+        className="bg-surface py-32 px-6 lg:px-12 relative"
         style={{ clipPath: 'polygon(0 40px, 100% 0, 100% 100%, 0 100%)' }}
       >
         <div className="max-w-screen-2xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
           <motion.div variants={scaleIn} initial="hidden" whileInView="show" viewport={{ once: true }}>
-            <Card className="p-10 h-full border-t-2 border-t-[var(--color-gold)]" glowColor="gold">
-              <Eye size={32} className="text-[var(--color-gold)] mb-6" />
+            <Card className="p-10 h-full border-t-2 border-t-gold" glowColor="gold">
+              <Eye size={32} className="text-gold mb-6" />
               <h3 className="display-md mb-4 text-white">OUR VISION</h3>
-              <p className="body-md text-[var(--color-muted)]">
+              <p className="body-md text-muted">
                 To become Africa's leading creative powerhouse — uniting music, culture, and innovation to inspire, entertain, and empower the next generation.
               </p>
             </Card>
           </motion.div>
 
           <motion.div variants={scaleIn} initial="hidden" whileInView="show" viewport={{ once: true }} transition={{ delay: 0.2 }}>
-            <Card className="p-10 h-full border-t-2 border-t-[var(--color-purple)]" glowColor="purple">
-              <Target size={32} className="text-[var(--color-purple)] mb-6" />
+            <Card className="p-10 h-full border-t-2 border-t-purple" glowColor="purple">
+              <Target size={32} className="text-purple mb-6" />
               <h3 className="display-md mb-4 text-white">OUR MISSION</h3>
-              <p className="body-md text-[var(--color-muted)]">
+              <p className="body-md text-muted">
                 To redefine entertainment by creating world-class events, nurturing creative talent, producing authentic African music, and driving positive change through community-focused initiatives.
               </p>
             </Card>
@@ -135,7 +132,6 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Core Values */}
       <section className="py-32 px-6 lg:px-12">
         <div className="max-w-screen-2xl mx-auto">
           <SectionHeading 
@@ -164,7 +160,7 @@ export default function AboutPage() {
                       )} 
                     />
                     <h4 className="font-display text-[1.8rem] text-white uppercase tracking-wider mb-4">{v.title}</h4>
-                    <p className="body-md text-[var(--color-muted)]">{v.desc}</p>
+                    <p className="body-md text-muted">{v.desc}</p>
                   </Card>
                 </motion.div>
               );
@@ -173,8 +169,7 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* What We Solve */}
-      <section className="py-32 px-6 lg:px-12 bg-[var(--color-surface)]">
+      <section className="py-32 px-6 lg:px-12 bg-surface">
         <div className="max-w-4xl mx-auto">
           <SectionHeading 
             label="THE PROBLEM" 
@@ -191,14 +186,14 @@ export default function AboutPage() {
             {problems.map((p, i) => (
               <motion.div key={i} variants={fadeUp} className="group">
                 <div className="flex flex-col md:flex-row md:items-start gap-6">
-                  <span className="font-display text-[5rem] text-[var(--color-gold)] opacity-30 leading-none">
+                  <span className="font-display text-[5rem] text-gold opacity-30 leading-none">
                     {p.id}
                   </span>
                   <div className="space-y-2">
-                    <h4 className="font-display text-[1.8rem] text-white uppercase tracking-wider group-hover:text-[var(--color-gold)] transition-colors">
+                    <h4 className="font-display text-[1.8rem] text-white uppercase tracking-wider group-hover:text-gold transition-colors">
                       {p.title}
                     </h4>
-                    <p className="body-md text-[var(--color-muted)]">{p.desc}</p>
+                    <p className="body-md text-muted">{p.desc}</p>
                   </div>
                 </div>
                 {i < problems.length - 1 && <Divider className="opacity-10 mt-12" />}
