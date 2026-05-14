@@ -21,7 +21,8 @@ export default function AboutPage() {
     { icon: Shield, title: 'Authenticity', desc: 'Representing real African culture, sounds, and stories without imitation.', color: 'cyan' as const },
   ];
 
-  const valueIconColors = {
+  // Static color mapping to prevent dynamic Tailwind class generation errors
+  const iconColorMap = {
     gold: 'text-[var(--color-gold)]',
     purple: 'text-[var(--color-purple)]',
     cyan: 'text-[var(--color-cyan)]',
@@ -95,7 +96,7 @@ export default function AboutPage() {
             <Card className="p-10 border-t-2 border-t-[var(--color-gold)] bg-[var(--color-card)] relative overflow-hidden group">
               <span className="absolute -top-4 -right-4 text-[10rem] font-display text-[var(--color-gold)] opacity-[0.05] leading-none pointer-events-none">"</span>
               <p className="font-display text-[2rem] md:text-[2.5rem] text-white leading-tight mb-8">
-                "WE&apos;RE NOT JUST BUILDING A BRAND. WE&apos;RE BUILDING A GENERATION."
+                "WE'RE NOT JUST BUILDING A BRAND. WE'RE BUILDING A GENERATION."
               </p>
               <div className="flex flex-col">
                 <span className="font-body font-bold text-white">— Calvin Mensah Delali (Uzy)</span>
@@ -117,7 +118,7 @@ export default function AboutPage() {
               <Eye size={32} className="text-[var(--color-gold)] mb-6" />
               <h3 className="display-md mb-4 text-white">OUR VISION</h3>
               <p className="body-md text-[var(--color-muted)]">
-                To become Africa&apos;s leading creative powerhouse — uniting music, culture, and innovation to inspire, entertain, and empower the next generation.
+                To become Africa's leading creative powerhouse — uniting music, culture, and innovation to inspire, entertain, and empower the next generation.
               </p>
             </Card>
           </motion.div>
@@ -159,7 +160,7 @@ export default function AboutPage() {
                       size={32} 
                       className={cn(
                         "mx-auto mb-6 transition-transform group-hover:scale-110",
-                        valueIconColors[v.color]
+                        iconColorMap[v.color]
                       )} 
                     />
                     <h4 className="font-display text-[1.8rem] text-white uppercase tracking-wider mb-4">{v.title}</h4>

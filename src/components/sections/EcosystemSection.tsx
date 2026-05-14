@@ -8,6 +8,7 @@ import { SectionHeading } from '@/components/ui/SectionHeading';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { staggerContainer, scaleIn } from '@/lib/animations';
+import { cn } from '@/lib/utils';
 
 const divisions = [
   {
@@ -48,6 +49,7 @@ const divisions = [
   }
 ];
 
+// Static styles map to avoid dynamic Tailwind class generation errors
 const colorStyles = {
   gold: {
     iconBg: 'bg-[var(--color-gold-dim)]',
@@ -102,7 +104,7 @@ export default function EcosystemSection() {
                   <div className={isComingSoon ? '' : 'hover:-translate-y-1 transition-transform duration-300'}>
                     <div className="p-10 space-y-6">
                       <div className="flex justify-between items-start">
-                        <div className={`p-3 rounded-lg ${styles.iconBg} ${styles.iconColor}`}>
+                        <div className={cn("p-3 rounded-lg", styles.iconBg, styles.iconColor)}>
                           <Icon size={28} />
                         </div>
                         <Badge variant={div.badge as any}>
@@ -123,7 +125,7 @@ export default function EcosystemSection() {
                         {div.link ? (
                           <Link 
                             href={div.link} 
-                            className={`font-body text-[0.85rem] font-bold tracking-widest uppercase ${styles.ctaColor} hover:underline`}
+                            className={cn("font-body text-[0.85rem] font-bold tracking-widest uppercase hover:underline", styles.ctaColor)}
                           >
                             {div.cta}
                           </Link>
