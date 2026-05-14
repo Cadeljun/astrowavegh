@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Upload, X, Loader2, Save, ImageIcon, Instagram, Music, Youtube, Smartphone } from 'lucide-react';
 import { doc, setDoc, addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
@@ -22,6 +22,7 @@ const ROLES = ['DJ', 'Artist', 'Influencer', 'Model', 'Content Creator', 'Other'
 export default function TalentForm({ initialData, id }: TalentFormProps) {
   const db = useFirestore();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -41,6 +42,22 @@ export default function TalentForm({ initialData, id }: TalentFormProps) {
     youtube: initialData?.youtube || '',
     active: initialData?.active !== undefined ? initialData.active : true,
   });
+
+  // Handle pre-fill from Inquiry
+  useEffect(() => {
+    if (searchParams.get('prefill') === 'true') {
+      const prefillData = sessionStorage.getItem('prefill_talent');
+      if (prefillData) {
+        const data = JSON.parse(prefillData);
+        setFormData(prev => ({
+          ...prev,
+          ...data
+        }));
+        sessionStorage.removeItem('prefill_talent');
+        toast({ title: "Data pre-filled", description: "Profile data loaded from inquiry." });
+      }
+    }
+  }, [searchParams, toast]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
