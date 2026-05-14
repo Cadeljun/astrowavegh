@@ -8,7 +8,7 @@ import { cardHover } from '@/lib/animations';
 interface CardProps {
   children: React.ReactNode;
   className?: string;
-  glowColor?: 'gold' | 'purple' | 'cyan';
+  glowColor?: 'gold' | 'purple' | 'cyan' | 'muted';
 }
 
 const Card = ({ children, className, glowColor = 'gold' }: CardProps) => {
@@ -16,6 +16,7 @@ const Card = ({ children, className, glowColor = 'gold' }: CardProps) => {
     gold: 'hover:border-[var(--color-gold)] hover:shadow-[0_0_20px_rgba(255,209,102,0.2)]',
     purple: 'hover:border-[var(--color-purple)] hover:shadow-[0_0_20px_rgba(168,85,247,0.2)]',
     cyan: 'hover:border-[var(--color-cyan)] hover:shadow-[0_0_20px_rgba(6,182,212,0.2)]',
+    muted: 'hover:border-[var(--color-border)]',
   };
 
   return (
