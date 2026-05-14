@@ -12,10 +12,10 @@ const Badge = ({ variant, children, className }: BadgeProps) => {
   const baseStyles = 'inline-flex items-center gap-1.5 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.15em] rounded-full border';
   
   const variants = {
-    active: 'bg-[var(--color-gold-dim)] text-[var(--color-gold)] border-[var(--color-gold)]',
-    'coming-soon': 'bg-[var(--color-surface)] text-[var(--color-muted)] border-[var(--color-border)]',
+    active: 'bg-gold-dim text-gold border-gold',
+    'coming-soon': 'bg-surface text-muted border-border',
     live: 'bg-red-500/10 text-red-500 border-red-500/30',
-    free: 'bg-[var(--color-cyan-dim)] text-[var(--color-cyan)] border-[var(--color-cyan)]',
+    free: 'bg-cyan-dim text-cyan border-cyan',
   };
 
   return (

@@ -35,7 +35,7 @@ export default function EventCard({
       initial="rest"
       whileHover="hover"
       className={cn(
-        'relative h-[320px] md:h-[480px] w-full rounded-[var(--radius-lg)] overflow-hidden group border border-[var(--color-border)]',
+        'relative h-[320px] md:h-[480px] w-full rounded-lg overflow-hidden group border border-border',
         className
       )}
     >
