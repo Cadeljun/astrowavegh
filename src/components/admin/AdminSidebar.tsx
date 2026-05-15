@@ -1,152 +1,173 @@
+'use client'
 
-'use client';
-
-import React, { useState } from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  LayoutDashboard, 
-  Zap, 
-  Users, 
-  Image, 
-  Upload, 
-  Mail, 
-  Bell, 
-  FileText, 
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import { useAuth } from '@/context/AuthContext'
+import {
+  LayoutDashboard,
+  Zap,
+  Users,
+  Image,
+  Upload,
+  Mail,
+  Bell,
+  FileText,
   LogOut,
-  Menu,
-  X,
-  Edit3
-} from 'lucide-react';
-import { useAuth } from '@/context/AuthContext';
-import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/Button';
+  ExternalLink
+} from 'lucide-react'
 
-const navLinks = [
-  { name: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
-  { name: 'CMS Editor', href: '/admin/cms', icon: Edit3 },
-  { name: 'Events', href: '/admin/events', icon: Zap },
-  { name: 'Talent', href: '/admin/talent', icon: Users },
-  { name: 'Gallery', href: '/admin/gallery', icon: Image },
-  { name: 'Uploads', href: '/admin/uploads', icon: Upload },
-  { name: 'Contacts', href: '/admin/contacts', icon: Mail },
-  { name: 'Waitlist', href: '/admin/waitlist', icon: Bell },
-  { name: 'Inquiries', href: '/admin/inquiries', icon: FileText },
-];
+const navItems = [
+  {
+    label: 'Dashboard',
+    href: '/admin/dashboard',
+    icon: LayoutDashboard
+  },
+  {
+    label: 'Events',
+    href: '/admin/events',
+    icon: Zap
+  },
+  {
+    label: 'Talent',
+    href: '/admin/talent',
+    icon: Users
+  },
+  {
+    label: 'Gallery',
+    href: '/admin/gallery',
+    icon: Image
+  },
+  {
+    label: 'Uploads',
+    href: '/admin/uploads',
+    icon: Upload
+  },
+  {
+    label: 'Contacts',
+    href: '/admin/contacts',
+    icon: Mail
+  },
+  {
+    label: 'Waitlist',
+    href: '/admin/waitlist',
+    icon: Bell
+  },
+  {
+    label: 'Inquiries',
+    href: '/admin/inquiries',
+    icon: FileText
+  }
+]
 
 export default function AdminSidebar() {
-  const pathname = usePathname();
-  const { user, logout } = useAuth();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const pathname = usePathname()
+  const { logout, user } = useAuth()
 
-  const handleLogout = async () => {
-    if (window.confirm('Are you sure you want to sign out?')) {
-      await logout();
-      window.location.href = '/';
-    }
-  };
+  const isActive = (href: string) =>
+    pathname === href || 
+    pathname.startsWith(href + '/')
 
-  const SidebarContent = () => (
-    <div className="flex flex-col h-full py-8 px-4">
-      {/* Top Header */}
-      <div className="mb-10 px-4">
-        <Link href="/admin/dashboard" className="block">
-          <span className="font-display text-[1.5rem] text-gold text-glow-gold">
-            ASTROWAVE
-          </span>
-          <p className="label text-[0.6rem] tracking-[0.1em] mt-1 opacity-60">ADMIN PANEL</p>
-        </Link>
+  return (
+    <aside className="w-[260px] 
+      min-h-screen flex flex-col
+      bg-[#0A0A0F]
+      border-r border-[#1E1E2E]
+      sticky top-0">
+
+      {/* Logo */}
+      <div className="px-6 py-6 
+        border-b border-[#1E1E2E]">
+        <h1 className="font-display 
+          text-2xl text-[#FFD166]"
+          style={{
+            textShadow: '0 0 20px rgba(255,209,102,0.4)'
+          }}
+        >
+          ASTROWAVE
+        </h1>
+        <p className="font-body text-xs 
+          tracking-[0.2em] uppercase 
+          text-[#7B7B9A] mt-1">
+          Admin Panel
+        </p>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 space-y-1">
-        {navLinks.map((link) => {
-          const Icon = link.icon;
-          const isActive = pathname === link.href;
-          
+      <nav className="flex-1 px-3 py-4 
+        flex flex-col gap-1">
+        {navItems.map((item) => {
+          const Icon = item.icon
+          const active = isActive(item.href)
           return (
             <Link
-              key={link.name}
-              href={link.href}
-              onClick={() => setIsMobileMenuOpen(false)}
-              className={cn(
-                "flex items-center gap-3 px-4 py-3 rounded-sm transition-all group",
-                isActive 
-                  ? "bg-gold-dim text-gold border-l-[3px] border-gold" 
-                  : "text-muted hover:bg-white/5 hover:text-white"
-              )}
+              key={item.href}
+              href={item.href}
+              className={`
+                flex items-center gap-3
+                px-3 py-2.5 rounded-md
+                font-body text-sm font-medium
+                transition-all duration-200
+                ${active
+                  ? 'bg-[rgba(255,209,102,0.1)] text-[#FFD166] border-l-[3px] border-[#FFD166] pl-[9px]'
+                  : 'text-[#7B7B9A] hover:text-[#F8F8FF] hover:bg-[rgba(255,255,255,0.04)] border-l-[3px] border-transparent'
+                }
+              `}
             >
-              <Icon size={18} className={cn(isActive ? "text-gold" : "text-muted group-hover:text-white")} />
-              <span className="font-body text-[0.875rem] font-medium">{link.name}</span>
+              <Icon size={18} />
+              {item.label}
             </Link>
-          );
+          )
         })}
       </nav>
 
-      {/* Bottom User Area */}
-      <div className="mt-auto pt-6 border-t border-white/5 space-y-4 px-2">
-        <div className="px-2">
-          <p className="text-[0.7rem] text-muted uppercase tracking-widest font-bold mb-1">SIGNED IN AS</p>
-          <p className="text-[0.75rem] text-white font-body truncate opacity-80" title={user?.email || ''}>
-            {user?.email}
-          </p>
-        </div>
+      {/* Bottom */}
+      <div className="px-3 py-4 
+        border-t border-[#1E1E2E]
+        flex flex-col gap-2">
         
+        {/* View site */}
+        <Link
+          href="/"
+          target="_blank"
+          className="flex items-center gap-3
+            px-3 py-2.5 rounded-md
+            font-body text-sm font-medium
+            text-[#7B7B9A] 
+            hover:text-[#F8F8FF]
+            hover:bg-[rgba(255,255,255,0.04)]
+            transition-all duration-200"
+        >
+          <ExternalLink size={18} />
+          View Site
+        </Link>
+
+        {/* User email */}
+        {user?.email && (
+          <p className="px-3 py-1
+            font-body text-xs 
+            text-[#7B7B9A] truncate"
+            title={user.email}
+          >
+            {user.email}
+          </p>
+        )}
+
+        {/* Sign out */}
         <button
-          onClick={handleLogout}
-          className="flex items-center gap-3 px-4 py-3 w-full rounded-sm text-red-400 hover:bg-red-400/10 transition-all group"
+          onClick={logout}
+          className="flex items-center gap-3
+            px-3 py-2.5 rounded-md
+            font-body text-sm font-medium
+            text-red-400
+            hover:bg-[rgba(239,68,68,0.08)]
+            hover:text-red-300
+            transition-all duration-200
+            w-full text-left"
         >
           <LogOut size={18} />
-          <span className="font-body text-[0.875rem] font-medium">Sign Out</span>
+          Sign Out
         </button>
       </div>
-    </div>
-  );
-
-  return (
-    <>
-      {/* Desktop Sidebar */}
-      <aside className="hidden lg:block w-[260px] bg-dark border-r border-border h-screen sticky top-0 overflow-y-auto">
-        <SidebarContent />
-      </aside>
-
-      {/* Mobile Top Bar */}
-      <div className="lg:hidden fixed top-0 left-0 w-full h-16 bg-dark border-b border-border z-[2000] flex items-center justify-between px-6">
-        <span className="font-display text-[1.2rem] text-gold">ASTROWAVE</span>
-        <button onClick={() => setIsMobileMenuOpen(true)} className="p-2 text-white">
-          <Menu size={24} />
-        </button>
-      </div>
-
-      {/* Mobile Drawer */}
-      <AnimatePresence>
-        {isMobileMenuOpen && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[2001] lg:hidden"
-            />
-            <motion.aside
-              initial={{ x: '-100%' }}
-              animate={{ x: 0 }}
-              exit={{ x: '-100%' }}
-              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="fixed inset-y-0 left-0 w-[280px] bg-dark z-[2002] lg:hidden border-r border-border shadow-2xl"
-            >
-              <div className="absolute top-4 right-4">
-                <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 text-white">
-                  <X size={24} />
-                </button>
-              </div>
-              <SidebarContent />
-            </motion.aside>
-          </>
-        )}
-      </AnimatePresence>
-    </>
-  );
+    </aside>
+  )
 }

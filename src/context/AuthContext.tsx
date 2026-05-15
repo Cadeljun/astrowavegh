@@ -12,6 +12,7 @@ import {
 interface AuthContextType {
   user: User | null;
   loading: boolean;
+  error: string | null;
   isAdmin: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
@@ -23,6 +24,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const auth = useFirebaseCoreAuth();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -33,7 +35,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [auth]);
 
   const login = async (email: string, password: string) => {
-    await signInWithEmailAndPassword(auth, email, password);
+    setError(null);
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+    } catch (err: any) {
+      console.error(err);
+      if (err.code === 'auth/wrong-password') {
+        setError('Incorrect password. Try again.');
+      } else if (err.code === 'auth/user-not-found') {
+        setError('No admin account found.');
+      } else if (err.code === 'auth/too-many-requests') {
+        setError('Too many attempts. Try later.');
+      } else {
+        setError('Authentication failed. Please check your credentials.');
+      }
+      throw err;
+    }
   };
 
   const logout = async () => {
@@ -45,6 +62,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       value={{
         user,
         loading,
+        error,
         isAdmin: !!user,
         login,
         logout,

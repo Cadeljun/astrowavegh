@@ -1,28 +1,61 @@
-'use client';
+'use client'
 
-import React from 'react';
-import AdminGuard from '@/components/admin/AdminGuard';
-import AdminSidebar from '@/components/admin/AdminSidebar';
-import { usePathname } from 'next/navigation';
+import { usePathname } from 'next/navigation'
+import AdminGuard from '@/components/admin/AdminGuard'
+import AdminSidebar from '@/components/admin/AdminSidebar'
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
-  
-  // Don't wrap the login page in the guard/sidebar structure
-  if (pathname === '/admin/login') {
-    return <>{children}</>;
+export default function AdminLayout({ 
+  children 
+}: { 
+  children: React.ReactNode 
+}) {
+  const pathname = usePathname()
+  const isLoginPage = pathname === '/admin/login'
+
+  // Login page has no sidebar or guard
+  if (isLoginPage) {
+    return <>{children}</>
   }
 
   return (
     <AdminGuard>
-      <div className="flex min-h-screen bg-black text-white">
-        <AdminSidebar />
-        <main className="flex-1 p-6 lg:p-12 mt-16 lg:mt-0">
-          <div className="max-w-screen-2xl mx-auto">
-            {children}
+      <div className="flex min-h-screen bg-[#050505]">
+        
+        {/* Sidebar — desktop */}
+        <div className="hidden lg:flex flex-shrink-0">
+          <AdminSidebar />
+        </div>
+
+        {/* Main content */}
+        <div className="flex-1 flex flex-col min-w-0">
+          
+          {/* Mobile top bar */}
+          <div className="flex lg:hidden 
+            items-center justify-between
+            px-4 h-14 sticky top-0 z-50
+            bg-[#0A0A0F] 
+            border-b border-[#1E1E2E]">
+            <span className="font-display 
+              text-xl text-[#FFD166]"
+              style={{
+                textShadow: '0 0 20px rgba(255,209,102,0.4)'
+              }}
+            >
+              ASTROWAVE
+            </span>
+            <span className="font-body 
+              text-xs tracking-widest 
+              uppercase text-[#7B7B9A]">
+              Admin
+            </span>
           </div>
-        </main>
+
+          {/* Page content */}
+          <main className="flex-1 p-6 lg:p-8 overflow-auto">
+            {children}
+          </main>
+        </div>
       </div>
     </AdminGuard>
-  );
+  )
 }

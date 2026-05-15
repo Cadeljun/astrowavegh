@@ -1,138 +1,229 @@
-'use client';
+'use client'
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { motion } from 'framer-motion';
-import { Eye, EyeOff, Loader2, Lock } from 'lucide-react';
-import { useAuth } from '@/context/AuthContext';
-import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
-import { Divider } from '@/components/ui/Divider';
+import { useState, FormEvent } from 'react'
+import { useAuth } from '@/context/AuthContext'
+import { Eye, EyeOff, Lock } from 'lucide-react'
 
 export default function AdminLoginPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const { login } = useAuth();
-  const router = useRouter();
+  const { login, error } = useAuth()
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
-
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault()
+    if (isSubmitting) return
+    setIsSubmitting(true)
     try {
-      await login(email, password);
-      router.push('/admin/dashboard');
-    } catch (err: any) {
-      console.error(err);
-      if (err.code === 'auth/wrong-password') {
-        setError('Incorrect password. Try again.');
-      } else if (err.code === 'auth/user-not-found') {
-        setError('No admin account found.');
-      } else if (err.code === 'auth/too-many-requests') {
-        setError('Too many attempts. Try later.');
-      } else {
-        setError('Authentication failed. Please check your credentials.');
-      }
+      await login(email, password)
+    } catch {
+      // Error handled in AuthContext and accessed via hook
     } finally {
-      setLoading(false);
+      setIsSubmitting(false)
     }
-  };
+  }
 
   return (
-    <div className="fixed inset-0 z-[4000] bg-black flex items-center justify-center p-6 overflow-hidden">
-      {/* Background radial glow */}
-      <div 
-        className="absolute inset-0 z-0 opacity-30"
-        style={{ 
-          background: 'radial-gradient(circle at 50% 50%, rgba(255, 209, 102, 0.1), transparent 50%)' 
+    <div className="min-h-screen 
+      bg-[#050505] flex items-center 
+      justify-center p-4 relative overflow-hidden"
+    >
+      {/* Background glow */}
+      <div className="absolute inset-0 z-0 pointer-events-none"
+        style={{
+          backgroundImage: `radial-gradient(
+            ellipse 60% 40% at 50% 50%,
+            rgba(255,209,102,0.06),
+            transparent 70%
+          )`
         }}
       />
       
-      {/* Grain texture overlay */}
-      <div className="absolute inset-0 pointer-events-none opacity-[0.035] bg-[url('data:image/svg+xml,%3Csvg viewBox=%220 0 256 256%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noise%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.9%22 numOctaves=%224%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noise)%22/%3E%3C/svg%3E')]" />
+      {/* Grain overlay */}
+      <div className="fixed inset-0 
+        opacity-[0.035] pointer-events-none
+        z-10"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`
+        }}
+      />
 
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.4 }}
-        className="relative z-10 w-full max-w-[420px]"
-      >
-        <Card className="p-12 border-t-[3px] border-t-gold" glowColor="gold">
-          <div className="text-center space-y-2 mb-8">
-            <span className="font-display text-[2rem] text-gold text-glow-gold tracking-widest">
+      <div className="relative z-20 
+        w-full max-w-[420px]">
+        
+        {/* Card */}
+        <div className="
+          bg-[rgba(255,255,255,0.03)]
+          backdrop-blur-xl
+          border border-[rgba(255,255,255,0.07)]
+          border-t-[3px] border-t-[#FFD166]
+          rounded-xl p-10 shadow-2xl"
+        >
+          {/* Header */}
+          <div className="text-center mb-8">
+            <h1 className="font-display 
+              text-3xl text-[#FFD166]
+              tracking-wider mb-1"
+              style={{ 
+                textShadow: 
+                  '0 0 20px rgba(255,209,102,0.4)' 
+              }}
+            >
               ASTROWAVE
-            </span>
-            <p className="label tracking-[0.2em] text-[0.7rem]">ADMIN ACCESS</p>
+            </h1>
+            <div className="flex items-center 
+              justify-center gap-2 mt-2">
+              <Lock size={12} 
+                className="text-[#7B7B9A]" />
+              <p className="font-body text-xs 
+                tracking-[0.2em] uppercase 
+                text-[#7B7B9A]">
+                Admin Access
+              </p>
+            </div>
           </div>
 
-          <Divider className="opacity-10 mb-8" />
+          {/* Divider */}
+          <div className="h-px w-full mb-8"
+            style={{
+              background: `linear-gradient(90deg, 
+                transparent, 
+                rgba(255,209,102,0.3), 
+                transparent)`
+            }}
+          />
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-2">
-              <label className="admin-label">Email</label>
+          {/* Form */}
+          <form onSubmit={handleSubmit}
+            className="flex flex-col gap-5">
+            
+            {/* Email */}
+            <div className="flex flex-col gap-2">
+              <label className="font-body 
+                text-xs font-semibold 
+                tracking-[0.1em] uppercase 
+                text-[#7B7B9A]">
+                Email
+              </label>
               <input
-                required
                 type="email"
-                className="admin-input"
-                placeholder="admin@astrowave.live"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={e => setEmail(e.target.value)}
+                required
+                placeholder="admin@astrowave.com"
+                className="w-full 
+                  bg-[rgba(255,255,255,0.04)]
+                  border border-[#1E1E2E]
+                  rounded-md px-4 py-3
+                  font-body text-[0.95rem]
+                  text-[#F8F8FF]
+                  placeholder:text-[#7B7B9A]
+                  outline-none
+                  transition-all duration-200
+                  focus:border-[#FFD166]
+                  focus:shadow-[0_0_0_3px_rgba(255,209,102,0.15)]"
               />
             </div>
 
-            <div className="space-y-2">
-              <label className="admin-label">Password</label>
+            {/* Password */}
+            <div className="flex flex-col gap-2">
+              <label className="font-body 
+                text-xs font-semibold 
+                tracking-[0.1em] uppercase 
+                text-[#7B7B9A]">
+                Password
+              </label>
               <div className="relative">
                 <input
-                  required
                   type={showPassword ? 'text' : 'password'}
-                  className="admin-input pr-12"
-                  placeholder="••••••••"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={e => setPassword(e.target.value)}
+                  required
+                  placeholder="••••••••••"
+                  className="w-full
+                    bg-[rgba(255,255,255,0.04)]
+                    border border-[#1E1E2E]
+                    rounded-md px-4 py-3 pr-12
+                    font-body text-[0.95rem]
+                    text-[#F8F8FF]
+                    placeholder:text-[#7B7B9A]
+                    outline-none
+                    transition-all duration-200
+                    focus:border-[#FFD166]
+                    focus:shadow-[0_0_0_3px_rgba(255,209,102,0.15)]"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-muted hover:text-gold transition-colors"
+                  className="absolute right-3 
+                    top-1/2 -translate-y-1/2
+                    text-[#7B7B9A] 
+                    hover:text-[#F8F8FF]
+                    transition-colors"
                 >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
             </div>
 
-            <Button
-              disabled={loading}
+            {/* Error message */}
+            {error && (
+              <div className="
+                bg-[rgba(239,68,68,0.1)]
+                border border-[rgba(239,68,68,0.3)]
+                rounded-md px-4 py-3">
+                <p className="font-body 
+                  text-sm text-red-400">
+                  {error}
+                </p>
+              </div>
+            )}
+
+            {/* Submit */}
+            <button
               type="submit"
-              size="lg"
-              className="w-full mt-4"
+              disabled={isSubmitting}
+              className="w-full mt-2
+                bg-transparent
+                border border-[#FFD166]
+                text-[#FFD166]
+                font-body font-semibold
+                text-sm tracking-widest 
+                uppercase
+                py-3 px-6 rounded-md
+                transition-all duration-200
+                hover:bg-[#FFD166] 
+                hover:text-black
+                hover:shadow-[0_0_20px_rgba(255,209,102,0.4)]
+                disabled:opacity-50
+                disabled:cursor-not-allowed
+                flex items-center 
+                justify-center gap-2"
             >
-              {loading ? (
+              {isSubmitting ? (
                 <>
-                  <Loader2 size={18} className="animate-spin mr-2" />
-                  SIGNING IN...
+                  <span className="w-4 h-4 
+                    rounded-full border-2 
+                    border-current 
+                    border-t-transparent 
+                    animate-spin" 
+                  />
+                  Signing In...
                 </>
               ) : (
-                'SIGN IN'
+                'Sign In'
               )}
-            </Button>
-
-            {error && (
-              <motion.p
-                initial={{ opacity: 0, y: -4 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="text-center text-xs text-red-500 font-body"
-              >
-                {error}
-              </motion.p>
-            )}
+            </button>
           </form>
-        </Card>
-      </motion.div>
+        </div>
+
+        {/* Footer note */}
+        <p className="text-center mt-6 
+          font-body text-xs text-[#7B7B9A]">
+          AstroWave Admin — Restricted Access
+        </p>
+      </div>
     </div>
-  );
+  )
 }
