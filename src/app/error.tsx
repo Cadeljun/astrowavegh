@@ -51,9 +51,11 @@ export default function Error({
         className="flex flex-col sm:flex-row gap-4"
       >
         <Button size="lg" onClick={() => reset()}>REFRESH</Button>
-        <Button size="lg" variant="secondary" asChild>
-          <Link href="/">GO HOME</Link>
-        </Button>
+        <Link href="/">
+          <Button size="lg" variant="secondary">
+            GO HOME
+          </Button>
+        </Link>
       </motion.div>
     </div>
   );

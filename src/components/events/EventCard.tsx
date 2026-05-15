@@ -82,9 +82,11 @@ export default function EventCard({
             {description}
           </p>
 
-          <Button variant="primary" size="sm" asChild className="mt-2">
-            <Link href="/contact">Get Tickets</Link>
-          </Button>
+          <Link href="/contact">
+            <Button variant="primary" size="sm" className="mt-2">
+              Get Tickets
+            </Button>
+          </Link>
         </div>
       </div>
     </motion.div>

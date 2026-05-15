@@ -88,9 +88,11 @@ export default function Navbar() {
               })}
             </div>
 
-            <Button variant="primary" size="sm" asChild>
-              <Link href="/contact">Book Now</Link>
-            </Button>
+            <Link href="/contact">
+              <Button variant="primary" size="sm">
+                Book Now
+              </Button>
+            </Link>
           </div>
 
           {/* Mobile Toggle */}
@@ -158,9 +160,11 @@ export default function Navbar() {
                 transition={{ delay: navLinks.length * 0.08 }}
                 className="mt-8"
               >
-                <Button variant="primary" size="lg" asChild className="px-12">
-                  <Link href="/contact">Book Now</Link>
-                </Button>
+                <Link href="/contact">
+                  <Button variant="primary" size="lg" className="px-12">
+                    Book Now
+                  </Button>
+                </Link>
               </motion.div>
             </div>
 

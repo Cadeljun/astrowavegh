@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -60,11 +59,11 @@ function MaintenancePage() {
   );
 }
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+/**
+ * AppShell handles logic that requires Firebase/Auth/CMS context.
+ * It is rendered inside the providers defined in RootLayout.
+ */
+function AppShell({ children }: { children: React.ReactNode }) {
   const [isLoaded, setIsLoaded] = useState(false);
   const pathname = usePathname();
   const isAdminRoute = pathname?.startsWith('/admin') || pathname?.startsWith('/dev');
@@ -80,32 +79,46 @@ export default function RootLayout({
   const isMaintenance = settings?.maintenanceMode && !isAdminRoute;
 
   return (
+    <>
+      <AnimatePresence mode="wait">
+        {!isLoaded && <LoadingScreen key="loader" />}
+      </AnimatePresence>
+      
+      {isMaintenance ? (
+        <MaintenancePage />
+      ) : (
+        <>
+          {!isAdminRoute && <Navbar />}
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+          >
+            <main className={!isAdminRoute ? "pt-[64px] lg:pt-[72px] min-h-[calc(100vh-64px)] lg:min-h-[calc(100vh-72px)]" : ""}>
+              {children}
+            </main>
+          </motion.div>
+          {!isAdminRoute && <Footer />}
+          {!isAdminRoute && <ScrollToTop />}
+        </>
+      )}
+    </>
+  );
+}
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
     <html lang="en" suppressHydrationWarning className={`${bebasNeue.variable} ${outfit.variable}`}>
       <body className="font-body antialiased bg-black text-white min-h-screen">
         <FirebaseClientProvider>
           <AuthProvider>
-            <AnimatePresence mode="wait">
-              {!isLoaded && <LoadingScreen key="loader" />}
-            </AnimatePresence>
-            
-            {isMaintenance ? (
-              <MaintenancePage />
-            ) : (
-              <>
-                {!isAdminRoute && <Navbar />}
-                <motion.div
-                  initial={{ opacity: 0, y: 16 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, ease: "easeOut" }}
-                >
-                  <main className={!isAdminRoute ? "pt-[64px] lg:pt-[72px] min-h-[calc(100vh-64px)] lg:min-h-[calc(100vh-72px)]" : ""}>
-                    {children}
-                  </main>
-                </motion.div>
-                {!isAdminRoute && <Footer />}
-                {!isAdminRoute && <ScrollToTop />}
-              </>
-            )}
+            <AppShell>
+              {children}
+            </AppShell>
             <Toaster />
           </AuthProvider>
         </FirebaseClientProvider>

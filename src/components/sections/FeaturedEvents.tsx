@@ -54,9 +54,9 @@ export default function FeaturedEvents() {
         </motion.div>
 
         <div className="flex justify-center">
-          <Button variant="ghost" asChild>
-            <Link href="/events">VIEW ALL EVENTS &rarr;</Link>
-          </Button>
+          <Link href="/events">
+            <Button variant="ghost">VIEW ALL EVENTS &rarr;</Button>
+          </Link>
         </div>
       </div>
     </section>

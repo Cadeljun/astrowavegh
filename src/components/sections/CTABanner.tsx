@@ -58,12 +58,12 @@ export default function CTABanner() {
           viewport={{ once: true }}
           transition={{ delay: 0.4 }}
         >
-          <Button variant="primary" size="lg" asChild className="w-full sm:w-auto">
-            <Link href="/contact">BOOK AN EVENT</Link>
-          </Button>
-          <Button variant="secondary" size="lg" asChild className="w-full sm:w-auto">
-            <Link href="/contact">JOIN THE MOVEMENT</Link>
-          </Button>
+          <Link href="/contact" className="w-full sm:w-auto">
+            <Button variant="primary" size="lg" className="w-full">BOOK AN EVENT</Button>
+          </Link>
+          <Link href="/contact" className="w-full sm:w-auto">
+            <Button variant="secondary" size="lg" className="w-full">JOIN THE MOVEMENT</Button>
+          </Link>
         </motion.div>
       </div>
     </section>

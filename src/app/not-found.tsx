@@ -31,9 +31,11 @@ export default function NotFound() {
         animate={{ opacity: 1 }}
         transition={{ delay: 0.4 }}
       >
-        <Button size="lg" asChild>
-          <Link href="/">BACK TO ASTROWAVE</Link>
-        </Button>
+        <Link href="/">
+          <Button size="lg">
+            BACK TO ASTROWAVE
+          </Button>
+        </Link>
       </motion.div>
     </div>
   );

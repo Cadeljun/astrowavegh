@@ -43,11 +43,11 @@ export default function AboutTeaser() {
             boldest talents — we exist where music, culture, and ambition collide.
           </p>
 
-          <Button variant="ghost" asChild className="group">
-            <Link href="/about" className="flex items-center gap-2">
+          <Link href="/about">
+            <Button variant="ghost" className="group flex items-center gap-2">
               DISCOVER ASTROWAVE &rarr;
-            </Link>
-          </Button>
+            </Button>
+          </Link>
         </motion.div>
 
         {/* Right Column */}

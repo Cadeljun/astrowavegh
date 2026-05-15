@@ -19,7 +19,7 @@ const talent = [
     name: 'DJ Void',
     role: 'DJ' as const,
     bio: 'Pushing boundaries with futuristic house and electronic rhythms. A staple of the AstroWave night.',
-    imageUrl: 'https://images.unsplash.com/photo-1516280440614-37939bbacd81?q=80&w=400&h=400&auto=format&fit=crop'
+    imageUrl: 'https://images.unsplash.com/photo-1516280440614-37939bbacd81?q=80&w=400&h=500&auto=format&fit=crop'
   },
   {
     name: 'Uzy',
@@ -59,9 +59,9 @@ export default function TalentTeaser() {
         </motion.div>
 
         <div className="flex justify-center">
-          <Button variant="ghost" asChild>
-            <Link href="/management">MEET THE FULL ROSTER &rarr;</Link>
-          </Button>
+          <Link href="/management">
+            <Button variant="ghost">MEET THE FULL ROSTER &rarr;</Button>
+          </Link>
         </div>
       </div>
     </section>
