@@ -1,7 +1,7 @@
+
 'use client';
 
 import React from 'react';
-import Link from 'next/navigation';
 import { notFound, usePathname } from 'next/navigation';
 import { 
   Package, 
@@ -13,11 +13,13 @@ import {
   PlusCircle, 
   Eye,
   Terminal,
-  ChevronRight
+  ChevronRight,
+  Edit3
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const links = [
+  { name: 'CMS Editor', href: '/admin/cms', icon: Edit3 },
   { name: 'Components', href: '/dev/components', icon: Package },
   { name: 'Colors', href: '/dev/colors', icon: Palette },
   { name: 'Typography', href: '/dev/typography', icon: Type },

@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState } from 'react';
@@ -15,7 +16,8 @@ import {
   FileText, 
   LogOut,
   Menu,
-  X
+  X,
+  Edit3
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { cn } from '@/lib/utils';
@@ -23,6 +25,7 @@ import { Button } from '@/components/ui/Button';
 
 const navLinks = [
   { name: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
+  { name: 'CMS Editor', href: '/admin/cms', icon: Edit3 },
   { name: 'Events', href: '/admin/events', icon: Zap },
   { name: 'Talent', href: '/admin/talent', icon: Users },
   { name: 'Gallery', href: '/admin/gallery', icon: Image },

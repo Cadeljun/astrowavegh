@@ -1,8 +1,9 @@
+
 'use client';
 
 import React, { useState } from 'react';
 import { useFirestore } from '@/firebase';
-import { collection, addDoc, serverTimestamp, deleteDoc, getDocs } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, deleteDoc, getDocs, doc, setDoc } from 'firebase/firestore';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { AlertTriangle, Terminal, Database, Loader2, CheckCircle } from 'lucide-react';
@@ -16,6 +17,59 @@ export default function DevSeedPage() {
   const [confirmDelete, setConfirmDelete] = useState('');
 
   const addLog = (msg: string) => setLogs(prev => [...prev, `[${new Date().toLocaleTimeString()}] ${msg}`]);
+
+  const seedCMS = async () => {
+    setLoading(true);
+    addLog('Starting CMS seed...');
+    try {
+      // Seed Settings
+      await setDoc(doc(db, 'cms_settings', 'global'), {
+        siteName: 'AstroWave',
+        tagline: 'Vibes Beyond the Horizon.',
+        email: 'info@astrowave.live',
+        location: 'Accra, Ghana',
+        maintenanceMode: false,
+        updatedAt: serverTimestamp()
+      });
+      addLog('✓ Seeded Global Settings');
+
+      // Seed Home Content
+      await setDoc(doc(db, 'cms_content', 'home_hero'), {
+        pageSlug: 'home',
+        sectionKey: 'hero',
+        fields: {
+          label: "AFRICA'S CREATIVE POWERHOUSE",
+          heading: "ASTROWAVE",
+          tagline: "Vibes Beyond the Horizon.",
+          cta1: "Explore Events",
+          cta2: "Our Story"
+        },
+        updatedAt: serverTimestamp()
+      });
+      addLog('✓ Seeded Home Hero Content');
+
+      // Seed Home Sections
+      await setDoc(doc(db, 'cms_sections', 'home'), {
+        pageSlug: 'home',
+        sections: [
+          { key: 'hero', label: 'Hero Section', order: 0, visible: true },
+          { key: 'about_teaser', label: 'About Teaser', order: 1, visible: true },
+          { key: 'ecosystem', label: 'Ecosystem', order: 2, visible: true },
+          { key: 'events', label: 'Featured Events', order: 3, visible: true },
+          { key: 'talent', label: 'Talent Teaser', order: 4, visible: true },
+          { key: 'cta_banner', label: 'CTA Banner', order: 5, visible: true },
+        ],
+        updatedAt: serverTimestamp()
+      });
+      addLog('✓ Seeded Home Sections Order');
+
+      toast({ title: 'CMS Defaults Seeded' });
+    } catch (e: any) {
+      addLog(`ERR: ${e.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const seedEvents = async () => {
     setLoading(true);
@@ -38,32 +92,12 @@ export default function DevSeedPage() {
     }
   };
 
-  const seedTalent = async () => {
-    setLoading(true);
-    addLog('Starting Talent seed...');
-    try {
-      const talent = [
-        { name: 'DJ Horizon', role: 'DJ', active: true, bio: 'Vibes beyond the horizon.', stageName: 'Horizon' },
-        { name: 'Uzy', role: 'Artist', active: true, bio: 'The heartbeat of the wave.', stageName: 'Uzy' }
-      ];
-      for (const t of talent) {
-        await addDoc(collection(db, 'talent'), { ...t, createdAt: serverTimestamp() });
-        addLog(`✓ Added talent: ${t.name}`);
-      }
-      toast({ title: 'Talent Seeded' });
-    } catch (e: any) {
-      addLog(`ERR: ${e.message}`);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const clearAll = async () => {
     if (confirmDelete !== 'DELETE') return;
     setLoading(true);
     addLog('⚠ Wiping database...');
     try {
-      const colls = ['events', 'talent', 'contacts', 'waitlist', 'talent_inquiries', 'gallery', 'uploads'];
+      const colls = ['events', 'talent', 'contacts', 'waitlist', 'talent_inquiries', 'gallery', 'uploads', 'cms_content', 'cms_sections', 'cms_seo', 'cms_settings'];
       for (const c of colls) {
         const snap = await getDocs(collection(db, c));
         for (const d of snap.docs) {
@@ -94,14 +128,14 @@ export default function DevSeedPage() {
         <section className="space-y-6">
           <h3 className="text-xs font-bold text-gold uppercase tracking-[0.4em]">Seeding Tools</h3>
           <div className="grid grid-cols-1 gap-4">
+            <Button variant="secondary" className="justify-start border-white/5 h-14" onClick={seedCMS} disabled={loading}>
+               SEED CMS DEFAULTS
+            </Button>
             <Button variant="secondary" className="justify-start border-white/5 h-14" onClick={seedEvents} disabled={loading}>
                SEED EVENTS (3 DOCS)
             </Button>
-            <Button variant="secondary" className="justify-start border-white/5 h-14" onClick={seedTalent} disabled={loading}>
-               SEED TALENT (2 DOCS)
-            </Button>
-            <Button variant="ghost" className="justify-start border border-gold/20 text-gold h-14" onClick={() => { seedEvents(); seedTalent(); }}>
-               SEED ALL (SEQUENTIAL)
+            <Button variant="ghost" className="justify-start border border-gold/20 text-gold h-14" onClick={() => { seedCMS(); seedEvents(); }}>
+               SEED ALL
             </Button>
           </div>
 
@@ -110,7 +144,7 @@ export default function DevSeedPage() {
              <Card className="p-8 border-red-500/20 space-y-6" glowColor="muted">
                 <div className="space-y-2">
                   <p className="text-[10px] text-red-400 uppercase font-bold tracking-widest">Clear All Data</p>
-                  <p className="text-[10px] text-muted">This will delete all documents in managed collections.</p>
+                  <p className="text-[10px] text-muted">This will delete all documents including CMS content.</p>
                 </div>
                 <input 
                   type="text" 
