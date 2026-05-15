@@ -4,12 +4,18 @@ import {
   collection, 
   query, 
   getDocs, 
+  getDoc,
   limit, 
   orderBy, 
   where, 
+  doc,
+  addDoc,
+  updateDoc,
+  deleteDoc,
   Timestamp,
   QueryConstraint,
-  getCountFromServer
+  getCountFromServer,
+  serverTimestamp
 } from 'firebase/firestore'
 import { initializeFirebase } from '@/firebase'
 
@@ -57,6 +63,50 @@ export async function countDocuments(path: string) {
   const colRef = collection(db, path)
   const snap = await getCountFromServer(colRef)
   return snap.data().count
+}
+
+/**
+ * Deletes a document from a collection.
+ */
+export async function deleteDocument(path: string, id: string) {
+  const { firestore: db } = initializeFirebase()
+  const docRef = doc(db, path, id)
+  return deleteDoc(docRef)
+}
+
+/**
+ * Updates a document in a collection.
+ */
+export async function updateDocument(path: string, id: string, data: any) {
+  const { firestore: db } = initializeFirebase()
+  const docRef = doc(db, path, id)
+  return updateDoc(docRef, { 
+    ...data, 
+    updatedAt: serverTimestamp() 
+  })
+}
+
+/**
+ * Adds a new document to a collection.
+ */
+export async function addDocument(path: string, data: any) {
+  const { firestore: db } = initializeFirebase()
+  const colRef = collection(db, path)
+  return addDoc(colRef, {
+    ...data,
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp()
+  })
+}
+
+/**
+ * Fetches a single document by ID.
+ */
+export async function getDocument(path: string, id: string) {
+  const { firestore: db } = initializeFirebase()
+  const docRef = doc(db, path, id)
+  const snap = await getDoc(docRef)
+  return snap.exists() ? { id: snap.id, ...snap.data() } : null
 }
 
 /**

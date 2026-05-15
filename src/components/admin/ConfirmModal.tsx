@@ -1,83 +1,110 @@
-'use client';
+'use client'
 
-import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { AlertTriangle, X } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
+import { AlertTriangle, X } from 'lucide-react'
 
 interface ConfirmModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onConfirm: () => void;
-  title?: string;
-  message: string;
-  confirmLabel?: string;
-  isDestructive?: boolean;
+  title: string
+  message: string
+  onConfirm: () => void
+  onCancel: () => void
+  confirmLabel?: string
+  danger?: boolean
 }
 
 export default function ConfirmModal({
-  isOpen,
-  onClose,
-  onConfirm,
-  title = "ARE YOU SURE?",
+  title,
   message,
-  confirmLabel = "DELETE",
-  isDestructive = true,
+  onConfirm,
+  onCancel,
+  confirmLabel = 'Delete',
+  danger = true
 }: ConfirmModalProps) {
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <div className="fixed inset-0 z-[5000] flex items-center justify-center p-6">
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
-            className="absolute inset-0 bg-black/80 backdrop-blur-sm"
-          />
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            className="relative z-10 w-full max-w-[400px] glass p-8 border-t-2 border-t-red-500"
-          >
-            <button
-              onClick={onClose}
-              className="absolute top-4 right-4 text-muted hover:text-white transition-colors"
-            >
-              <X size={20} />
-            </button>
+    <div className="fixed inset-0 z-[9999]
+      flex items-center justify-center p-4"
+    >
+      {/* Overlay */}
+      <div
+        className="absolute inset-0 
+          bg-black/70 backdrop-blur-sm"
+        onClick={onCancel}
+      />
 
-            <div className="flex flex-col items-center text-center space-y-4">
-              <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center text-red-500">
-                <AlertTriangle size={32} />
-              </div>
-              
-              <div className="space-y-2">
-                <h3 className="font-display text-[1.5rem] text-white uppercase tracking-wider">{title}</h3>
-                <p className="font-body text-sm text-muted leading-relaxed">
-                  {message}
-                </p>
-              </div>
+      {/* Modal */}
+      <div className="relative z-10
+        w-full max-w-md
+        bg-[#16161F]
+        border border-[#1E1E2E]
+        rounded-xl p-6
+        shadow-2xl">
 
-              <div className="grid grid-cols-2 gap-4 w-full pt-4">
-                <Button variant="ghost" onClick={onClose}>
-                  CANCEL
-                </Button>
-                <Button
-                  className={isDestructive ? "bg-red-500 border-red-500 text-white hover:bg-red-600" : ""}
-                  onClick={() => {
-                    onConfirm();
-                    onClose();
-                  }}
-                >
-                  {confirmLabel}
-                </Button>
-              </div>
-            </div>
-          </motion.div>
+        {/* Close */}
+        <button
+          onClick={onCancel}
+          className="absolute top-4 right-4
+            text-[#7B7B9A] 
+            hover:text-[#F8F8FF]
+            transition-colors"
+        >
+          <X size={18} />
+        </button>
+
+        {/* Icon */}
+        <div className="flex justify-center mb-4">
+          <div className="w-14 h-14 rounded-full
+            bg-[rgba(239,68,68,0.1)]
+            flex items-center justify-center">
+            <AlertTriangle size={28} 
+              className="text-red-400" 
+            />
+          </div>
         </div>
-      )}
-    </AnimatePresence>
-  );
+
+        {/* Content */}
+        <h3 className="font-display text-2xl 
+          text-[#F8F8FF] uppercase 
+          text-center mb-3">
+          {title}
+        </h3>
+        <p className="font-body text-sm 
+          text-[#7B7B9A] text-center 
+          leading-relaxed mb-6">
+          {message}
+        </p>
+
+        {/* Buttons */}
+        <div className="flex gap-3">
+          <button
+            onClick={onCancel}
+            className="flex-1 py-2.5 px-4
+              border border-[#1E1E2E]
+              rounded-md
+              font-body text-sm 
+              font-semibold uppercase
+              tracking-wider
+              text-[#7B7B9A]
+              hover:text-[#F8F8FF]
+              hover:border-[#7B7B9A]
+              transition-all"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            className="flex-1 py-2.5 px-4
+              bg-red-500
+              hover:bg-red-600
+              rounded-md
+              font-body text-sm 
+              font-semibold uppercase
+              tracking-wider
+              text-white
+              transition-all"
+          >
+            {confirmLabel}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
 }
