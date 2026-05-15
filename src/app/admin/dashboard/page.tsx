@@ -1,249 +1,507 @@
-'use client';
+'use client'
 
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { motion } from 'framer-motion';
-import { 
-  Zap, 
-  CalendarCheck, 
-  Users, 
-  Mail, 
-  Bell, 
-  FileText, 
-  Plus, 
-  UserPlus, 
-  Upload, 
-  ExternalLink,
-  Clock as ClockIcon,
-  ChevronRight
-} from 'lucide-react';
-import { collection, getDocs, query, where, orderBy, limit, getCountFromServer } from 'firebase/firestore';
-import { useFirestore, useCollection } from '@/firebase';
-import { Card } from '@/components/ui/Card';
-import { SectionLabel } from '@/components/ui/SectionLabel';
-import { Button } from '@/components/ui/Button';
-import { format } from 'date-fns';
+import { useEffect, useState } from 'react'
+import Link from 'next/link'
+import {
+  Zap, Users, Mail, Bell,
+  FileText, CalendarCheck,
+  Plus, UserPlus, Upload,
+  ExternalLink
+} from 'lucide-react'
+import {
+  getCollection,
+  getRecentDocuments,
+  getDocumentsSince,
+  formatTimestamp
+} from '@/lib/firebase/helpers'
+import { orderBy, where } from 'firebase/firestore'
 
-export default function AdminDashboardPage() {
-  const db = useFirestore();
-  const router = useRouter();
-  const [currentTime, setCurrentTime] = useState(new Date());
-  const [counts, setCounts] = useState({
-    totalEvents: 0,
-    activeEvents: 0,
-    talent: 0,
-    newContacts: 0,
-    waitlist: 0,
-    inquiries: 0,
-  });
-  const [loading, setLoading] = useState(true);
+interface StatCardProps {
+  icon: React.ReactNode
+  value: number | string
+  label: string
+  accentColor: string
+  loading: boolean
+}
 
-  // Fetch Stats
-  useEffect(() => {
-    async function fetchCounts() {
-      try {
-        const [
-          totalEventsSnap,
-          activeEventsSnap,
-          talentSnap,
-          waitlistSnap,
-          inquiriesSnap,
-          contactsSnap
-        ] = await Promise.all([
-          getCountFromServer(collection(db, 'events')),
-          getCountFromServer(query(collection(db, 'events'), where('active', '==', true))),
-          getCountFromServer(collection(db, 'talent')),
-          getCountFromServer(collection(db, 'waitlist')),
-          getCountFromServer(collection(db, 'talent_inquiries')),
-          getCountFromServer(collection(db, 'contacts'))
-        ]);
-
-        setCounts({
-          totalEvents: totalEventsSnap.data().count,
-          activeEvents: activeEventsSnap.data().count,
-          talent: talentSnap.data().count,
-          waitlist: waitlistSnap.data().count,
-          inquiries: inquiriesSnap.data().count,
-          newContacts: contactsSnap.data().count,
-        });
-      } catch (error) {
-        console.error("Error fetching dashboard counts:", error);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchCounts();
-
-    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
-    return () => clearInterval(timer);
-  }, [db]);
-
-  // Recent data
-  const { data: recentContacts } = useCollection(
-    query(collection(db, 'contacts'), orderBy('timestamp', 'desc'), limit(5))
-  );
-  const { data: recentInquiries } = useCollection(
-    query(collection(db, 'talent_inquiries'), orderBy('timestamp', 'desc'), limit(5))
-  );
-
-  const stats = [
-    { label: 'Total Events', value: counts.totalEvents, icon: Zap, color: 'gold' },
-    { label: 'Active Events', value: counts.activeEvents, icon: CalendarCheck, color: 'cyan' },
-    { label: 'Talent Roster', value: counts.talent, icon: Users, color: 'purple' },
-    { label: 'All Contacts', value: counts.newContacts, icon: Mail, color: 'gold' },
-    { label: 'Waitlist', value: counts.waitlist, icon: Bell, color: 'purple' },
-    { label: 'Inquiries', value: counts.inquiries, icon: FileText, color: 'cyan' },
-  ];
-
-  const quickActions = [
-    { label: 'ADD EVENT', icon: Plus, href: '/admin/events/new', color: 'gold' },
-    { label: 'ADD TALENT', icon: UserPlus, href: '/admin/talent', color: 'purple' },
-    { label: 'UPLOAD MEDIA', icon: Upload, href: '/admin/uploads', color: 'cyan' },
-    { label: 'VIEW SITE', icon: ExternalLink, href: '/', color: 'muted', external: true },
-  ];
+function StatCard({ 
+  icon, value, label, 
+  accentColor, loading 
+}: StatCardProps) {
+  if (loading) {
+    return (
+      <div className="
+        bg-[#16161F] border border-[#1E1E2E]
+        rounded-xl p-5 animate-pulse">
+        <div className="w-8 h-8 
+          bg-[#1E1E2E] rounded mb-3" />
+        <div className="w-16 h-8 
+          bg-[#1E1E2E] rounded mb-2" />
+        <div className="w-24 h-3 
+          bg-[#1E1E2E] rounded" />
+      </div>
+    )
+  }
 
   return (
-    <div className="space-y-10 pb-20">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-        <div className="admin-page-header mb-0">
-          <h1 className="admin-page-title">Dashboard</h1>
-          <p className="admin-page-subtitle">Welcome back, AstroWave Admin.</p>
+    <div 
+      className="
+        bg-[#16161F] border border-[#1E1E2E]
+        rounded-xl p-5
+        hover:border-opacity-60
+        transition-all duration-200
+        group"
+      style={{
+        borderBottomColor: accentColor,
+        borderBottomWidth: '2px'
+      }}
+    >
+      <div className="mb-3"
+        style={{ color: accentColor }}>
+        {icon}
+      </div>
+      <p className="font-display text-4xl 
+        text-[#F8F8FF] leading-none mb-1">
+        {value}
+      </p>
+      <p className="font-body text-xs 
+        tracking-[0.15em] uppercase 
+        text-[#7B7B9A]">
+        {label}
+      </p>
+    </div>
+  )
+}
+
+function RecentTable({
+  title,
+  items,
+  columns,
+  viewAllHref,
+  loading,
+  emptyMessage
+}: {
+  title: string
+  items: any[]
+  columns: { 
+    key: string
+    label: string
+    render?: (item: any) => React.ReactNode
+  }[]
+  viewAllHref: string
+  loading: boolean
+  emptyMessage: string
+}) {
+  return (
+    <div className="
+      bg-[#16161F] border border-[#1E1E2E]
+      rounded-xl overflow-hidden h-full">
+      
+      {/* Header */}
+      <div className="px-5 py-4 
+        border-b border-[#1E1E2E]
+        flex items-center justify-between">
+        <h3 className="font-body text-sm 
+          font-semibold tracking-[0.1em] 
+          uppercase text-[#7B7B9A]">
+          {title}
+        </h3>
+        <Link href={viewAllHref}
+          className="font-body text-xs 
+            text-[#FFD166] 
+            hover:underline 
+            tracking-wider uppercase">
+          View All →
+        </Link>
+      </div>
+
+      {/* Content */}
+      {loading ? (
+        <div className="p-5 space-y-3">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} 
+              className="h-10 bg-[#1E1E2E] 
+                rounded animate-pulse" 
+            />
+          ))}
         </div>
-        <div className="flex items-center gap-3 px-4 py-2 rounded-sm bg-white/5 border border-white/5 text-muted">
-          <ClockIcon size={16} className="text-gold" />
-          <span className="font-body text-sm font-medium tabular-nums">
-            {format(currentTime, 'PPP • HH:mm:ss')}
-          </span>
+      ) : items.length === 0 ? (
+        <div className="p-8 text-center">
+          <p className="font-body text-sm 
+            text-[#7B7B9A]">
+            {emptyMessage}
+          </p>
+        </div>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="
+                border-b border-[#1E1E2E]">
+                {columns.map(col => (
+                  <th key={col.key}
+                    className="px-5 py-3 
+                      text-left font-body 
+                      text-xs font-semibold
+                      tracking-[0.15em] 
+                      uppercase 
+                      text-[#7B7B9A]">
+                    {col.label}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {items.map((item, i) => (
+                <tr key={item.id || i}
+                  className="
+                    border-b 
+                    border-[rgba(255,255,255,0.04)]
+                    hover:bg-[rgba(255,255,255,0.02)]
+                    transition-colors">
+                  {columns.map(col => (
+                    <td key={col.key}
+                      className="px-5 py-3.5
+                        font-body text-sm 
+                        text-[#F8F8FF]">
+                      {col.render
+                        ? col.render(item)
+                        : item[col.key] ?? '—'
+                      }
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  )
+}
+
+interface DashboardStats {
+  totalEvents: number
+  activeEvents: number
+  totalTalent: number
+  newContacts: number
+  totalWaitlist: number
+  totalInquiries: number
+}
+
+export default function AdminDashboard() {
+  const [stats, setStats] = 
+    useState<DashboardStats>({
+      totalEvents: 0,
+      activeEvents: 0,
+      totalTalent: 0,
+      newContacts: 0,
+      totalWaitlist: 0,
+      totalInquiries: 0
+    })
+  const [statsLoading, setStatsLoading] = 
+    useState(true)
+
+  const [recentContacts, setRecentContacts] = 
+    useState<any[]>([])
+  const [recentInquiries, setRecentInquiries] = 
+    useState<any[]>([])
+  const [tablesLoading, setTablesLoading] = 
+    useState(true)
+
+  const [currentTime, setCurrentTime] = 
+    useState(new Date())
+
+  // Live clock
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(new Date())
+    }, 1000)
+    return () => clearInterval(interval)
+  }, [])
+
+  // Load stats
+  useEffect(() => {
+    async function loadStats() {
+      try {
+        const [
+          allEvents,
+          activeEventsData,
+          allTalent,
+          recentContactsData,
+          allWaitlist,
+          allInquiries
+        ] = await Promise.all([
+          getCollection('events'),
+          getCollection('events', [
+            where('active', '==', true)
+          ]),
+          getCollection('talent'),
+          getDocumentsSince('contacts', 7).catch(() => []), // fallback if index missing
+          getCollection('waitlist'),
+          getCollection('talent_inquiries')
+        ])
+
+        setStats({
+          totalEvents: allEvents.length,
+          activeEvents: activeEventsData.length,
+          totalTalent: allTalent.length,
+          newContacts: recentContactsData.length,
+          totalWaitlist: allWaitlist.length,
+          totalInquiries: allInquiries.length
+        })
+      } catch (error) {
+        console.error('Error loading stats:', error)
+      } finally {
+        setStatsLoading(false)
+      }
+    }
+    loadStats()
+  }, [])
+
+  // Load recent tables
+  useEffect(() => {
+    async function loadTables() {
+      try {
+        const [contacts, inquiries] = 
+          await Promise.all([
+            getRecentDocuments('contacts', 5),
+            getRecentDocuments('talent_inquiries', 5)
+          ])
+        setRecentContacts(contacts)
+        setRecentInquiries(inquiries)
+      } catch (error) {
+        console.error('Error loading recent data:', error)
+      } finally {
+        setTablesLoading(false)
+      }
+    }
+    loadTables()
+  }, [])
+
+  // Format date for display
+  const formatDate = (date: Date) =>
+    new Intl.DateTimeFormat('en-GB', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    }).format(date)
+
+  const formatTime = (date: Date) =>
+    new Intl.DateTimeFormat('en-GB', {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false
+    }).format(date)
+
+  return (
+    <div className="max-w-7xl mx-auto pb-10">
+
+      {/* Page Header */}
+      <div className="flex items-start 
+        justify-between mb-8 flex-wrap gap-4">
+        <div>
+          <h1 className="font-display 
+            text-4xl text-[#F8F8FF] uppercase">
+            Dashboard
+          </h1>
+          <p className="font-body text-sm 
+            text-[#7B7B9A] mt-1">
+            Welcome back, AstroWave Admin
+          </p>
+        </div>
+        <div className="text-right">
+          <p className="font-display text-2xl 
+            text-[#FFD166]">
+            {formatTime(currentTime)}
+          </p>
+          <p className="font-body text-xs 
+            text-[#7B7B9A] mt-0.5">
+            {formatDate(currentTime)}
+          </p>
         </div>
       </div>
 
-      {/* Stats Row */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-        {stats.map((stat, i) => {
-          const Icon = stat.icon;
-          return (
-            <motion.div
-              key={stat.label}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.05 }}
-            >
-              <Card className="p-6 relative border-b-2" style={{ borderBottomColor: `var(--color-${stat.color})` }} glowColor={stat.color as any}>
-                <div className="space-y-4">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center bg-${stat.color}-dim text-${stat.color}`}>
-                    <Icon size={16} />
-                  </div>
-                  <div className="space-y-1">
-                    <p className="font-display text-[2.2rem] leading-none text-white">
-                      {loading ? '...' : stat.value}
-                    </p>
-                    <p className="admin-label text-[0.6rem] m-0">{stat.label}</p>
-                  </div>
-                </div>
-              </Card>
-            </motion.div>
-          );
-        })}
+      {/* Stats Grid */}
+      <div className="grid grid-cols-2 
+        lg:grid-cols-3 xl:grid-cols-6 
+        gap-4 mb-8">
+        <StatCard
+          icon={<Zap size={22} />}
+          value={stats.totalEvents}
+          label="Total Events"
+          accentColor="#FFD166"
+          loading={statsLoading}
+        />
+        <StatCard
+          icon={<CalendarCheck size={22} />}
+          value={stats.activeEvents}
+          label="Active Events"
+          accentColor="#06B6D4"
+          loading={statsLoading}
+        />
+        <StatCard
+          icon={<Users size={22} />}
+          value={stats.totalTalent}
+          label="Talent Roster"
+          accentColor="#A855F7"
+          loading={statsLoading}
+        />
+        <StatCard
+          icon={<Mail size={22} />}
+          value={stats.newContacts}
+          label="New Contacts"
+          accentColor="#FFD166"
+          loading={statsLoading}
+        />
+        <StatCard
+          icon={<Bell size={22} />}
+          value={stats.totalWaitlist}
+          label="Waitlist"
+          accentColor="#A855F7"
+          loading={statsLoading}
+        />
+        <StatCard
+          icon={<FileText size={22} />}
+          value={stats.totalInquiries}
+          label="Inquiries"
+          accentColor="#06B6D4"
+          loading={statsLoading}
+        />
       </div>
 
-      {/* Main Content Area */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Recent Contacts */}
-        <Card className="p-8 space-y-6" glowColor="muted">
-          <div className="flex items-center justify-between">
-            <SectionLabel className="m-0">RECENT CONTACTS</SectionLabel>
-            <Button variant="ghost" size="sm" onClick={() => router.push('/admin/contacts')}>
-              VIEW ALL <ChevronRight size={14} className="ml-1" />
-            </Button>
-          </div>
-          <div className="overflow-hidden">
-            <table className="admin-table">
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Subject</th>
-                  <th className="text-right">Date</th>
-                </tr>
-              </thead>
-              <tbody>
-                {recentContacts?.map((contact: any) => (
-                  <tr key={contact.id} className="cursor-pointer" onClick={() => router.push('/admin/contacts')}>
-                    <td className="font-medium">{contact.name}</td>
-                    <td><span className="text-xs px-2 py-0.5 rounded-full bg-white/5 border border-white/5">{contact.subject}</span></td>
-                    <td className="text-right text-muted text-xs">
-                      {contact.timestamp ? format(contact.timestamp.toDate(), 'MMM d') : '...'}
-                    </td>
-                  </tr>
-                ))}
-                {(!recentContacts || recentContacts.length === 0) && (
-                  <tr>
-                    <td colSpan={3} className="py-10 text-center text-muted italic">No contacts yet.</td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </Card>
-
-        {/* Talent Inquiries */}
-        <Card className="p-8 space-y-6" glowColor="muted">
-          <div className="flex items-center justify-between">
-            <SectionLabel className="m-0">TALENT INQUIRIES</SectionLabel>
-            <Button variant="ghost" size="sm" onClick={() => router.push('/admin/inquiries')}>
-              VIEW ALL <ChevronRight size={14} className="ml-1" />
-            </Button>
-          </div>
-          <div className="overflow-hidden">
-            <table className="admin-table">
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Role</th>
-                  <th className="text-right">Date</th>
-                </tr>
-              </thead>
-              <tbody>
-                {recentInquiries?.map((inquiry: any) => (
-                  <tr key={inquiry.id} className="cursor-pointer" onClick={() => router.push('/admin/inquiries')}>
-                    <td className="font-medium">{inquiry.name}</td>
-                    <td><span className="text-xs px-2 py-0.5 rounded-full bg-purple-dim text-purple border border-purple/20">{inquiry.role}</span></td>
-                    <td className="text-right text-muted text-xs">
-                      {inquiry.timestamp ? format(inquiry.timestamp.toDate(), 'MMM d') : '...'}
-                    </td>
-                  </tr>
-                ))}
-                {(!recentInquiries || recentInquiries.length === 0) && (
-                  <tr>
-                    <td colSpan={3} className="py-10 text-center text-muted italic">No inquiries yet.</td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </Card>
+      {/* Quick Actions */}
+      <div className="grid grid-cols-2 
+        lg:grid-cols-4 gap-4 mb-8">
+        {[
+          {
+            label: 'Add Event',
+            href: '/admin/events/new',
+            icon: <Plus size={20} />,
+            color: '#FFD166'
+          },
+          {
+            label: 'Add Talent',
+            href: '/admin/talent/new',
+            icon: <UserPlus size={20} />,
+            color: '#A855F7'
+          },
+          {
+            label: 'Upload Media',
+            href: '/admin/uploads',
+            icon: <Upload size={20} />,
+            color: '#06B6D4'
+          },
+          {
+            label: 'View Site',
+            href: '/',
+            icon: <ExternalLink size={20} />,
+            color: '#7B7B9A',
+            external: true
+          }
+        ].map((action) => (
+          <Link
+            key={action.href}
+            href={action.href}
+            target={action.external ? '_blank' : undefined}
+            className="
+              bg-[#16161F] 
+              border border-[#1E1E2E]
+              rounded-xl p-5
+              flex items-center gap-3
+              hover:border-opacity-60
+              hover:bg-[rgba(255,255,255,0.02)]
+              hover:border-[#FFD166]
+              transition-all duration-200
+              group"
+          >
+            <span style={{ color: action.color }}>
+              {action.icon}
+            </span>
+            <span className="font-body 
+              text-sm font-semibold 
+              tracking-wider uppercase
+              text-[#7B7B9A] 
+              group-hover:text-[#F8F8FF]
+              transition-colors">
+              {action.label}
+            </span>
+          </Link>
+        ))}
       </div>
 
-      {/* Quick Actions Row */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {quickActions.map((action) => {
-          const Icon = action.icon;
-          return (
-            <motion.button
-              key={action.label}
-              whileHover={{ y: -4 }}
-              onClick={() => action.external ? window.open(action.href, '_blank') : router.push(action.href)}
-              className="w-full"
-            >
-              <Card className="p-8 text-center space-y-4" glowColor={action.color as any}>
-                <div className={`mx-auto w-12 h-12 rounded-sm flex items-center justify-center bg-${action.color}-dim text-${action.color}`}>
-                  <Icon size={24} />
-                </div>
-                <p className="font-display text-xl tracking-wider text-white">{action.label}</p>
-              </Card>
-            </motion.button>
-          );
-        })}
+      {/* Recent Tables */}
+      <div className="grid grid-cols-1 
+        lg:grid-cols-2 gap-6">
+        
+        <RecentTable
+          title="Recent Contacts"
+          items={recentContacts}
+          loading={tablesLoading}
+          viewAllHref="/admin/contacts"
+          emptyMessage="No contacts yet."
+          columns={[
+            { key: 'name', label: 'Name' },
+            {
+              key: 'subject',
+              label: 'Subject',
+              render: (item) => (
+                <span className="
+                  text-xs text-[#7B7B9A]">
+                  {item.subject}
+                </span>
+              )
+            },
+            {
+              key: 'createdAt',
+              label: 'Date',
+              render: (item) => (
+                <span className="
+                  text-xs text-[#7B7B9A]">
+                  {formatTimestamp(item.createdAt)}
+                </span>
+              )
+            }
+          ]}
+        />
+
+        <RecentTable
+          title="Talent Inquiries"
+          items={recentInquiries}
+          loading={tablesLoading}
+          viewAllHref="/admin/inquiries"
+          emptyMessage="No inquiries yet."
+          columns={[
+            { key: 'name', label: 'Name' },
+            {
+              key: 'role',
+              label: 'Role',
+              render: (item) => (
+                <span className="
+                  text-xs px-2 py-0.5 
+                  rounded-full
+                  bg-[rgba(168,85,247,0.15)]
+                  text-[#A855F7]
+                  border border-[rgba(168,85,247,0.3)]">
+                  {item.role}
+                </span>
+              )
+            },
+            {
+              key: 'createdAt',
+              label: 'Date',
+              render: (item) => (
+                <span className="
+                  text-xs text-[#7B7B9A]">
+                  {formatTimestamp(item.createdAt)}
+                </span>
+              )
+            }
+          ]}
+        />
       </div>
     </div>
-  );
+  )
 }
