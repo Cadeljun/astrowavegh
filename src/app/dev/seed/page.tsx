@@ -8,6 +8,8 @@ import { Card } from '@/components/ui/Card';
 import { AlertTriangle, Terminal, Database, Loader2, CheckCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
 import Link from 'next/link';
 
 export default function DevSeedPage() {
@@ -20,21 +22,35 @@ export default function DevSeedPage() {
 
   const addLog = (msg: string) => setLogs(prev => [...prev, `[${new Date().toLocaleTimeString()}] ${msg}`]);
 
+  const handlePermissionError = (path: string, operation: any, data?: any) => {
+    const error = new FirestorePermissionError({
+      path,
+      operation,
+      requestResourceData: data,
+    } satisfies SecurityRuleContext);
+    errorEmitter.emit('permission-error', error);
+  };
+
   const seedCMS = async () => {
     setLoading(true);
     addLog('Starting CMS seed...');
     try {
-      await setDoc(doc(db, 'cms_settings', 'global'), {
+      const settingsRef = doc(db, 'cms_settings', 'global');
+      await setDoc(settingsRef, {
         siteName: 'AstroWave',
         tagline: 'Vibes Beyond the Horizon.',
         email: 'info@astrowave.live',
         location: 'Accra, Ghana',
         maintenanceMode: false,
         updatedAt: serverTimestamp()
+      }).catch(err => {
+        handlePermissionError(settingsRef.path, 'write');
+        throw err;
       });
       addLog('✓ Seeded Global Settings');
 
-      await setDoc(doc(db, 'cms_content', 'home_hero'), {
+      const heroRef = doc(db, 'cms_content', 'home_hero');
+      await setDoc(heroRef, {
         pageSlug: 'home',
         sectionKey: 'hero',
         fields: {
@@ -45,6 +61,9 @@ export default function DevSeedPage() {
           cta2: "Our Story"
         },
         updatedAt: serverTimestamp()
+      }).catch(err => {
+        handlePermissionError(heroRef.path, 'write');
+        throw err;
       });
       addLog('✓ Seeded Home Hero Content');
 
@@ -65,8 +84,12 @@ export default function DevSeedPage() {
         { name: 'Splash & Seduction', category: 'Parties', date: '2025-08-10T12:00', venue: 'Aqua Safari Resort', active: true, shortDescription: 'The ultimate day-to-night experience.' },
         { name: 'Underground Frequency', category: 'Concerts', date: '2025-12-15T20:00', venue: 'Base Lounge', active: false, shortDescription: 'Raw African energy.' }
       ];
+      const colRef = collection(db, 'events');
       for (const e of events) {
-        await addDoc(collection(db, 'events'), { ...e, createdAt: serverTimestamp() });
+        await addDoc(colRef, { ...e, createdAt: serverTimestamp() }).catch(err => {
+          handlePermissionError(colRef.path, 'create', e);
+          throw err;
+        });
         addLog(`✓ Added event: ${e.name}`);
       }
       toast({ title: 'Events Seeded' });
@@ -84,9 +107,16 @@ export default function DevSeedPage() {
     try {
       const colls = ['events', 'talent', 'contacts', 'waitlist', 'talent_inquiries', 'gallery', 'uploads', 'cms_content', 'cms_sections', 'cms_seo', 'cms_settings'];
       for (const c of colls) {
-        const snap = await getDocs(collection(db, c));
+        const colRef = collection(db, c);
+        const snap = await getDocs(colRef).catch(err => {
+          handlePermissionError(colRef.path, 'list');
+          throw err;
+        });
         for (const d of snap.docs) {
-          await deleteDoc(d.ref);
+          await deleteDoc(d.ref).catch(err => {
+            handlePermissionError(d.ref.path, 'delete');
+            throw err;
+          });
         }
         addLog(`✓ Cleared collection: ${c}`);
       }
