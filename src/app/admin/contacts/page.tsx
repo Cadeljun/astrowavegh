@@ -223,12 +223,11 @@ export default function AdminContactsPage() {
         onDelete={(id) => setDeleteId(id)}
       />
 
-      <ConfirmModal
-        isOpen={!!deleteId}
+      {deleteId && <ConfirmModal
         onClose={() => setDeleteId(null)}
         onConfirm={handleDelete}
         message="This message will be permanently removed from your records."
-      />
+      />}
     </div>
   );
 }
