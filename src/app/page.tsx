@@ -31,6 +31,7 @@ const CTABanner = dynamic(() => import('@/components/sections/CTABanner'), {
 export default function Home() {
   return (
     <div className="flex flex-col w-full">
+      <h1 className="sr-only">ASTROWAVE | Ghana&apos;s Creative Entertainment Powerhouse</h1>
       <HeroSection />
       <AboutTeaser />
       <EcosystemSection />

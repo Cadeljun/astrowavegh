@@ -2,16 +2,15 @@
 
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Calendar, MapPin, Search, PlusCircle, Lock } from 'lucide-react';
+import { Calendar, MapPin } from 'lucide-react';
 import { collection, query, where } from 'firebase/firestore';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { SectionLabel } from '@/components/ui/SectionLabel';
 import { SectionHeading } from '@/components/ui/SectionHeading';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
-import { Card } from '@/components/ui/Card';
-import { Divider } from '@/components/ui/Divider';
 import EventCard from '@/components/events/EventCard';
+import EventSchema from '@/components/seo/EventSchema';
 import { fadeUp, fadeIn, staggerContainer, scaleIn } from '@/lib/animations';
 import { cn } from '@/lib/utils';
 
@@ -36,7 +35,28 @@ export default function EventsPage() {
   }, [events, activeTab]);
 
   return (
-    <div className="flex flex-col w-full">
+    <article className="flex flex-col w-full">
+      <h1 className="sr-only">Events in Accra, Ghana | AstroWave Parties & Nightlife</h1>
+      
+      {/* Event Schema for primary experiences */}
+      <EventSchema
+        name="Mask Mirage"
+        description="A mysterious high-energy nightlife experience centered around masks, identity, music and fashion in Accra, Ghana."
+        startDate="2025-12-31T20:00:00"
+        location="Accra, Ghana"
+        imageUrl="https://images.unsplash.com/photo-1514525253361-bee8a187449b?q=80&w=1200&h=800&auto=format&fit=crop"
+        url="https://astrowave.com/events"
+      />
+
+      <EventSchema
+        name="Splash & Seduction All Day Party"
+        description="Daytime pool vibes collide with nighttime energy in one complete lifestyle experience in Accra, Ghana."
+        startDate="2025-12-31T12:00:00"
+        location="Accra, Ghana"
+        imageUrl="https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?q=80&w=1200&h=800&auto=format&fit=crop"
+        url="https://astrowave.com/events"
+      />
+
       {/* SECTION 1: HERO */}
       <section className="relative h-[60vh] w-full flex items-center justify-center overflow-hidden bg-black">
         <div 
@@ -53,14 +73,14 @@ export default function EventsPage() {
           <motion.div variants={fadeIn} initial="hidden" animate="show">
             <SectionLabel className="justify-center">LIVE EXPERIENCES</SectionLabel>
           </motion.div>
-          <motion.h1 
+          <motion.h2 
             variants={fadeUp} 
             initial="hidden" 
             animate="show" 
             className="display-xl text-glow-gold mb-4"
           >
             THE EVENTS
-          </motion.h1>
+          </motion.h2>
           <motion.p 
             variants={fadeUp} 
             initial="hidden" 
@@ -75,7 +95,7 @@ export default function EventsPage() {
       </section>
 
       {/* SECTION 2: FILTER TABS */}
-      <div className="sticky top-[64px] lg:top-[72px] z-[100] bg-black/80 backdrop-blur-xl border-b border-border-dark py-4 px-6 lg:px-12 overflow-x-auto scrollbar-hide">
+      <nav className="sticky top-[64px] lg:top-[72px] z-[100] bg-black/80 backdrop-blur-xl border-b border-border-dark py-4 px-6 lg:px-12 overflow-x-auto scrollbar-hide">
         <div className="max-w-screen-2xl mx-auto flex items-center justify-start lg:justify-center gap-4">
           {categories.map((cat) => (
             <button
@@ -92,7 +112,7 @@ export default function EventsPage() {
             </button>
           ))}
         </div>
-      </div>
+      </nav>
 
       {/* SECTION 3: FEATURED SPOTLIGHT */}
       <section className="py-24 px-6 lg:px-12 bg-black space-y-12">
@@ -112,7 +132,7 @@ export default function EventsPage() {
             <div className="absolute inset-0 bg-gradient-to-r from-black via-black/60 to-transparent z-10" />
             <div className="relative z-20 h-full flex flex-col justify-center px-8 lg:px-20 max-w-3xl space-y-6">
               <Badge variant="active" className="w-fit bg-purple-dim text-purple border-purple">NIGHTLIFE</Badge>
-              <h2 className="display-xl text-white text-glow-purple tracking-tighter">MASK MIRAGE</h2>
+              <h3 className="display-xl text-white text-glow-purple tracking-tighter">MASK MIRAGE</h3>
               <p className="body-md text-white font-medium italic opacity-90 tracking-widest uppercase">"Identity. Music. Mystery."</p>
               <div className="flex flex-wrap items-center gap-6 text-muted text-sm font-medium">
                 <span className="flex items-center gap-2"><Calendar size={16} className="text-purple" /> TBA 2025</span>
@@ -143,7 +163,7 @@ export default function EventsPage() {
             <div className="absolute inset-0 bg-gradient-to-r from-black via-black/60 to-transparent z-10" />
             <div className="relative z-20 h-full flex flex-col justify-center px-8 lg:px-20 max-w-3xl space-y-6">
               <Badge variant="active" className="w-fit bg-cyan-dim text-cyan border-cyan">ALL DAY PARTY</Badge>
-              <h2 className="display-xl text-white text-glow-cyan tracking-tighter">SPLASH & SEDUCTION</h2>
+              <h3 className="display-xl text-white text-glow-cyan tracking-tighter">SPLASH & SEDUCTION</h3>
               <p className="body-md text-white font-medium italic opacity-90 tracking-widest uppercase">"Sun. Pool. Vibes. Night."</p>
               <div className="flex flex-wrap items-center gap-6 text-muted text-sm font-medium">
                 <span className="flex items-center gap-2"><Calendar size={16} className="text-cyan" /> TBA 2025</span>
@@ -232,7 +252,7 @@ export default function EventsPage() {
               >
                 <img 
                   src={`https://picsum.photos/seed/${i + 50}/600/600`} 
-                  alt="Past Event"
+                  alt="AstroWave past event memory from Accra Ghana"
                   className="w-full h-full object-cover grayscale transition-all duration-500 group-hover:grayscale-0 group-hover:scale-110"
                 />
                 <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center text-center p-4">
@@ -271,6 +291,6 @@ export default function EventsPage() {
           </Card>
         </motion.div>
       </section>
-    </div>
+    </article>
   );
 }

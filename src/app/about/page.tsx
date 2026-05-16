@@ -55,7 +55,7 @@ export default function AboutPage() {
             animate="show" 
             className="display-2xl text-glow-purple mb-6 whitespace-pre-line"
           >
-            THE WAVE{'\n'}BEGINS HERE.
+            THE WAVE BEGINS HERE.
           </motion.h1>
           <motion.p 
             variants={fadeUp} 
@@ -76,7 +76,7 @@ export default function AboutPage() {
         <div className="max-w-screen-2xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
           <motion.div variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }}>
             <SectionLabel>OUR STORY</SectionLabel>
-            <h2 className="display-md mb-8">From a Vision{'\n'}To a Movement.</h2>
+            <h2 className="display-md mb-8">From a Vision To a Movement.</h2>
             <div className="space-y-6 text-muted body-lg">
               <p>
                 AstroWave was founded by Calvin Mensah Delali, known as Uzy — a visionary creative with a passion for music, culture, and the energy of African youth.
@@ -94,7 +94,7 @@ export default function AboutPage() {
             <Card className="p-10 border-t-2 border-t-gold bg-card relative overflow-hidden group">
               <span className="absolute -top-4 -right-4 text-[10rem] font-display text-gold opacity-[0.05] leading-none pointer-events-none">"</span>
               <p className="font-display text-[2rem] md:text-[2.5rem] text-white leading-tight mb-8">
-                "WE'RE NOT JUST BUILDING A BRAND. WE'RE BUILDING A GENERATION."
+                "WE&apos;RE NOT JUST BUILDING A BRAND. WE&apos;RE BUILDING A GENERATION."
               </p>
               <div className="flex flex-col">
                 <span className="font-body font-bold text-white">— Calvin Mensah Delali (Uzy)</span>
@@ -115,7 +115,7 @@ export default function AboutPage() {
               <Eye size={32} className="text-gold mb-6" />
               <h3 className="display-md mb-4 text-white">OUR VISION</h3>
               <p className="body-md text-muted">
-                To become Africa's leading creative powerhouse — uniting music, culture, and innovation to inspire, entertain, and empower the next generation.
+                To become Africa&apos;s leading creative powerhouse — uniting music, culture, and innovation to inspire, entertain, and empower the next generation.
               </p>
             </Card>
           </motion.div>

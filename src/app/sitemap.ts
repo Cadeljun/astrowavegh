@@ -1,8 +1,12 @@
-import { MetadataRoute } from 'next'
+import { MetadataRoute } from 'next';
 
+/**
+ * Generates the sitemap.xml for the AstroWave platform.
+ * Ensuring all public pages are discoverable by search engines.
+ */
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://astrowave.live'
-  const lastModified = new Date()
+  const baseUrl = 'https://astrowave.com';
+  const lastModified = new Date();
 
   return [
     {
@@ -14,38 +18,38 @@ export default function sitemap(): MetadataRoute.Sitemap {
     {
       url: `${baseUrl}/events`,
       lastModified,
-      changeFrequency: 'weekly',
-      priority: 0.9,
+      changeFrequency: 'daily',
+      priority: 0.95,
     },
     {
       url: `${baseUrl}/management`,
       lastModified,
       changeFrequency: 'weekly',
-      priority: 0.8,
+      priority: 0.85,
     },
     {
       url: `${baseUrl}/about`,
       lastModified,
-      changeFrequency: 'weekly',
+      changeFrequency: 'monthly',
       priority: 0.8,
     },
     {
       url: `${baseUrl}/contact`,
       lastModified,
-      changeFrequency: 'weekly',
+      changeFrequency: 'monthly',
       priority: 0.7,
     },
     {
       url: `${baseUrl}/records`,
       lastModified,
-      changeFrequency: 'weekly',
-      priority: 0.5,
+      changeFrequency: 'monthly',
+      priority: 0.4,
     },
     {
       url: `${baseUrl}/cares`,
       lastModified,
-      changeFrequency: 'weekly',
-      priority: 0.5,
+      changeFrequency: 'monthly',
+      priority: 0.4,
     },
-  ]
+  ];
 }

@@ -21,7 +21,6 @@ import { SectionLabel } from '@/components/ui/SectionLabel';
 import { SectionHeading } from '@/components/ui/SectionHeading';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
-import { Divider } from '@/components/ui/Divider';
 import TalentCard from '@/components/talent/TalentCard';
 import { fadeUp, fadeIn, staggerContainer, scaleIn, heroTextReveal } from '@/lib/animations';
 import { cn } from '@/lib/utils';
@@ -114,7 +113,6 @@ export default function ManagementPage() {
             background: 'radial-gradient(ellipse 70% 50% at 50% 50%, rgba(168, 85, 247, 0.12), transparent 70%)' 
           }}
         />
-        {/* Grain overlay is global via body::before */}
         
         <div className="absolute inset-0 flex items-center justify-center z-0 pointer-events-none select-none">
           <span className="font-display text-[20rem] text-white opacity-[0.02] leading-none tracking-tighter hidden lg:block">
@@ -132,7 +130,7 @@ export default function ManagementPage() {
             animate="show" 
             className="display-xl text-glow-purple mb-6 whitespace-pre-line"
           >
-            ASTROWAVE{'\n'}MANAGEMENT
+            ASTROWAVE MANAGEMENT
           </motion.h1>
           <motion.p 
             variants={fadeUp} 
@@ -259,39 +257,29 @@ export default function ManagementPage() {
             </div>
           </motion.div>
 
-          <motion.div 
-            variants={staggerContainer} 
-            initial="hidden" 
-            whileInView="show" 
-            viewport={{ once: true }} 
-            className="space-y-6"
-          >
-            <motion.div variants={fadeIn}>
-              <Card className="p-10 relative overflow-hidden group">
-                <span className="absolute -top-4 -right-4 text-7xl font-display text-gold opacity-[0.05] leading-none pointer-events-none">"</span>
-                <p className="body-lg text-white font-medium mb-6 italic leading-relaxed">
-                  "AstroWave didn&apos;t just book me shows. They built my brand from the ground up."
-                </p>
-                <div className="flex flex-col">
-                  <span className="font-body font-bold text-white uppercase tracking-widest text-sm">— DJ Horizon</span>
-                  <span className="font-body text-muted text-xs uppercase tracking-widest">AstroWave DJ</span>
-                </div>
-              </Card>
-            </motion.div>
+          <div className="space-y-6">
+            <Card className="p-10 relative overflow-hidden group">
+              <span className="absolute -top-4 -right-4 text-7xl font-display text-gold opacity-[0.05] leading-none pointer-events-none">"</span>
+              <p className="body-lg text-white font-medium mb-6 italic leading-relaxed">
+                "AstroWave didn&apos;t just book me shows. They built my brand from the ground up."
+              </p>
+              <div className="flex flex-col">
+                <span className="font-body font-bold text-white uppercase tracking-widest text-sm">— DJ Horizon</span>
+                <span className="font-body text-muted text-xs uppercase tracking-widest">AstroWave DJ</span>
+              </div>
+            </Card>
 
-            <motion.div variants={fadeIn} transition={{ delay: 0.2 }}>
-              <Card className="p-10 relative overflow-hidden group">
-                <span className="absolute -top-4 -right-4 text-7xl font-display text-purple opacity-[0.05] leading-none pointer-events-none">"</span>
-                <p className="body-lg text-white font-medium mb-6 italic leading-relaxed">
-                  "The support, strategy, and network AstroWave brings is unmatched in Ghana&apos;s creative scene."
-                </p>
-                <div className="flex flex-col">
-                  <span className="font-body font-bold text-white uppercase tracking-widest text-sm">— Uzy</span>
-                  <span className="font-body text-muted text-xs uppercase tracking-widest">AstroWave Artist</span>
-                </div>
-              </Card>
-            </motion.div>
-          </motion.div>
+            <Card className="p-10 relative overflow-hidden group">
+              <span className="absolute -top-4 -right-4 text-7xl font-display text-purple opacity-[0.05] leading-none pointer-events-none">"</span>
+              <p className="body-lg text-white font-medium mb-6 italic leading-relaxed">
+                "The support, strategy, and network AstroWave brings is unmatched in Ghana&apos;s creative scene."
+              </p>
+              <div className="flex flex-col">
+                <span className="font-body font-bold text-white uppercase tracking-widest text-sm">— Uzy</span>
+                <span className="font-body text-muted text-xs uppercase tracking-widest">AstroWave Artist</span>
+              </div>
+            </Card>
+          </div>
         </div>
       </section>
 

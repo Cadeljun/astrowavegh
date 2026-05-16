@@ -10,7 +10,8 @@ import { staggerContainer, fadeUp } from '@/lib/animations';
 
 export default function Footer() {
   return (
-    <footer className="bg-[var(--color-dark)] border-t border-[var(--color-border)] pt-20 pb-10 px-6 lg:px-12">
+    <footer className="bg-[var(--color-dark)] border-t border-[var(--color-border)] pt-20 pb-10 px-6 lg:px-12" aria-labelledby="footer-heading">
+      <h2 id="footer-heading" className="sr-only">Footer</h2>
       <div className="max-w-screen-2xl mx-auto">
         <motion.div 
           variants={staggerContainer}
@@ -27,7 +28,7 @@ export default function Footer() {
               </span>
             </Link>
             <p className="font-body italic text-[0.9rem] text-[var(--color-muted)]">
-              "Vibes Beyond the Horizon."
+              &quot;Vibes Beyond the Horizon.&quot;
             </p>
             <p className="font-body text-[0.85rem] leading-relaxed text-[var(--color-muted)] max-w-[280px]">
               Africa&apos;s next-generation creative entertainment powerhouse — music, events, talent, and culture.
@@ -38,6 +39,7 @@ export default function Footer() {
                   key={i} 
                   href="#" 
                   className="text-[var(--color-muted)] hover:text-[var(--color-gold)] transition-all duration-300"
+                  aria-label={`Visit AstroWave on ${Icon.name}`}
                 >
                   <Icon size={18} />
                 </Link>
@@ -46,7 +48,7 @@ export default function Footer() {
           </motion.div>
 
           {/* Column 2 — Quick Links */}
-          <motion.div variants={fadeUp} className="space-y-6">
+          <motion.nav variants={fadeUp} className="space-y-6" aria-label="Footer Quick Links">
             <SectionLabel className="mb-0">Explore</SectionLabel>
             <ul className="flex flex-col gap-4">
               {['Home', 'About', 'Events', 'Management', 'Contact'].map((link) => (
@@ -60,10 +62,10 @@ export default function Footer() {
                 </li>
               ))}
             </ul>
-          </motion.div>
+          </motion.nav>
 
           {/* Column 3 — Divisions */}
-          <motion.div variants={fadeUp} className="space-y-6">
+          <motion.nav variants={fadeUp} className="space-y-6" aria-label="Footer Divisions">
             <SectionLabel className="mb-0">Divisions</SectionLabel>
             <ul className="flex flex-col gap-4">
               <li>
@@ -87,7 +89,7 @@ export default function Footer() {
                 </Link>
               </li>
             </ul>
-          </motion.div>
+          </motion.nav>
 
           {/* Column 4 — Get In Touch */}
           <motion.div variants={fadeUp} className="space-y-6">
