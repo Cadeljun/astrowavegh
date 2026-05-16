@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState } from 'react';
@@ -8,9 +7,12 @@ import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { AlertTriangle, Terminal, Database, Loader2, CheckCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/context/AuthContext';
+import Link from 'next/link';
 
 export default function DevSeedPage() {
   const db = useFirestore();
+  const { isAdmin, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [logs, setLogs] = useState<string[]>([]);
@@ -22,7 +24,6 @@ export default function DevSeedPage() {
     setLoading(true);
     addLog('Starting CMS seed...');
     try {
-      // Seed Settings
       await setDoc(doc(db, 'cms_settings', 'global'), {
         siteName: 'AstroWave',
         tagline: 'Vibes Beyond the Horizon.',
@@ -33,7 +34,6 @@ export default function DevSeedPage() {
       });
       addLog('✓ Seeded Global Settings');
 
-      // Seed Home Content
       await setDoc(doc(db, 'cms_content', 'home_hero'), {
         pageSlug: 'home',
         sectionKey: 'hero',
@@ -47,21 +47,6 @@ export default function DevSeedPage() {
         updatedAt: serverTimestamp()
       });
       addLog('✓ Seeded Home Hero Content');
-
-      // Seed Home Sections
-      await setDoc(doc(db, 'cms_sections', 'home'), {
-        pageSlug: 'home',
-        sections: [
-          { key: 'hero', label: 'Hero Section', order: 0, visible: true },
-          { key: 'about_teaser', label: 'About Teaser', order: 1, visible: true },
-          { key: 'ecosystem', label: 'Ecosystem', order: 2, visible: true },
-          { key: 'events', label: 'Featured Events', order: 3, visible: true },
-          { key: 'talent', label: 'Talent Teaser', order: 4, visible: true },
-          { key: 'cta_banner', label: 'CTA Banner', order: 5, visible: true },
-        ],
-        updatedAt: serverTimestamp()
-      });
-      addLog('✓ Seeded Home Sections Order');
 
       toast({ title: 'CMS Defaults Seeded' });
     } catch (e: any) {
@@ -113,6 +98,50 @@ export default function DevSeedPage() {
       setLoading(false);
     }
   };
+
+  if (authLoading) return (
+    <div className="flex items-center 
+      justify-center min-h-[400px]">
+      <div className="w-8 h-8 rounded-full 
+        border-2 border-[#FFD166] 
+        border-t-transparent animate-spin" 
+      />
+    </div>
+  )
+
+  if (!isAdmin) return (
+    <div className="max-w-md mx-auto 
+      mt-16 text-center">
+      <div className="bg-[#16161F] 
+        border border-[#1E1E2E] 
+        rounded-xl p-8">
+        <h2 className="font-display 
+          text-2xl text-[#FFD166] 
+          uppercase mb-3">
+          Authentication Required
+        </h2>
+        <p className="font-mono text-xs 
+          text-white/40 mb-6">
+          You must be signed in as admin 
+          to seed data.
+        </p>
+        <Link 
+          href="/admin/login"
+          className="inline-flex items-center 
+            gap-2 px-6 py-3 rounded-md
+            border border-[#FFD166]
+            text-[#FFD166]
+            font-mono text-xs uppercase
+            tracking-wider
+            hover:bg-[#FFD166] 
+            hover:text-black
+            transition-all"
+        >
+          Sign In to Admin
+        </Link>
+      </div>
+    </div>
+  )
 
   return (
     <div className="space-y-12 pb-20">

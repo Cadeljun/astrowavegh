@@ -8,13 +8,14 @@ import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Database, Terminal as TerminalIcon, Search, Trash2, PlusCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import Link from 'next/link';
 
 const COLLECTIONS = [
   'events', 'talent', 'contacts', 'waitlist', 'talent_inquiries', 'gallery', 'uploads'
 ];
 
 export default function DevFirebasePage() {
-  const { user } = useAuth();
+  const { user, isAdmin, loading: authLoading } = useAuth();
   const { toast } = useToast();
   
   const [selectedCol, setSelectedCol] = useState(COLLECTIONS[0]);
@@ -63,6 +64,50 @@ export default function DevFirebasePage() {
       setLoading(false);
     }
   };
+
+  if (authLoading) return (
+    <div className="flex items-center 
+      justify-center min-h-[400px]">
+      <div className="w-8 h-8 rounded-full 
+        border-2 border-[#FFD166] 
+        border-t-transparent animate-spin" 
+      />
+    </div>
+  )
+
+  if (!isAdmin) return (
+    <div className="max-w-md mx-auto 
+      mt-16 text-center">
+      <div className="bg-[#16161F] 
+        border border-[#1E1E2E] 
+        rounded-xl p-8">
+        <h2 className="font-display 
+          text-2xl text-[#FFD166] 
+          uppercase mb-3">
+          Authentication Required
+        </h2>
+        <p className="font-mono text-xs 
+          text-white/40 mb-6">
+          You must be signed in as admin 
+          to perform Firestore operations.
+        </p>
+        <Link 
+          href="/admin/login"
+          className="inline-flex items-center 
+            gap-2 px-6 py-3 rounded-md
+            border border-[#FFD166]
+            text-[#FFD166]
+            font-mono text-xs uppercase
+            tracking-wider
+            hover:bg-[#FFD166] 
+            hover:text-black
+            transition-all"
+        >
+          Sign In to Admin
+        </Link>
+      </div>
+    </div>
+  )
 
   return (
     <div className="space-y-12">

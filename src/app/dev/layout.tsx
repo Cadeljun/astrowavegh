@@ -12,8 +12,12 @@ import {
   Cloud,
   Database,
   Layout,
-  Edit3
+  Edit3,
+  User,
+  ShieldCheck,
+  ShieldX
 } from 'lucide-react'
+import { useAuth } from '@/context/AuthContext'
 
 const navItems = [
   {
@@ -63,9 +67,8 @@ const navItems = [
   }
 ]
 
-// Isolated client-only component
-// renders nothing on server
 function DevMeta() {
+  const { user, isAdmin } = useAuth()
   const [mounted, setMounted] = useState(false)
   const [buildDate, setBuildDate] = useState('')
 
@@ -85,21 +88,50 @@ function DevMeta() {
   )
 
   return (
-    <div>
-      <div className="flex items-center 
-        gap-2 mb-1">
-        <div className="w-2 h-2 rounded-full 
-          bg-green-500 animate-pulse" />
-        <span className="text-[10px] 
-          font-bold uppercase 
-          tracking-widest 
-          text-green-500/80">
-          Dev Environment
-        </span>
+    <div className="space-y-4">
+      <div>
+        <div className="flex items-center 
+          gap-2 mb-1">
+          <div className="w-2 h-2 rounded-full 
+            bg-green-500 animate-pulse" />
+          <span className="text-[10px] 
+            font-bold uppercase 
+            tracking-widest 
+            text-green-500/80">
+            Dev Environment
+          </span>
+        </div>
+        <p className="text-[10px] opacity-40">
+          Build: {buildDate}
+        </p>
       </div>
-      <p className="text-[10px] opacity-40">
-        Build: {buildDate}
-      </p>
+
+      <div className="pt-4 border-t border-white/5 space-y-3">
+        {isAdmin ? (
+          <div className="space-y-1">
+            <div className="flex items-center gap-2 text-gold">
+              <ShieldCheck size={12} />
+              <span className="text-[10px] font-bold uppercase tracking-widest">Signed In</span>
+            </div>
+            <p className="text-[10px] text-white/40 truncate" title={user?.email || ''}>
+              {user?.email}
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 text-white/20">
+              <ShieldX size={12} />
+              <span className="text-[10px] font-bold uppercase tracking-widest">Not Signed In</span>
+            </div>
+            <Link 
+              href="/admin/login"
+              className="block text-[10px] text-gold hover:underline font-bold uppercase tracking-widest"
+            >
+              Sign In to Edit ↗
+            </Link>
+          </div>
+        )}
+      </div>
     </div>
   )
 }
