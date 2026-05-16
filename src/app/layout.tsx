@@ -4,6 +4,7 @@ import { Outfit, Bebas_Neue } from 'next/font/google';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from '@/context/AuthContext';
+import { RoleProvider } from '@/context/RoleContext';
 import ClientLayout from '@/components/layout/ClientLayout';
 import SchemaOrg from '@/components/seo/SchemaOrg';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
@@ -281,8 +282,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="font-body antialiased bg-black text-white min-h-screen">
         <FirebaseClientProvider>
           <AuthProvider>
-            <ClientLayout>{children}</ClientLayout>
-            <Toaster />
+            <RoleProvider>
+              <ClientLayout>{children}</ClientLayout>
+              <Toaster />
+            </RoleProvider>
           </AuthProvider>
         </FirebaseClientProvider>
       </body>

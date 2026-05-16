@@ -1,62 +1,138 @@
-
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    
-    // Helper function to check for admin role
-    function isAdmin() {
-      return request.auth != null && request.auth.token.admin == true;
+
+    // ─── HELPER FUNCTIONS ───────────
+
+    function isSignedIn() {
+      return request.auth != null;
     }
 
-    // Public read collections
-    match /events/{eventId} {
-      allow read: if true;
-      allow write: if isAdmin();
+    // Identify the specific developer account
+    function isDevEmail() {
+      return isSignedIn() && request.auth.token.email == 'junioraquils143@gmail.com';
     }
-    match /talent/{talentId} {
-      allow read: if true;
-      allow write: if isAdmin();
+
+    function userExists() {
+      return exists(/databases/$(database)/documents/user_roles/$(request.auth.uid));
     }
-    match /gallery/{photoId} {
-      allow read: if true;
-      allow write: if isAdmin();
+
+    function getUserRole() {
+      return isDevEmail() ? 'SUPER_ADMIN' : (userExists() ? get(/databases/$(database)/documents/user_roles/$(request.auth.uid)).data.role : 'VIEWER');
     }
-    
-    // Public create-only forms
+
+    function isActive() {
+      return isDevEmail() || (userExists() && get(/databases/$(database)/documents/user_roles/$(request.auth.uid)).data.active == true);
+    }
+
+    function isSuperAdmin() {
+      return isSignedIn() 
+        && isActive()
+        && getUserRole() == 'SUPER_ADMIN';
+    }
+
+    function isEditor() {
+      return isSignedIn()
+        && isActive()
+        && (
+          getUserRole() == 'SUPER_ADMIN' ||
+          getUserRole() == 'EDITOR'
+        );
+    }
+
+    function canWrite() {
+      return isSignedIn()
+        && isActive()
+        && getUserRole() != 'VIEWER';
+    }
+
+    function isDeveloper() {
+      return isSignedIn()
+        && isActive()
+        && (
+          getUserRole() == 'SUPER_ADMIN' ||
+          getUserRole() == 'DEVELOPER'
+        );
+    }
+
+    // ─── USER ROLES ─────────────────
+    match /user_roles/{uid} {
+      allow read: if isSignedIn() 
+        && (request.auth.uid == uid 
+            || isSuperAdmin());
+      allow write: if isSuperAdmin();
+    }
+
+    // ─── EVENTS ─────────────────────
+    match /events/{id} {
+      allow read: if true;
+      allow write: if canWrite() 
+        && getUserRole() != 'EDITOR';
+    }
+
+    // ─── TALENT ─────────────────────
+    match /talent/{id} {
+      allow read: if true;
+      allow write: if canWrite()
+        && getUserRole() != 'EDITOR';
+    }
+
+    // ─── GALLERY ────────────────────
+    match /gallery/{id} {
+      allow read: if true;
+      allow write: if canWrite()
+        && getUserRole() != 'EDITOR';
+    }
+
+    // ─── UPLOADS ────────────────────
+    match /uploads/{id} {
+      allow read: if isSignedIn();
+      allow write: if canWrite()
+        && getUserRole() != 'EDITOR';
+    }
+
+    // ─── CMS (Editor + above) ───────
+    match /cms_content/{id} {
+      allow read: if true;
+      allow write: if isEditor();
+    }
+
+    match /cms_settings/{id} {
+      allow read: if true;
+      allow write: if isEditor();
+    }
+
+    match /cms_sections/{id} {
+      allow read: if true;
+      allow write: if isEditor();
+    }
+
+    match /cms_seo/{id} {
+      allow read: if true;
+      allow write: if isEditor();
+    }
+
+    // ─── CONTACTS ───────────────────
     match /contacts/{id} {
       allow create: if true;
-      allow read, write: if isAdmin();
+      allow read: if isSignedIn();
+      allow update, delete: if canWrite()
+        && getUserRole() != 'EDITOR';
     }
+
+    // ─── WAITLIST ───────────────────
     match /waitlist/{id} {
       allow create: if true;
-      allow read, write: if isAdmin();
+      allow read: if isSignedIn();
+      allow update, delete: if isSuperAdmin();
     }
+
+    // ─── TALENT INQUIRIES ───────────
     match /talent_inquiries/{id} {
       allow create: if true;
-      allow read, write: if isAdmin();
-    }
-
-    // CMS Content - Public Read, Admin Write
-    match /cms_content/{docId} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-    match /cms_sections/{docId} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-    match /cms_seo/{docId} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-    match /cms_settings/{docId} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-
-    // All other documents are admin-only
-    match /{document=**} {
-      allow read, write: if isAdmin();
+      allow read: if isSignedIn();
+      allow update, delete: if canWrite()
+        && getUserRole() != 'EDITOR';
     }
   }
 }

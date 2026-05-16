@@ -3,11 +3,11 @@
 
 import { useState } from "react";
 import { getUserVibeRecommendation, type UserVibeOutput } from "@/ai/flows/user-vibe-recommendation-flow";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/Card";
 import { Sparkles, Loader2, Music, Calendar, User } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { Badge } from "@/components/ui/Badge";
 
 export default function VibeNavigator() {
   const [mood, setMood] = useState("");

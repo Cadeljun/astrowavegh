@@ -12,6 +12,8 @@ import { Divider } from '@/components/ui/Divider';
 import { Button } from '@/components/ui/Button';
 import { fadeUp, fadeIn, staggerContainer } from '@/lib/animations';
 import { useCMSContent } from '@/lib/cms/useCMS';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
 
 export default function ContactPage() {
   const db = useFirestore();
@@ -28,11 +30,24 @@ export default function ContactPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    try {
-      await addDoc(collection(db, 'contacts'), { ...formData, timestamp: serverTimestamp() });
-      toast({ title: "Message sent!" });
-      setFormData({ name: '', email: '', subject: 'General Enquiry', message: '' });
-    } catch { toast({ variant: "destructive", title: "Error" }); } finally { setLoading(false); }
+    
+    const contactData = { ...formData, timestamp: serverTimestamp() };
+    const colRef = collection(db, 'contacts');
+
+    addDoc(colRef, contactData)
+      .then(() => {
+        toast({ title: "Message sent!" });
+        setFormData({ name: '', email: '', subject: 'General Enquiry', message: '' });
+      })
+      .catch(async (serverError) => {
+        const permissionError = new FirestorePermissionError({
+          path: colRef.path,
+          operation: 'create',
+          requestResourceData: contactData,
+        } satisfies SecurityRuleContext);
+        errorEmitter.emit('permission-error', permissionError);
+      })
+      .finally(() => setLoading(false));
   };
 
   return (

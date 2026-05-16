@@ -18,15 +18,28 @@ import {
   serverTimestamp
 } from 'firebase/firestore'
 import { db } from '@/firebase/config'
+import { errorEmitter } from '@/firebase/error-emitter'
+import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors'
 
 /**
  * Fetches all documents from a collection with optional constraints.
  */
 export async function getCollection(path: string, constraints: QueryConstraint[] = []) {
-  const colRef = collection(db, path)
-  const q = query(colRef, ...constraints)
-  const snap = await getDocs(q)
-  return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+  try {
+    const colRef = collection(db, path)
+    const q = query(colRef, ...constraints)
+    const snap = await getDocs(q)
+    return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+  } catch (serverError: any) {
+    if (serverError.code === 'permission-denied') {
+      const permissionError = new FirestorePermissionError({
+        path,
+        operation: 'list',
+      });
+      errorEmitter.emit('permission-error', permissionError);
+    }
+    throw serverError;
+  }
 }
 
 /**
@@ -57,49 +70,98 @@ export async function getDocumentsSince(path: string, days: number) {
  * Returns a simple count of documents in a collection.
  */
 export async function countDocuments(path: string) {
-  const colRef = collection(db, path)
-  const snap = await getCountFromServer(colRef)
-  return snap.data().count
+  try {
+    const colRef = collection(db, path)
+    const snap = await getCountFromServer(colRef)
+    return snap.data().count
+  } catch (serverError: any) {
+    if (serverError.code === 'permission-denied') {
+      const permissionError = new FirestorePermissionError({
+        path,
+        operation: 'list',
+      });
+      errorEmitter.emit('permission-error', permissionError);
+    }
+    throw serverError;
+  }
 }
 
 /**
- * Deletes a document from a collection.
+ * Deletes a document from a collection. (Non-blocking optimistic write)
  */
-export async function deleteDocument(path: string, id: string) {
-  const docRef = doc(db, path, id)
-  return deleteDoc(docRef)
+export function deleteDocument(path: string, id: string) {
+  const docRef = doc(db, path, id);
+  deleteDoc(docRef)
+    .catch(async (serverError) => {
+      const permissionError = new FirestorePermissionError({
+        path: docRef.path,
+        operation: 'delete',
+      });
+      errorEmitter.emit('permission-error', permissionError);
+    });
 }
 
 /**
- * Updates a document in a collection.
+ * Updates a document in a collection. (Non-blocking optimistic write)
  */
-export async function updateDocument(path: string, id: string, data: any) {
-  const docRef = doc(db, path, id)
-  return updateDoc(docRef, { 
+export function updateDocument(path: string, id: string, data: any) {
+  const docRef = doc(db, path, id);
+  const updateData = { 
     ...data, 
     updatedAt: serverTimestamp() 
-  })
+  };
+  
+  updateDoc(docRef, updateData)
+    .catch(async (serverError) => {
+      const permissionError = new FirestorePermissionError({
+        path: docRef.path,
+        operation: 'update',
+        requestResourceData: updateData,
+      });
+      errorEmitter.emit('permission-error', permissionError);
+    });
 }
 
 /**
- * Adds a new document to a collection.
+ * Adds a new document to a collection. (Non-blocking optimistic write)
  */
-export async function addDocument(path: string, data: any) {
-  const colRef = collection(db, path)
-  return addDoc(colRef, {
+export function addDocument(path: string, data: any) {
+  const colRef = collection(db, path);
+  const addData = {
     ...data,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp()
-  })
+  };
+
+  addDoc(colRef, addData)
+    .catch(async (serverError) => {
+      const permissionError = new FirestorePermissionError({
+        path,
+        operation: 'create',
+        requestResourceData: addData,
+      });
+      errorEmitter.emit('permission-error', permissionError);
+    });
 }
 
 /**
  * Fetches a single document by ID.
  */
 export async function getDocument(path: string, id: string) {
-  const docRef = doc(db, path, id)
-  const snap = await getDoc(docRef)
-  return snap.exists() ? { id: snap.id, ...snap.data() } : null
+  try {
+    const docRef = doc(db, path, id)
+    const snap = await getDoc(docRef)
+    return snap.exists() ? { id: snap.id, ...snap.data() } : null
+  } catch (serverError: any) {
+    if (serverError.code === 'permission-denied') {
+      const permissionError = new FirestorePermissionError({
+        path: `${path}/${id}`,
+        operation: 'get',
+      });
+      errorEmitter.emit('permission-error', permissionError);
+    }
+    throw serverError;
+  }
 }
 
 /**

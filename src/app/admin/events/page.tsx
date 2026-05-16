@@ -16,7 +16,7 @@ import {
 import { orderBy } from 'firebase/firestore'
 import ConfirmModal from 
   '@/components/admin/ConfirmModal'
-import Toast from '@/components/ui/Toast'
+import { Toast } from '@/components/ui/toast'
 
 interface Event {
   id: string
