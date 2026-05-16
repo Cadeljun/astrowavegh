@@ -16,7 +16,7 @@ import {
   MoreVertical
 } from 'lucide-react';
 import { collection, query, orderBy, doc, deleteDoc, updateDoc } from 'firebase/firestore';
-import { useFirestore, useCollection } from '@/firebase';
+import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -34,9 +34,11 @@ export default function AdminTalentPage() {
     name: ''
   });
 
-  const { data: talent, loading } = useCollection(
-    query(collection(db, 'talent'), orderBy('name', 'asc'))
-  );
+  const talentQuery = useMemoFirebase(() => {
+    return query(collection(db, 'talent'), orderBy('name', 'asc'));
+  }, [db]);
+
+  const { data: talent, loading } = useCollection(talentQuery);
 
   const filteredTalent = useMemo(() => {
     if (!talent) return [];

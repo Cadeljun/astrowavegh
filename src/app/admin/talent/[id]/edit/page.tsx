@@ -5,14 +5,19 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import { doc } from 'firebase/firestore';
-import { useFirestore, useDoc } from '@/firebase';
+import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import TalentForm from '@/components/admin/TalentForm';
 
 export default function EditTalentPage() {
   const params = useParams();
   const id = params.id as string;
   const db = useFirestore();
-  const { data: talent, loading } = useDoc(doc(db, 'talent', id));
+
+  const talentRef = useMemoFirebase(() => {
+    return doc(db, 'talent', id);
+  }, [db, id]);
+
+  const { data: talent, loading } = useDoc(talentRef);
 
   if (loading) return <div className="flex items-center justify-center min-h-[60vh]"><Loader2 className="animate-spin text-gold" size={32} /></div>;
 

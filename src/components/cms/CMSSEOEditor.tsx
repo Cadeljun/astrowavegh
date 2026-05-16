@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useFirestore } from '@/firebase';
+import { db } from '@/firebase/config';
 import { doc, onSnapshot, setDoc, serverTimestamp } from 'firebase/firestore';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -15,7 +15,6 @@ interface CMSSEOEditorProps {
 }
 
 export default function CMSSEOEditor({ pageId }: CMSSEOEditorProps) {
-  const db = useFirestore();
   const { toast } = useToast();
   const [seo, setSeo] = useState<any>({
     title: '',
@@ -32,7 +31,7 @@ export default function CMSSEOEditor({ pageId }: CMSSEOEditorProps) {
     return onSnapshot(doc(db, 'cms_seo', pageId), (snap) => {
       if (snap.exists()) setSeo(snap.data());
     });
-  }, [db, pageId]);
+  }, [pageId]);
 
   const handleSave = async () => {
     setSaving(true);

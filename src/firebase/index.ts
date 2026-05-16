@@ -1,20 +1,19 @@
-'use client';
+import app, { db, auth, storage } from './config';
 
-import { initializeApp, getApps, getApp } from 'firebase/app';
-import { getFirestore } from 'firebase/firestore';
-import { getAuth } from 'firebase/auth';
-import { firebaseConfig } from './config';
+export { db, auth, storage };
+export default app;
 
+/**
+ * Initializes Firebase services for client-side usage.
+ */
 export function initializeFirebase() {
-  const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
-  const firestore = getFirestore(app);
-  const auth = getAuth(app);
-
-  return { app, firestore, auth };
+  return {
+    app,
+    firestore: db,
+    auth,
+  };
 }
 
-export * from './provider';
-export * from './client-provider';
-export * from './firestore/use-collection';
-export * from './firestore/use-doc';
-export * from './auth/use-user';
+export { useCollection, useMemoFirebase } from './firestore/use-collection';
+export { useDoc } from './firestore/use-doc';
+export { useFirebaseApp, useFirestore, FirebaseProvider } from './provider';

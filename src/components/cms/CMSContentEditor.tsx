@@ -1,8 +1,7 @@
-
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { useFirestore } from '@/firebase';
+import React, { useState, useEffect, useMemo } from 'react';
+import { db } from '@/firebase/config';
 import { doc, setDoc, onSnapshot, serverTimestamp } from 'firebase/firestore';
 import { 
   Accordion, 
@@ -58,9 +57,11 @@ const SECTION_SCHEMAS: Record<string, any[]> = {
 };
 
 export default function CMSContentEditor({ pageId }: CMSContentEditorProps) {
-  const db = useFirestore();
   const { toast } = useToast();
-  const schemas = SECTION_SCHEMAS[pageId] || [];
+  
+  // Memoize schemas to prevent re-creating the array on every render
+  const schemas = useMemo(() => SECTION_SCHEMAS[pageId] || [], [pageId]);
+  
   const [localData, setLocalData] = useState<Record<string, any>>({});
   const [loading, setLoading] = useState<Record<string, boolean>>({});
 
@@ -78,7 +79,7 @@ export default function CMSContentEditor({ pageId }: CMSContentEditorProps) {
       });
     });
     return () => unsubs.forEach(u => u());
-  }, [db, pageId, schemas]);
+  }, [pageId, schemas]);
 
   const handleFieldChange = (sectionKey: string, fieldKey: string, value: string) => {
     setLocalData(prev => ({

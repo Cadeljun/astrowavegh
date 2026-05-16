@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Upload, X, Loader2, Image as ImageIcon, CheckCircle } from 'lucide-react';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import { useFirestore } from '@/firebase';
+import { db } from '@/firebase/config';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/Button';
 import { Progress } from '@/components/ui/progress';
@@ -17,7 +17,6 @@ interface GalleryUploadModalProps {
 const CATEGORIES = ['Mask Mirage', 'Splash & Seduction', 'General'];
 
 export default function GalleryUploadModal({ isOpen, onClose }: GalleryUploadModalProps) {
-  const db = useFirestore();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [files, setFiles] = useState<{ file: File; id: string; preview: string }[]>([]);
@@ -25,16 +24,22 @@ export default function GalleryUploadModal({ isOpen, onClose }: GalleryUploadMod
   
   const [meta, setFormData] = useState({
     eventName: '',
-    date: new Date().toISOString().split('T')[0],
+    date: '',
     category: 'General'
   });
 
+  useEffect(() => {
+    if (isOpen) {
+      setFormData(prev => ({ ...prev, date: new Date().toISOString().split('T')[0] }));
+    }
+  }, [isOpen]);
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) return;
-    const newFiles = Array.from(e.target.files).map(f => ({
-      file: f,
-      id: Math.random().toString(36).substr(2, 9),
-      preview: URL.createObjectURL(f)
+    const newFiles = Array.from(e.target.files).map((file, index) => ({
+      file,
+      id: `${file.name}-${index}`,
+      preview: URL.createObjectURL(file)
     }));
     setFiles(prev => [...prev, ...newFiles].slice(0, 20));
   };

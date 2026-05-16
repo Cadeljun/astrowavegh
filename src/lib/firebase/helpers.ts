@@ -17,13 +17,12 @@ import {
   getCountFromServer,
   serverTimestamp
 } from 'firebase/firestore'
-import { initializeFirebase } from '@/firebase'
+import { db } from '@/firebase/config'
 
 /**
  * Fetches all documents from a collection with optional constraints.
  */
 export async function getCollection(path: string, constraints: QueryConstraint[] = []) {
-  const { firestore: db } = initializeFirebase()
   const colRef = collection(db, path)
   const q = query(colRef, ...constraints)
   const snap = await getDocs(q)
@@ -44,7 +43,6 @@ export async function getRecentDocuments(path: string, limitVal: number = 5) {
  * Fetches documents created within the last X days.
  */
 export async function getDocumentsSince(path: string, days: number) {
-  const { firestore: db } = initializeFirebase()
   const date = new Date()
   date.setDate(date.getDate() - days)
   const ts = Timestamp.fromDate(date)
@@ -59,7 +57,6 @@ export async function getDocumentsSince(path: string, days: number) {
  * Returns a simple count of documents in a collection.
  */
 export async function countDocuments(path: string) {
-  const { firestore: db } = initializeFirebase()
   const colRef = collection(db, path)
   const snap = await getCountFromServer(colRef)
   return snap.data().count
@@ -69,7 +66,6 @@ export async function countDocuments(path: string) {
  * Deletes a document from a collection.
  */
 export async function deleteDocument(path: string, id: string) {
-  const { firestore: db } = initializeFirebase()
   const docRef = doc(db, path, id)
   return deleteDoc(docRef)
 }
@@ -78,7 +74,6 @@ export async function deleteDocument(path: string, id: string) {
  * Updates a document in a collection.
  */
 export async function updateDocument(path: string, id: string, data: any) {
-  const { firestore: db } = initializeFirebase()
   const docRef = doc(db, path, id)
   return updateDoc(docRef, { 
     ...data, 
@@ -90,7 +85,6 @@ export async function updateDocument(path: string, id: string, data: any) {
  * Adds a new document to a collection.
  */
 export async function addDocument(path: string, data: any) {
-  const { firestore: db } = initializeFirebase()
   const colRef = collection(db, path)
   return addDoc(colRef, {
     ...data,
@@ -103,7 +97,6 @@ export async function addDocument(path: string, data: any) {
  * Fetches a single document by ID.
  */
 export async function getDocument(path: string, id: string) {
-  const { firestore: db } = initializeFirebase()
   const docRef = doc(db, path, id)
   const snap = await getDoc(docRef)
   return snap.exists() ? { id: snap.id, ...snap.data() } : null

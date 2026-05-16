@@ -1,96 +1,190 @@
+'use client'
 
-'use client';
-
-import React from 'react';
-import { notFound, usePathname } from 'next/navigation';
-import { 
-  Package, 
-  Palette, 
-  Type, 
-  Wind, 
-  Database, 
-  Cloud, 
-  PlusCircle, 
-  Eye,
-  Terminal,
-  ChevronRight,
+import { useEffect, useState } from 'react'
+import { usePathname } from 'next/navigation'
+import Link from 'next/link'
+import {
+  Blocks,
+  Palette,
+  Type,
+  Zap,
+  Flame,
+  Cloud,
+  Database,
+  Layout,
   Edit3
-} from 'lucide-react';
-import { cn } from '@/lib/utils';
+} from 'lucide-react'
 
-const links = [
-  { name: 'CMS Editor', href: '/admin/cms', icon: Edit3 },
-  { name: 'Components', href: '/dev/components', icon: Package },
-  { name: 'Colors', href: '/dev/colors', icon: Palette },
-  { name: 'Typography', href: '/dev/typography', icon: Type },
-  { name: 'Animations', href: '/dev/animations', icon: Wind },
-  { name: 'Firebase', href: '/dev/firebase', icon: Database },
-  { name: 'Cloudinary', href: '/dev/cloudinary', icon: Cloud },
-  { name: 'Seed Data', href: '/dev/seed', icon: PlusCircle },
-  { name: 'Previews', href: '/dev/previews', icon: Eye },
-];
-
-export default function DevLayout({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
-
-  // Safety check: Only accessible in development
-  if (process.env.NODE_ENV !== 'development' && !pathname.includes('preview')) {
-    notFound();
+const navItems = [
+  {
+    label: 'Components',
+    href: '/dev/components',
+    icon: Blocks
+  },
+  {
+    label: 'Colors',
+    href: '/dev/colors',
+    icon: Palette
+  },
+  {
+    label: 'Typography',
+    href: '/dev/typography',
+    icon: Type
+  },
+  {
+    label: 'Animations',
+    href: '/dev/animations',
+    icon: Zap
+  },
+  {
+    label: 'Firebase',
+    href: '/dev/firebase',
+    icon: Flame
+  },
+  {
+    label: 'Cloudinary',
+    href: '/dev/cloudinary',
+    icon: Cloud
+  },
+  {
+    label: 'Seed Database',
+    href: '/dev/seed',
+    icon: Database
+  },
+  {
+    label: 'Page Previews',
+    href: '/dev/previews',
+    icon: Layout
+  },
+  {
+    label: 'CMS Editor',
+    href: '/dev/cms',
+    icon: Edit3
   }
+]
+
+// Isolated client-only component
+// renders nothing on server
+function DevMeta() {
+  const [mounted, setMounted] = useState(false)
+  const [buildDate, setBuildDate] = useState('')
+
+  useEffect(() => {
+    setBuildDate(
+      new Date().toLocaleDateString('en-GB', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric'
+      })
+    )
+    setMounted(true)
+  }, [])
+
+  if (!mounted) return (
+    <div className="h-8" />
+  )
 
   return (
-    <div className="flex min-h-screen bg-[#050505] text-[#A0A0A0] font-mono selection:bg-gold selection:text-black">
-      {/* Dev Sidebar */}
-      <aside className="w-64 border-r border-white/5 bg-[#0A0A0F] sticky top-0 h-screen flex flex-col overflow-y-auto">
-        <div className="p-6 flex items-center gap-3 border-b border-white/5">
-          <Terminal size={20} className="text-gold" />
-          <span className="font-bold text-white tracking-tighter text-lg uppercase">Dev_Panel</span>
+    <div>
+      <div className="flex items-center 
+        gap-2 mb-1">
+        <div className="w-2 h-2 rounded-full 
+          bg-green-500 animate-pulse" />
+        <span className="text-[10px] 
+          font-bold uppercase 
+          tracking-widest 
+          text-green-500/80">
+          Dev Environment
+        </span>
+      </div>
+      <p className="text-[10px] opacity-40">
+        Build: {buildDate}
+      </p>
+    </div>
+  )
+}
+
+export default function DevLayout({
+  children
+}: {
+  children: React.ReactNode
+}) {
+  const pathname = usePathname()
+
+  const isActive = (href: string) =>
+    pathname === href ||
+    pathname.startsWith(href + '/')
+
+  return (
+    <div className="flex min-h-screen 
+      bg-[#050505]">
+
+      {/* Sidebar */}
+      <aside className="w-64 
+        border-r border-white/5
+        flex flex-col
+        sticky top-0 h-screen
+        bg-[#0A0A0F]">
+
+        {/* Header */}
+        <div className="p-6 
+          border-b border-white/5">
+          <div className="flex items-center 
+            gap-2 mb-1">
+            <span className="font-display 
+              text-lg text-[#FFD166]">
+              ASTROWAVE
+            </span>
+          </div>
+          <p className="text-[10px] 
+            font-mono opacity-40 
+            tracking-widest uppercase">
+            Dev Panel
+          </p>
         </div>
 
-        <nav className="flex-1 p-4 space-y-1">
-          {links.map((link) => {
-            const Icon = link.icon;
-            const isActive = pathname === link.href;
+        {/* Navigation */}
+        <nav className="flex-1 p-3 
+          overflow-y-auto">
+          {navItems.map((item) => {
+            const Icon = item.icon
+            const active = isActive(item.href)
             return (
-              <a
-                key={link.name}
-                href={link.href}
-                className={cn(
-                  "flex items-center justify-between px-4 py-2.5 rounded-sm text-sm transition-all group",
-                  isActive 
-                    ? "bg-white/5 text-gold border-l-2 border-gold" 
-                    : "hover:bg-white/5 hover:text-white"
-                )}
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`
+                  flex items-center gap-3
+                  px-3 py-2.5 rounded-md
+                  font-mono text-xs
+                  transition-all duration-200
+                  mb-0.5
+                  ${active
+                    ? 'bg-[rgba(255,209,102,0.1)] text-[#FFD166] border-l-2 border-[#FFD166] pl-[10px]'
+                    : 'text-white/40 hover:text-white/80 hover:bg-white/5 border-l-2 border-transparent'
+                  }
+                `}
               >
-                <div className="flex items-center gap-3">
-                  <Icon size={16} className={cn(isActive ? "text-gold" : "text-muted opacity-50")} />
-                  <span>{link.name}</span>
-                </div>
-                <ChevronRight size={12} className={cn("opacity-0 transition-all", isActive ? "opacity-100" : "group-hover:opacity-40")} />
-              </a>
-            );
+                <Icon size={14} />
+                {item.label}
+              </Link>
+            )
           })}
         </nav>
 
-        <div className="p-6 mt-auto border-t border-white/5 bg-black/20">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-            <span className="text-[10px] font-bold uppercase tracking-widest text-green-500/80">Dev Environment</span>
-          </div>
-          <p className="text-[10px] opacity-40">Build: {new Date().toLocaleDateString()}</p>
+        {/* Bottom meta — client only */}
+        <div className="p-6 
+          border-t border-white/5 
+          bg-black/20">
+          <DevMeta />
         </div>
       </aside>
 
-      {/* Main Content Area */}
-      <main className="flex-1 p-12 max-w-6xl mx-auto w-full">
-        <div className="mb-12 flex items-center justify-between">
-          <div className="space-y-1">
-            <p className="text-[10px] font-bold tracking-[0.3em] text-gold uppercase">System / {pathname.split('/').pop()?.replace('-', ' ')}</p>
-            <h1 className="text-4xl font-bold text-white tracking-tighter uppercase">{pathname.split('/').pop()?.replace('-', ' ') || 'Overview'}</h1>
-          </div>
-        </div>
+      {/* Main content */}
+      <main className="flex-1 
+        overflow-auto p-8">
         {children}
       </main>
     </div>
-  );
+  )
 }

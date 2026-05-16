@@ -3,10 +3,10 @@ import type { Metadata } from 'next';
 import { Outfit, Bebas_Neue } from 'next/font/google';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
-import { FirebaseClientProvider } from '@/firebase';
 import { AuthProvider } from '@/context/AuthContext';
 import ClientLayout from '@/components/layout/ClientLayout';
 import SchemaOrg from '@/components/seo/SchemaOrg';
+import { FirebaseClientProvider } from '@/firebase/client-provider';
 
 const outfit = Outfit({
   subsets: ['latin'],
@@ -179,7 +179,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="alternate" hrefLang="en" href="https://astrowave.com" />
         <link rel="alternate" hrefLang="x-default" href="https://astrowave.com" />
         
-        {/* Organization Schema */}
         <SchemaOrg
           schema={{
             '@context': 'https://schema.org',
@@ -219,7 +218,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           }}
         />
 
-        {/* Local Business Schema */}
         <SchemaOrg
           schema={{
             '@context': 'https://schema.org',
@@ -261,7 +259,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           }}
         />
 
-        {/* WebSite Schema */}
         <SchemaOrg
           schema={{
             '@context': 'https://schema.org',

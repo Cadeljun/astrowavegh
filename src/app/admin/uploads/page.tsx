@@ -16,7 +16,7 @@ import {
   FolderOpen
 } from 'lucide-react';
 import { collection, query, orderBy, limit, doc, deleteDoc, addDoc, serverTimestamp } from 'firebase/firestore';
-import { useFirestore, useCollection } from '@/firebase';
+import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -43,9 +43,11 @@ export default function AdminUploadsPage() {
   const [uploadingFiles, setUploadingFiles] = useState<{ name: string; progress: number; status: 'waiting' | 'uploading' | 'complete' | 'failed' }[]>([]);
   const [activeTab, setActiveTab] = useState('All');
 
-  const { data: uploads, loading } = useCollection(
-    query(collection(db, 'uploads'), orderBy('uploadedAt', 'desc'), limit(50))
-  );
+  const uploadsQuery = useMemoFirebase(() => {
+    return query(collection(db, 'uploads'), orderBy('uploadedAt', 'desc'), limit(50));
+  }, [db]);
+
+  const { data: uploads, loading } = useCollection(uploadsQuery);
 
   const filteredUploads = useMemo(() => {
     if (!uploads) return [];

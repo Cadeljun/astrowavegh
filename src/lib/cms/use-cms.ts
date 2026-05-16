@@ -2,14 +2,13 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useFirestore } from '@/firebase';
+import { db } from '@/firebase/config';
 import { doc, onSnapshot, DocumentData } from 'firebase/firestore';
 
 /**
  * Hook to fetch content for a specific page and section from cms_content.
  */
 export function useCMSContent(pageSlug: string, sectionKey: string) {
-  const db = useFirestore();
   const [content, setContent] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -25,7 +24,7 @@ export function useCMSContent(pageSlug: string, sectionKey: string) {
     });
     
     return unsub;
-  }, [db, pageSlug, sectionKey]);
+  }, [pageSlug, sectionKey]);
 
   return { content, loading };
 }
@@ -34,7 +33,6 @@ export function useCMSContent(pageSlug: string, sectionKey: string) {
  * Hook to fetch visible sections and their order for a specific page.
  */
 export function useCMSSections(pageSlug: string) {
-  const db = useFirestore();
   const [sections, setSections] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -53,7 +51,7 @@ export function useCMSSections(pageSlug: string) {
     });
     
     return unsub;
-  }, [db, pageSlug]);
+  }, [pageSlug]);
 
   return { sections, loading };
 }
@@ -62,7 +60,6 @@ export function useCMSSections(pageSlug: string) {
  * Hook to fetch SEO metadata for a page.
  */
 export function useCMSSEO(pageSlug: string) {
-  const db = useFirestore();
   const [seo, setSEO] = useState<any>(null);
 
   useEffect(() => {
@@ -71,7 +68,7 @@ export function useCMSSEO(pageSlug: string) {
       if (snap.exists()) setSEO(snap.data());
     });
     return unsub;
-  }, [db, pageSlug]);
+  }, [pageSlug]);
 
   return seo;
 }
@@ -80,7 +77,6 @@ export function useCMSSEO(pageSlug: string) {
  * Hook to fetch global site settings.
  */
 export function useCMSSettings() {
-  const db = useFirestore();
   const [settings, setSettings] = useState<any>(null);
 
   useEffect(() => {
@@ -89,7 +85,7 @@ export function useCMSSettings() {
       if (snap.exists()) setSettings(snap.data());
     });
     return unsub;
-  }, [db]);
+  }, []);
 
   return settings;
 }

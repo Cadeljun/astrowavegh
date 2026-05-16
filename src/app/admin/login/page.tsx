@@ -8,8 +8,8 @@ import { Eye, EyeOff, Lock, Loader2 } from 'lucide-react'
 export default function AdminLoginPage() {
   const { login, error, isAdmin, loading } = useAuth()
   const router = useRouter()
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+  const [email, setEmail] = useState('junioraquils143@gmail.com')
+  const [password, setPassword] = useState('Admin@Astrowave')
   const [showPassword, setShowPassword] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
 

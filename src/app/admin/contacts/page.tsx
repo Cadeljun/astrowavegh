@@ -13,7 +13,7 @@ import {
   Clock
 } from 'lucide-react';
 import { collection, query, orderBy, doc, deleteDoc, updateDoc, where, getCountFromServer } from 'firebase/firestore';
-import { useFirestore, useCollection } from '@/firebase';
+import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -32,9 +32,11 @@ export default function AdminContactsPage() {
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  const { data: contacts, loading } = useCollection(
-    query(collection(db, 'contacts'), orderBy('timestamp', 'desc'))
-  );
+  const contactsQuery = useMemoFirebase(() => {
+    return query(collection(db, 'contacts'), orderBy('timestamp', 'desc'));
+  }, [db]);
+
+  const { data: contacts, loading } = useCollection(contactsQuery);
 
   const stats = useMemo(() => {
     if (!contacts) return { total: 0, new: 0, unread: 0 };

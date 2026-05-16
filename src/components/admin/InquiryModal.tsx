@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Mail, Phone, Instagram, CheckCircle, Trash2, UserPlus, Copy } from 'lucide-react';
 import { doc, updateDoc } from 'firebase/firestore';
-import { useFirestore } from '@/firebase';
+import { db } from '@/firebase/config';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/Badge';
@@ -20,21 +20,23 @@ interface InquiryModalProps {
 }
 
 export default function InquiryModal({ isOpen, onClose, inquiry, onDelete }: InquiryModalProps) {
-  const db = useFirestore();
   const router = useRouter();
   const { toast } = useToast();
+  const [formattedDate, setFormattedDate] = useState('...');
 
   useEffect(() => {
     if (isOpen && inquiry && !inquiry.read) {
       const docRef = doc(db, 'talent_inquiries', inquiry.id);
       updateDoc(docRef, { read: true }).catch(console.error);
     }
-  }, [isOpen, inquiry, db]);
+    if (inquiry && inquiry.timestamp) {
+      setFormattedDate(format(inquiry.timestamp.toDate(), 'PPP • p'));
+    }
+  }, [isOpen, inquiry]);
 
   if (!inquiry) return null;
 
   const handleAddToRoster = () => {
-    // Store data in session to pre-fill talent form
     const data = {
       name: inquiry.name,
       stageName: inquiry.stageName,
@@ -82,7 +84,7 @@ export default function InquiryModal({ isOpen, onClose, inquiry, onDelete }: Inq
                 <h2 className="display-md text-white mt-4">{inquiry.stageName || inquiry.name}</h2>
                 <p className="text-sm text-muted font-body">{inquiry.name}</p>
                 <p className="text-[0.65rem] text-muted uppercase tracking-widest mt-2">
-                  SUBMITTED: {inquiry.timestamp ? format(inquiry.timestamp.toDate(), 'PPP • p') : '...'}
+                  SUBMITTED: {formattedDate}
                 </p>
               </div>
               <button onClick={onClose} className="p-2 text-muted hover:text-white transition-colors">

@@ -15,7 +15,7 @@ import {
   Award
 } from 'lucide-react';
 import { collection, query, orderBy, doc, deleteDoc, updateDoc } from 'firebase/firestore';
-import { useFirestore, useCollection } from '@/firebase';
+import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -36,9 +36,11 @@ export default function AdminInquiriesPage() {
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  const { data: inquiries, loading } = useCollection(
-    query(collection(db, 'talent_inquiries'), orderBy('timestamp', 'desc'))
-  );
+  const inquiriesQuery = useMemoFirebase(() => {
+    return query(collection(db, 'talent_inquiries'), orderBy('timestamp', 'desc'));
+  }, [db]);
+
+  const { data: inquiries, loading } = useCollection(inquiriesQuery);
 
   const stats = useMemo(() => {
     if (!inquiries) return { total: 0, new: 0, topRole: '...' };

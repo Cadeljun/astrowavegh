@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useFirestore } from '@/firebase';
+import { db } from '@/firebase/config';
 import { doc, onSnapshot, setDoc, serverTimestamp } from 'firebase/firestore';
 import { 
   DndContext, 
@@ -65,7 +65,6 @@ function SortableItem({ section, onToggleVisibility }: any) {
 }
 
 export default function CMSSectionManager({ pageId }: CMSSectionManagerProps) {
-  const db = useFirestore();
   const { toast } = useToast();
   const [sections, setSections] = useState<any[]>([]);
   const [saving, setSaving] = useState(false);
@@ -77,7 +76,7 @@ export default function CMSSectionManager({ pageId }: CMSSectionManagerProps) {
         setSections(snap.data().sections.sort((a: any, b: any) => a.order - b.order));
       }
     });
-  }, [db, pageId]);
+  }, [pageId]);
 
   const sensors = useSensors(
     useSensor(PointerSensor),

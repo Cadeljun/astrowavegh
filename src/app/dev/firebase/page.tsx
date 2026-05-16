@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useFirestore, useFirebaseApp } from '@/firebase';
+import app, { db } from '@/firebase';
 import { collection, getDocs, getCountFromServer, addDoc, serverTimestamp } from 'firebase/firestore';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/Button';
@@ -14,8 +14,6 @@ const COLLECTIONS = [
 ];
 
 export default function DevFirebasePage() {
-  const db = useFirestore();
-  const app = useFirebaseApp();
   const { user } = useAuth();
   const { toast } = useToast();
   

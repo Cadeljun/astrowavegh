@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState } from 'react';
-import { useAuth as useFirebaseCoreAuth } from '@/firebase';
+import { auth } from '@/firebase/config';
 import {
   onAuthStateChanged,
   signInWithEmailAndPassword,
@@ -21,7 +21,6 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType>({} as AuthContextType);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const auth = useFirebaseCoreAuth();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -32,7 +31,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(false);
     });
     return () => unsubscribe();
-  }, [auth]);
+  }, []);
 
   const login = async (email: string, password: string) => {
     setError(null);

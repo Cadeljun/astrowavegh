@@ -2,16 +2,16 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useFirestore } from '@/firebase';
+import { db } from '@/firebase/config';
 import { doc, onSnapshot, setDoc, serverTimestamp } from 'firebase/firestore';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Save, Globe, Instagram, Twitter, Music, Youtube, Facebook, Shield, AlertTriangle } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
+import { cn } from '@/lib/utils';
 
 export default function CMSSettingsEditor() {
-  const db = useFirestore();
   const { toast } = useToast();
   const [settings, setSettings] = useState<any>(null);
   const [saving, setSaving] = useState(false);
@@ -20,7 +20,7 @@ export default function CMSSettingsEditor() {
     return onSnapshot(doc(db, 'cms_settings', 'global'), (snap) => {
       if (snap.exists()) setSettings(snap.data());
     });
-  }, [db]);
+  }, []);
 
   const handleSave = async () => {
     setSaving(true);

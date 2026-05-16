@@ -2,9 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Upload, X, Loader2, Save, ImageIcon, Instagram, Music, Youtube, Smartphone } from 'lucide-react';
+import { Upload, X, Loader2, Save, ImageIcon, Instagram } from 'lucide-react';
 import { doc, setDoc, addDoc, collection, serverTimestamp } from 'firebase/firestore';
-import { useFirestore } from '@/firebase';
+import { db } from '@/firebase/config';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -20,7 +20,6 @@ interface TalentFormProps {
 const ROLES = ['DJ', 'Artist', 'Influencer', 'Model', 'Content Creator', 'Other'];
 
 export default function TalentForm({ initialData, id }: TalentFormProps) {
-  const db = useFirestore();
   const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();
@@ -43,7 +42,6 @@ export default function TalentForm({ initialData, id }: TalentFormProps) {
     active: initialData?.active !== undefined ? initialData.active : true,
   });
 
-  // Handle pre-fill from Inquiry
   useEffect(() => {
     if (searchParams.get('prefill') === 'true') {
       const prefillData = sessionStorage.getItem('prefill_talent');
@@ -212,7 +210,7 @@ export default function TalentForm({ initialData, id }: TalentFormProps) {
                 />
               </div>
               <div className="space-y-2">
-                <label className="admin-label flex items-center gap-2"><Music size={12} /> SoundCloud URL</label>
+                <label className="admin-label flex items-center gap-2">SoundCloud URL</label>
                 <input
                   type="url"
                   className="admin-input"

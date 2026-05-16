@@ -12,7 +12,7 @@ import {
   Heart
 } from 'lucide-react';
 import { collection, query, orderBy, doc, deleteDoc } from 'firebase/firestore';
-import { useFirestore, useCollection } from '@/firebase';
+import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -29,9 +29,11 @@ export default function AdminWaitlistPage() {
   const [activeTab, setActiveTab] = useState('All');
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  const { data: waitlist, loading } = useCollection(
-    query(collection(db, 'waitlist'), orderBy('timestamp', 'desc'))
-  );
+  const waitlistQuery = useMemoFirebase(() => {
+    return query(collection(db, 'waitlist'), orderBy('timestamp', 'desc'));
+  }, [db]);
+
+  const { data: waitlist, loading } = useCollection(waitlistQuery);
 
   const stats = useMemo(() => {
     if (!waitlist) return { total: 0, records: 0, cares: 0 };

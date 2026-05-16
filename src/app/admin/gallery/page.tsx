@@ -12,7 +12,7 @@ import {
   Loader2
 } from 'lucide-react';
 import { collection, query, orderBy, doc, deleteDoc } from 'firebase/firestore';
-import { useFirestore, useCollection } from '@/firebase';
+import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -30,9 +30,11 @@ export default function AdminGalleryPage() {
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; id: string }>({ isOpen: false, id: '' });
 
-  const { data: gallery, loading } = useCollection(
-    query(collection(db, 'gallery'), orderBy('uploadedAt', 'desc'))
-  );
+  const galleryQuery = useMemoFirebase(() => {
+    return query(collection(db, 'gallery'), orderBy('uploadedAt', 'desc'));
+  }, [db]);
+
+  const { data: gallery, loading } = useCollection(galleryQuery);
 
   const filteredGallery = useMemo(() => {
     if (!gallery) return [];
