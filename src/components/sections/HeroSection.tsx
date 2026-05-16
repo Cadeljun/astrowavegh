@@ -1,28 +1,24 @@
-
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { ArrowRight, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import { NeonLine } from '@/components/ui/NeonLine';
 import { heroTextReveal, fadeIn, fadeUp } from '@/lib/animations';
-import { cn } from '@/lib/utils';
-import { useCMSContent } from '@/lib/cms/use-cms';
+import { useCMSContent } from '@/lib/cms/useCMS';
 
 export default function HeroSection() {
   const { scrollY } = useScroll();
   const opacity = useTransform(scrollY, [0, 100], [1, 0]);
-  const { content } = useCMSContent('home', 'hero');
-
-  const text = {
-    label: content?.label ?? "AFRICA'S CREATIVE POWERHOUSE",
-    heading: content?.heading ?? "ASTROWAVE",
-    tagline: content?.tagline ?? "Vibes Beyond the Horizon.",
-    cta1: content?.cta1 ?? "Explore Events",
-    cta2: content?.cta2 ?? "Our Story"
-  };
+  
+  const { content } = useCMSContent('home', 'hero', {
+    label: "AFRICA'S CREATIVE POWERHOUSE",
+    heading: "ASTROWAVE",
+    tagline: "Vibes Beyond the Horizon.",
+    cta1: "EXPLORE EVENTS",
+    cta2: "OUR STORY"
+  });
 
   return (
     <section className="relative h-screen w-full flex items-center justify-center overflow-hidden bg-[var(--color-black)]">
@@ -53,7 +49,7 @@ export default function HeroSection() {
         >
           <span className="hidden sm:block h-[1px] w-12 bg-[var(--color-gold)]/50" />
           <span className="label text-[var(--color-gold)] tracking-[0.3em]">
-            {text.label}
+            {content.label}
           </span>
           <span className="hidden sm:block h-[1px] w-12 bg-[var(--color-gold)]/50" />
         </motion.div>
@@ -64,7 +60,7 @@ export default function HeroSection() {
           animate="show"
           className="display-2xl text-glow-gold mb-4"
         >
-          {text.heading}
+          {content.heading}
         </motion.h1>
 
         <motion.p
@@ -74,7 +70,7 @@ export default function HeroSection() {
           transition={{ delay: 0.9 }}
           className="font-body italic text-[1.1rem] md:text-[1.3rem] text-[var(--color-muted)] mb-12"
         >
-          "{text.tagline}"
+          "{content.tagline}"
         </motion.p>
 
         <motion.div
@@ -86,12 +82,12 @@ export default function HeroSection() {
         >
           <Link href="/events">
             <Button size="lg" icon={<ArrowRight className="w-4 h-4" />}>
-              {text.cta1}
+              {content.cta1}
             </Button>
           </Link>
           <Link href="/about">
             <Button variant="ghost" size="lg">
-              {text.cta2}
+              {content.cta2}
             </Button>
           </Link>
         </motion.div>
