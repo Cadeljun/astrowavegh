@@ -9,11 +9,12 @@
         "name": { "type": "string" },
         "date": { "type": "string", "format": "date-time" },
         "venue": { "type": "string" },
-        "category": { "type": "string", "enum": ["Parties", "Concerts", "Networking", "Nightlife"] },
+        "category": { "type": "string", "enum": ["Parties", "Concerts", "Networking", "Nightlife", "Festivals"] },
         "description": { "type": "string" },
-        "imageUrl": { "type": "string", "description": "Cloudinary public ID or full URL" },
+        "imageUrl": { "type": "string" },
         "ticketLink": { "type": "string" },
-        "active": { "type": "boolean" }
+        "active": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["name", "date", "venue", "category", "active"]
     },
@@ -23,12 +24,15 @@
       "type": "object",
       "properties": {
         "name": { "type": "string" },
+        "stageName": { "type": "string" },
         "role": { "type": "string" },
         "bio": { "type": "string" },
         "imageUrl": { "type": "string" },
         "instagram": { "type": "string" },
         "soundcloud": { "type": "string" },
-        "active": { "type": "boolean" }
+        "spotify": { "type": "string" },
+        "active": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["name", "role", "active"]
     },
@@ -41,7 +45,8 @@
         "email": { "type": "string", "format": "email" },
         "subject": { "type": "string" },
         "message": { "type": "string" },
-        "timestamp": { "type": "string", "format": "date-time" }
+        "timestamp": { "type": "string", "format": "date-time" },
+        "read": { "type": "boolean" }
       },
       "required": ["name", "email", "message", "timestamp"]
     },
@@ -51,31 +56,123 @@
       "type": "object",
       "properties": {
         "email": { "type": "string", "format": "email" },
-        "division": { "type": "string", "enum": ["Records", "Cares"] },
+        "division": { "type": "string", "enum": ["records", "cares"] },
         "timestamp": { "type": "string", "format": "date-time" }
       },
       "required": ["email", "division", "timestamp"]
+    },
+    "UserRole": {
+      "title": "User Role",
+      "description": "Permissions and profile data for administrators.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string" },
+        "name": { "type": "string" },
+        "role": { "type": "string", "enum": ["SUPER_ADMIN", "EDITOR", "VIEWER", "DEVELOPER"] },
+        "active": { "type": "boolean" },
+        "lastLogin": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "role", "active"]
+    },
+    "Gallery": {
+      "title": "Gallery",
+      "description": "Curated photos from past events.",
+      "type": "object",
+      "properties": {
+        "imageUrl": { "type": "string" },
+        "eventName": { "type": "string" },
+        "date": { "type": "string" },
+        "category": { "type": "string" },
+        "uploadedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["imageUrl", "eventName", "uploadedAt"]
+    },
+    "Upload": {
+      "title": "Upload",
+      "description": "Registry of files uploaded to Cloudinary.",
+      "type": "object",
+      "properties": {
+        "fileName": { "type": "string" },
+        "fileType": { "type": "string" },
+        "fileSize": { "type": "number" },
+        "cloudinaryUrl": { "type": "string" },
+        "folder": { "type": "string" },
+        "uploadedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["fileName", "cloudinaryUrl", "uploadedAt"]
+    },
+    "CMSContent": {
+      "title": "CMS Content",
+      "description": "Dynamic content fields for page sections.",
+      "type": "object",
+      "properties": {
+        "pageSlug": { "type": "string" },
+        "sectionKey": { "type": "string" },
+        "label": { "type": "string" },
+        "fields": { "type": "object" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["pageSlug", "sectionKey", "fields"]
+    },
+    "TalentInquiry": {
+      "title": "Talent Inquiry",
+      "description": "Applications from creatives to join the roster.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "stageName": { "type": "string" },
+        "role": { "type": "string" },
+        "email": { "type": "string" },
+        "phone": { "type": "string" },
+        "socialLink": { "type": "string" },
+        "bio": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "read": { "type": "boolean" }
+      },
+      "required": ["name", "email", "role", "timestamp"]
     }
   },
   "auth": {
-    "providers": ["google.com", "password"]
+    "providers": ["password", "google.com"]
   },
   "firestore": {
+    "/user_roles/{uid}": {
+      "schema": "#/entities/UserRole",
+      "description": "Registry of admin user roles and permissions."
+    },
     "/events/{eventId}": {
       "schema": "#/entities/Event",
-      "description": "Collection of AstroWave events"
+      "description": "Collection of public events and experiences."
     },
     "/talent/{talentId}": {
       "schema": "#/entities/Talent",
-      "description": "Collection of managed talent"
+      "description": "Official AstroWave managed talent roster."
     },
     "/contacts/{contactId}": {
       "schema": "#/entities/Contact",
-      "description": "Inquiries from the contact form"
+      "description": "Incoming messages from the contact portal."
     },
     "/waitlist/{waitlistId}": {
       "schema": "#/entities/Waitlist",
-      "description": "Division waitlists"
+      "description": "Email signups for coming-soon divisions."
+    },
+    "/gallery/{galleryId}": {
+      "schema": "#/entities/Gallery",
+      "description": "Photo memories from past events."
+    },
+    "/uploads/{uploadId}": {
+      "schema": "#/entities/Upload",
+      "description": "Asset log for media uploaded via Cloudinary."
+    },
+    "/cms_content/{contentId}": {
+      "schema": "#/entities/CMSContent",
+      "description": "Storage for editable website text and labels."
+    },
+    "/talent_inquiries/{inquiryId}": {
+      "schema": "#/entities/TalentInquiry",
+      "description": "Submissions from artists and DJs."
     }
   }
 }
