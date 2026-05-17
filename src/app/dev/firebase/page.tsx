@@ -23,7 +23,8 @@ import {
   Hash, 
   ExternalLink,
   Loader2,
-  Trash2
+  Trash2,
+  RefreshCw
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
