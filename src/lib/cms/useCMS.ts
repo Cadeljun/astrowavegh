@@ -15,6 +15,12 @@ export function useCMSContent(
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    // Only run if db is properly initialized
+    if (!db || !('type' in db)) {
+      setLoading(false);
+      return;
+    }
+
     const docId = `${pageSlug}_${sectionKey}`
     const ref = doc(db, 'cms_content', docId)
 
@@ -45,6 +51,93 @@ export function useCMSContent(
   }, [pageSlug, sectionKey])
 
   return { content, loading }
+}
+
+/**
+ * Hook to fetch visible sections and their order for a specific page.
+ */
+export function useCMSSections(pageSlug: string) {
+  const [sections, setSections] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!db || !('type' in db)) {
+      setLoading(false);
+      return;
+    }
+
+    const ref = doc(db, 'cms_sections', pageSlug);
+    
+    const unsub = onSnapshot(ref, (snap) => {
+      if (snap.exists()) {
+        const data = snap.data();
+        const sorted = (data.sections || [])
+          .sort((a: any, b: any) => (a.order || 0) - (b.order || 0))
+          .filter((s: any) => s.visible !== false);
+        setSections(sorted);
+      }
+      setLoading(false);
+    }, (error) => {
+      setLoading(false);
+    });
+    
+    return unsub;
+  }, [pageSlug]);
+
+  return { sections, loading };
+}
+
+/**
+ * Hook to fetch SEO metadata for a page.
+ */
+export function useCMSSEO(pageSlug: string) {
+  const [seo, setSEO] = useState<any>(null);
+
+  useEffect(() => {
+    if (!db || !('type' in db)) return;
+
+    const ref = doc(db, 'cms_seo', pageSlug);
+    const unsub = onSnapshot(ref, (snap) => {
+      if (snap.exists()) setSEO(snap.data());
+    });
+    return unsub;
+  }, [pageSlug]);
+
+  return seo;
+}
+
+export function useCMSSettings() {
+  const [settings, setSettings] = useState<Record<string, any>>({})
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    if (!db || !('type' in db)) {
+      setLoading(false);
+      return;
+    }
+
+    const ref = doc(db, 'cms_settings', 'global')
+    const unsub = onSnapshot(
+      ref, 
+      (snap) => {
+        if (snap.exists()) {
+          setSettings(snap.data())
+        }
+        setLoading(false)
+      },
+      async (error) => {
+        const permissionError = new FirestorePermissionError({
+          path: ref.path,
+          operation: 'get',
+        } satisfies SecurityRuleContext);
+        errorEmitter.emit('permission-error', permissionError);
+        setLoading(false);
+      }
+    )
+    return () => unsub()
+  }, [])
+
+  return { settings, loading }
 }
 
 export async function saveCMSSection(
@@ -104,35 +197,6 @@ export async function loadPageContent(
   )
 
   return results
-}
-
-export function useCMSSettings() {
-  const [settings, setSettings] = useState<Record<string, any>>({})
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    const ref = doc(db, 'cms_settings', 'global')
-    const unsub = onSnapshot(
-      ref, 
-      (snap) => {
-        if (snap.exists()) {
-          setSettings(snap.data())
-        }
-        setLoading(false)
-      },
-      async (error) => {
-        const permissionError = new FirestorePermissionError({
-          path: ref.path,
-          operation: 'get',
-        } satisfies SecurityRuleContext);
-        errorEmitter.emit('permission-error', permissionError);
-        setLoading(false);
-      }
-    )
-    return () => unsub()
-  }, [])
-
-  return { settings, loading }
 }
 
 export async function saveGlobalSettings(data: Record<string, string>): Promise<void> {

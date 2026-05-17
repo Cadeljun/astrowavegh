@@ -10,6 +10,8 @@ import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/Button';
 import { fadeUp, fadeIn, scaleIn } from '@/lib/animations';
 import { useCMSContent } from '@/lib/cms/useCMS';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
 
 export default function RecordsPage() {
   const db = useFirestore();
@@ -23,15 +25,30 @@ export default function RecordsPage() {
     waitlistLabel: 'BE THE FIRST TO KNOW'
   });
 
-  const handleJoinWaitlist = async (e: React.FormEvent) => {
+  const handleJoinWaitlist = (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) return;
     setLoading(true);
-    try {
-      await addDoc(collection(db, 'waitlist'), { email, division: 'records', timestamp: serverTimestamp() });
-      toast({ title: "You're on the list!" });
-      setEmail('');
-    } finally { setLoading(false); }
+    
+    const waitlistData = { email, division: 'records', timestamp: serverTimestamp() };
+    const colRef = collection(db, 'waitlist');
+
+    addDoc(colRef, waitlistData)
+      .then(() => {
+        toast({ title: "You're on the list!" });
+        setEmail('');
+      })
+      .catch(async (serverError) => {
+        const permissionError = new FirestorePermissionError({
+          path: colRef.path,
+          operation: 'create',
+          requestResourceData: waitlistData,
+        } satisfies SecurityRuleContext);
+        errorEmitter.emit('permission-error', permissionError);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   };
 
   return (

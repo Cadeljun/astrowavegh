@@ -12,7 +12,7 @@ import {
   MessageSquare,
   Clock
 } from 'lucide-react';
-import { collection, query, orderBy, doc, deleteDoc, updateDoc, where, getCountFromServer } from 'firebase/firestore';
+import { collection, query, orderBy, doc, deleteDoc, updateDoc } from 'firebase/firestore';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { Card } from '@/components/ui/Card';
@@ -22,6 +22,8 @@ import { format, subDays } from 'date-fns';
 import { exportToCSV } from '@/lib/exportCSV';
 import ContactModal from '@/components/admin/ContactModal';
 import ConfirmModal from '@/components/admin/ConfirmModal';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
 
 export default function AdminContactsPage() {
   const db = useFirestore();
@@ -63,25 +65,41 @@ export default function AdminContactsPage() {
     toast({ title: "Exporting CSV", description: "Your download will begin shortly." });
   };
 
-  const handleMarkRead = async (id: string) => {
-    try {
-      await updateDoc(doc(db, 'contacts', id), { read: true });
-      toast({ title: "Marked as read" });
-    } catch (e) {
-      toast({ variant: "destructive", title: "Error updating" });
-    }
+  const handleMarkRead = (id: string) => {
+    const docRef = doc(db, 'contacts', id);
+    const updateData = { read: true };
+    
+    updateDoc(docRef, updateData)
+      .then(() => {
+        toast({ title: "Marked as read" });
+      })
+      .catch(async (serverError) => {
+        const permissionError = new FirestorePermissionError({
+          path: docRef.path,
+          operation: 'update',
+          requestResourceData: updateData,
+        } satisfies SecurityRuleContext);
+        errorEmitter.emit('permission-error', permissionError);
+      });
   };
 
-  const handleDelete = async () => {
+  const handleDelete = () => {
     if (!deleteId) return;
-    try {
-      await deleteDoc(doc(db, 'contacts', deleteId));
-      setDeleteId(null);
-      setIsDetailOpen(false);
-      toast({ title: "Message Deleted" });
-    } catch (e) {
-      toast({ variant: "destructive", title: "Error deleting" });
-    }
+    const docRef = doc(db, 'contacts', deleteId);
+
+    deleteDoc(docRef)
+      .then(() => {
+        setDeleteId(null);
+        setIsDetailOpen(false);
+        toast({ title: "Message Deleted" });
+      })
+      .catch(async (serverError) => {
+        const permissionError = new FirestorePermissionError({
+          path: docRef.path,
+          operation: 'delete',
+        } satisfies SecurityRuleContext);
+        errorEmitter.emit('permission-error', permissionError);
+      });
   };
 
   const openDetail = (contact: any) => {
@@ -226,6 +244,7 @@ export default function AdminContactsPage() {
       {deleteId && <ConfirmModal
         onClose={() => setDeleteId(null)}
         onConfirm={handleDelete}
+        title="Delete Message"
         message="This message will be permanently removed from your records."
       />}
     </div>

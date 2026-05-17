@@ -21,6 +21,8 @@ import { format } from 'date-fns';
 import { exportToCSV } from '@/lib/exportCSV';
 import ConfirmModal from '@/components/admin/ConfirmModal';
 import { cn } from '@/lib/utils';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
 
 export default function AdminWaitlistPage() {
   const db = useFirestore();
@@ -62,15 +64,22 @@ export default function AdminWaitlistPage() {
     toast({ title: "Email Copied" });
   };
 
-  const handleDelete = async () => {
+  const handleDelete = () => {
     if (!deleteId) return;
-    try {
-      await deleteDoc(doc(db, 'waitlist', deleteId));
-      setDeleteId(null);
-      toast({ title: "Signup Removed" });
-    } catch (e) {
-      toast({ variant: "destructive", title: "Error" });
-    }
+    const docRef = doc(db, 'waitlist', deleteId);
+
+    deleteDoc(docRef)
+      .then(() => {
+        setDeleteId(null);
+        toast({ title: "Signup Removed" });
+      })
+      .catch(async (serverError) => {
+        const permissionError = new FirestorePermissionError({
+          path: docRef.path,
+          operation: 'delete',
+        } satisfies SecurityRuleContext);
+        errorEmitter.emit('permission-error', permissionError);
+      });
   };
 
   return (
@@ -185,12 +194,12 @@ export default function AdminWaitlistPage() {
         </div>
       </Card>
 
-      <ConfirmModal
-        isOpen={!!deleteId}
+      {deleteId && <ConfirmModal
         onClose={() => setDeleteId(null)}
         onConfirm={handleDelete}
+        title="Delete Signup"
         message="This signup will be removed from your waitlist records."
-      />
+      />}
     </div>
   );
 }

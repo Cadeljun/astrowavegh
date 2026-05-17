@@ -14,6 +14,8 @@ import TalentCard from '@/components/talent/TalentCard';
 import { fadeUp, fadeIn, staggerContainer, scaleIn, heroTextReveal } from '@/lib/animations';
 import { cn } from '@/lib/utils';
 import { useCMSContent } from '@/lib/cms/useCMS';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
 
 const services = [
   { icon: Briefcase, title: "BRAND DEALS", desc: "Connecting talent with brands for meaningful partnerships.", color: 'gold' as const },
@@ -57,14 +59,29 @@ export default function ManagementPage() {
 
   const { data: talent, loading: talentLoading } = useCollection(talentQuery);
 
-  const handleFormSubmit = async (e: React.FormEvent) => {
+  const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    try {
-      await addDoc(collection(db, 'talent_inquiries'), { ...formData, timestamp: serverTimestamp() });
-      toast({ title: "Application Received!", description: "The team will review your profile." });
-      setFormData({ name: '', stageName: '', role: 'DJ', email: '', phone: '', socialLink: '', bio: '' });
-    } catch { toast({ variant: "destructive", title: "Submission failed" }); } finally { setIsSubmitting(false); }
+    
+    const inquiryData = { ...formData, timestamp: serverTimestamp() };
+    const colRef = collection(db, 'talent_inquiries');
+
+    addDoc(colRef, inquiryData)
+      .then(() => {
+        toast({ title: "Application Received!", description: "The team will review your profile." });
+        setFormData({ name: '', stageName: '', role: 'DJ', email: '', phone: '', socialLink: '', bio: '' });
+      })
+      .catch(async (serverError) => {
+        const permissionError = new FirestorePermissionError({
+          path: colRef.path,
+          operation: 'create',
+          requestResourceData: inquiryData,
+        } satisfies SecurityRuleContext);
+        errorEmitter.emit('permission-error', permissionError);
+      })
+      .finally(() => {
+        setIsSubmitting(false);
+      });
   };
 
   return (

@@ -8,7 +8,7 @@ import {
   updateDocument,
   getDocument
 } from '@/lib/firebase/helpers'
-import Toast from '@/components/ui/Toast'
+import { useToast } from '@/hooks/use-toast'
 
 interface EventFormProps {
   eventId?: string  // If provided = edit mode
@@ -47,6 +47,7 @@ export default function EventForm({
   eventId 
 }: EventFormProps) {
   const router = useRouter()
+  const { toast } = useToast()
   const isEdit = !!eventId
   const [data, setData] = useState<EventData>(defaultData)
   const [loading, setLoading] = useState(false)
@@ -54,18 +55,6 @@ export default function EventForm({
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string>('')
   const [uploadProgress, setUploadProgress] = useState(0)
-  const [toast, setToast] = useState<{
-    message: string
-    type: 'success' | 'error'
-  } | null>(null)
-
-  const showToast = (
-    message: string,
-    type: 'success' | 'error'
-  ) => {
-    setToast({ message, type })
-    setTimeout(() => setToast(null), 4000)
-  }
 
   // Load existing event for edit
   useEffect(() => {
@@ -93,13 +82,13 @@ export default function EventForm({
           }
         }
       } catch {
-        showToast('Failed to load event', 'error')
+        toast({ variant: "destructive", title: "Error", description: "Failed to load event" })
       } finally {
         setFetchLoading(false)
       }
     }
     loadEvent()
-  }, [eventId])
+  }, [eventId, toast])
 
   // Handle image selection
   const handleImageChange = (
@@ -108,7 +97,7 @@ export default function EventForm({
     const file = e.target.files?.[0]
     if (!file) return
     if (file.size > 5 * 1024 * 1024) {
-      showToast('Image must be under 5MB', 'error')
+      toast({ variant: "destructive", title: "Error", description: "Image must be under 5MB" })
       return
     }
     setImageFile(file)
@@ -142,7 +131,7 @@ export default function EventForm({
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
     if (!data.name || !data.venue) {
-      showToast('Please fill all required fields', 'error')
+      toast({ variant: "destructive", title: "Error", description: "Please fill all required fields" })
       return
     }
 
@@ -162,10 +151,10 @@ export default function EventForm({
 
       if (isEdit && eventId) {
         updateDocument('events', eventId, eventData)
-        showToast('Event update initiated', 'success')
+        toast({ title: "Success", description: "Event update initiated" })
       } else {
         addDocument('events', eventData)
-        showToast('Event creation initiated', 'success')
+        toast({ title: "Success", description: "Event creation initiated" })
       }
 
       setTimeout(() => {
@@ -173,7 +162,7 @@ export default function EventForm({
       }, 1500)
 
     } catch (error) {
-      showToast('Failed to initiate save. Check connection.', 'error')
+      toast({ variant: "destructive", title: "Error", description: "Failed to initiate save. Check connection." })
     } finally {
       setLoading(false)
       setUploadProgress(0)
@@ -385,7 +374,6 @@ export default function EventForm({
           </div>
         </div>
       </form>
-      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
     </div>
   )
 }

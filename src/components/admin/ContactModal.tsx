@@ -10,6 +10,8 @@ import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Divider } from '@/components/ui/Divider';
 import { format } from 'date-fns';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
 
 interface ContactModalProps {
   isOpen: boolean;
@@ -25,7 +27,17 @@ export default function ContactModal({ isOpen, onClose, contact, onDelete }: Con
   useEffect(() => {
     if (isOpen && contact && !contact.read) {
       const docRef = doc(db, 'contacts', contact.id);
-      updateDoc(docRef, { read: true }).catch(console.error);
+      const updateData = { read: true };
+      
+      updateDoc(docRef, updateData)
+        .catch(async (serverError) => {
+          const permissionError = new FirestorePermissionError({
+            path: docRef.path,
+            operation: 'update',
+            requestResourceData: updateData,
+          } satisfies SecurityRuleContext);
+          errorEmitter.emit('permission-error', permissionError);
+        });
     }
   }, [isOpen, contact, db]);
 

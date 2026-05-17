@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
-import { useCMSSettings } from '@/lib/cms/use-cms';
+import { useCMSSettings } from '@/lib/cms/useCMS';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import LoadingScreen from '@/components/ui/LoadingScreen';
@@ -48,7 +48,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
   const [isLoaded, setIsLoaded] = useState(false);
   const pathname = usePathname();
   const isAdminRoute = pathname?.startsWith('/admin') || pathname?.startsWith('/dev');
-  const settings = useCMSSettings();
+  const { settings } = useCMSSettings();
 
   useEffect(() => {
     const timer = setTimeout(() => {

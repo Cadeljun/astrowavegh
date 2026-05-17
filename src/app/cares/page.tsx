@@ -11,6 +11,8 @@ import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { fadeUp, fadeIn, scaleIn, staggerContainer } from '@/lib/animations';
 import { useCMSContent } from '@/lib/cms/useCMS';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
 
 export default function CaresPage() {
   const db = useFirestore();
@@ -24,15 +26,30 @@ export default function CaresPage() {
     waitlistLabel: 'STAY CONNECTED'
   });
 
-  const handleJoinWaitlist = async (e: React.FormEvent) => {
+  const handleJoinWaitlist = (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) return;
     setLoading(true);
-    try {
-      await addDoc(collection(db, 'waitlist'), { email, division: 'cares', timestamp: serverTimestamp() });
-      toast({ title: "Thank you!" });
-      setEmail('');
-    } finally { setLoading(false); }
+    
+    const waitlistData = { email, division: 'cares', timestamp: serverTimestamp() };
+    const colRef = collection(db, 'waitlist');
+
+    addDoc(colRef, waitlistData)
+      .then(() => {
+        toast({ title: "Thank you!" });
+        setEmail('');
+      })
+      .catch(async (serverError) => {
+        const permissionError = new FirestorePermissionError({
+          path: colRef.path,
+          operation: 'create',
+          requestResourceData: waitlistData,
+        } satisfies SecurityRuleContext);
+        errorEmitter.emit('permission-error', permissionError);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   };
 
   const missions = [

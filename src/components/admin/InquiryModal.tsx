@@ -11,6 +11,8 @@ import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Divider } from '@/components/ui/Divider';
 import { format } from 'date-fns';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
 
 interface InquiryModalProps {
   isOpen: boolean;
@@ -27,7 +29,17 @@ export default function InquiryModal({ isOpen, onClose, inquiry, onDelete }: Inq
   useEffect(() => {
     if (isOpen && inquiry && !inquiry.read) {
       const docRef = doc(db, 'talent_inquiries', inquiry.id);
-      updateDoc(docRef, { read: true }).catch(console.error);
+      const updateData = { read: true };
+
+      updateDoc(docRef, updateData)
+        .catch(async (serverError) => {
+          const permissionError = new FirestorePermissionError({
+            path: docRef.path,
+            operation: 'update',
+            requestResourceData: updateData,
+          } satisfies SecurityRuleContext);
+          errorEmitter.emit('permission-error', permissionError);
+        });
     }
     if (inquiry && inquiry.timestamp) {
       setFormattedDate(format(inquiry.timestamp.toDate(), 'PPP • p'));

@@ -25,6 +25,8 @@ import { exportToCSV } from '@/lib/exportCSV';
 import InquiryModal from '@/components/admin/InquiryModal';
 import ConfirmModal from '@/components/admin/ConfirmModal';
 import { useRouter } from 'next/navigation';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
 
 export default function AdminInquiriesPage() {
   const db = useFirestore();
@@ -73,25 +75,41 @@ export default function AdminInquiriesPage() {
     exportToCSV(filteredInquiries, `astrowave-talent-inquiries-${format(new Date(), 'yyyy-MM-dd')}.csv`);
   };
 
-  const handleMarkRead = async (id: string) => {
-    try {
-      await updateDoc(doc(db, 'talent_inquiries', id), { read: true });
-      toast({ title: "Inquiry reviewed" });
-    } catch (e) {
-      toast({ variant: "destructive", title: "Error updating" });
-    }
+  const handleMarkRead = (id: string) => {
+    const docRef = doc(db, 'talent_inquiries', id);
+    const updateData = { read: true };
+
+    updateDoc(docRef, updateData)
+      .then(() => {
+        toast({ title: "Inquiry reviewed" });
+      })
+      .catch(async (serverError) => {
+        const permissionError = new FirestorePermissionError({
+          path: docRef.path,
+          operation: 'update',
+          requestResourceData: updateData,
+        } satisfies SecurityRuleContext);
+        errorEmitter.emit('permission-error', permissionError);
+      });
   };
 
-  const handleDelete = async () => {
+  const handleDelete = () => {
     if (!deleteId) return;
-    try {
-      await deleteDoc(doc(db, 'talent_inquiries', deleteId));
-      setDeleteId(null);
-      setIsDetailOpen(false);
-      toast({ title: "Inquiry Deleted" });
-    } catch (e) {
-      toast({ variant: "destructive", title: "Error" });
-    }
+    const docRef = doc(db, 'talent_inquiries', deleteId);
+
+    deleteDoc(docRef)
+      .then(() => {
+        setDeleteId(null);
+        setIsDetailOpen(false);
+        toast({ title: "Inquiry Deleted" });
+      })
+      .catch(async (serverError) => {
+        const permissionError = new FirestorePermissionError({
+          path: docRef.path,
+          operation: 'delete',
+        } satisfies SecurityRuleContext);
+        errorEmitter.emit('permission-error', permissionError);
+      });
   };
 
   const openDetail = (inquiry: any) => {
@@ -252,12 +270,12 @@ export default function AdminInquiriesPage() {
         onDelete={(id) => setDeleteId(id)}
       />
 
-      <ConfirmModal
-        isOpen={!!deleteId}
+      {deleteId && <ConfirmModal
         onClose={() => setDeleteId(null)}
         onConfirm={handleDelete}
+        title="Delete Inquiry"
         message="This inquiry will be removed from your records."
-      />
+      />}
     </div>
   );
 }

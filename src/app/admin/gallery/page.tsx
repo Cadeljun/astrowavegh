@@ -20,6 +20,8 @@ import { Badge } from '@/components/ui/Badge';
 import ConfirmModal from '@/components/admin/ConfirmModal';
 import GalleryUploadModal from '@/components/admin/GalleryUploadModal';
 import { cn } from '@/lib/utils';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
 
 const CATEGORIES = ['All', 'Mask Mirage', 'Splash & Seduction', 'General'];
 
@@ -42,14 +44,22 @@ export default function AdminGalleryPage() {
     return gallery.filter((item: any) => item.category === activeTab);
   }, [gallery, activeTab]);
 
-  const handleDelete = async () => {
+  const handleDelete = () => {
     if (!deleteModal.id) return;
-    try {
-      await deleteDoc(doc(db, 'gallery', deleteModal.id));
-      toast({ title: "Photo Deleted", description: "The image has been removed from the gallery." });
-    } catch (error) {
-      toast({ variant: "destructive", title: "Error", description: "Could not delete photo." });
-    }
+    const docRef = doc(db, 'gallery', deleteModal.id);
+    
+    deleteDoc(docRef)
+      .then(() => {
+        setDeleteModal({ isOpen: false, id: '' });
+        toast({ title: "Photo Deleted", description: "The image has been removed from the gallery." });
+      })
+      .catch(async (serverError) => {
+        const permissionError = new FirestorePermissionError({
+          path: docRef.path,
+          operation: 'delete',
+        } satisfies SecurityRuleContext);
+        errorEmitter.emit('permission-error', permissionError);
+      });
   };
 
   return (
@@ -129,12 +139,12 @@ export default function AdminGalleryPage() {
         onClose={() => setIsUploadModalOpen(false)} 
       />
 
-      <ConfirmModal
-        isOpen={deleteModal.isOpen}
+      {deleteModal.isOpen && <ConfirmModal
+        title="Delete Photo"
         onClose={() => setDeleteModal({ ...deleteModal, isOpen: false })}
         onConfirm={handleDelete}
         message="This photo will be permanently removed from the AstroWave gallery."
-      />
+      />}
     </div>
   );
 }

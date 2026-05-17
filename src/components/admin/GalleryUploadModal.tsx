@@ -8,6 +8,8 @@ import { db } from '@/firebase/config';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/Button';
 import { Progress } from '@/components/ui/progress';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
 
 interface GalleryUploadModalProps {
   isOpen: boolean;
@@ -75,26 +77,39 @@ export default function GalleryUploadModal({ isOpen, onClose }: GalleryUploadMod
     try {
       const uploadPromises = files.map(async ({ file }) => {
         const url = await uploadToCloudinary(file);
-        await addDoc(collection(db, 'gallery'), {
+        const galleryData = {
           imageUrl: url,
           eventName: meta.eventName,
           date: meta.date,
           category: meta.category,
           uploadedAt: serverTimestamp()
-        });
-        setUploadStats(prev => ({ ...prev, completed: prev.completed + 1 }));
+        };
+        const colRef = collection(db, 'gallery');
+
+        addDoc(colRef, galleryData)
+          .then(() => {
+            setUploadStats(prev => ({ ...prev, completed: prev.completed + 1 }));
+          })
+          .catch(async (serverError) => {
+            const permissionError = new FirestorePermissionError({
+              path: colRef.path,
+              operation: 'create',
+              requestResourceData: galleryData,
+            } satisfies SecurityRuleContext);
+            errorEmitter.emit('permission-error', permissionError);
+          });
       });
 
       await Promise.all(uploadPromises);
       
-      toast({ title: "Upload Complete", description: `Successfully uploaded ${files.length} photos.` });
+      toast({ title: "Upload Process Finished", description: "Records are being synced to the gallery." });
       setTimeout(() => {
         setFiles([]);
         onClose();
         setLoading(false);
       }, 2000);
     } catch (error) {
-      toast({ variant: "destructive", title: "Upload Failed", description: "Some photos failed to upload." });
+      toast({ variant: "destructive", title: "Upload Failed", description: "Some photos failed to upload to Cloudinary." });
       setLoading(false);
     }
   };
@@ -148,7 +163,7 @@ export default function GalleryUploadModal({ isOpen, onClose }: GalleryUploadMod
           {loading && (
             <div className="space-y-2">
               <div className="flex justify-between text-[0.6rem] text-muted uppercase tracking-widest">
-                <span>Uploading {uploadStats.completed} of {uploadStats.total}</span>
+                <span>Syncing {uploadStats.completed} of {uploadStats.total}</span>
                 <span>{Math.round((uploadStats.completed / uploadStats.total) * 100)}%</span>
               </div>
               <Progress value={(uploadStats.completed / uploadStats.total) * 100} className="h-1 bg-white/5" />
@@ -158,7 +173,7 @@ export default function GalleryUploadModal({ isOpen, onClose }: GalleryUploadMod
           <div className="grid grid-cols-2 gap-4">
             <Button variant="ghost" onClick={onClose} disabled={loading}>CANCEL</Button>
             <Button disabled={loading || files.length === 0 || !meta.eventName} onClick={handleUploadAll}>
-              {loading ? <><Loader2 size={16} className="animate-spin mr-2" /> UPLOADING...</> : uploadStats.completed === uploadStats.total && uploadStats.total > 0 ? <><CheckCircle size={16} className="mr-2" /> DONE</> : 'UPLOAD ALL'}
+              {loading ? <><Loader2 size={16} className="animate-spin mr-2" /> PROCESSING...</> : uploadStats.completed === uploadStats.total && uploadStats.total > 0 ? <><CheckCircle size={16} className="mr-2" /> DONE</> : 'UPLOAD ALL'}
             </Button>
           </div>
         </div>

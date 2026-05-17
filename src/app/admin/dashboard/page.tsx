@@ -210,10 +210,11 @@ export default function AdminDashboard() {
     useState(true)
 
   const [currentTime, setCurrentTime] = 
-    useState(new Date())
+    useState<Date | null>(null)
 
-  // Live clock
+  // Live clock - deferred until mount to prevent hydration error
   useEffect(() => {
+    setCurrentTime(new Date())
     const interval = setInterval(() => {
       setCurrentTime(new Date())
     }, 1000)
@@ -313,14 +314,18 @@ export default function AdminDashboard() {
           </p>
         </div>
         <div className="text-right">
-          <p className="font-display text-2xl 
-            text-[#FFD166]">
-            {formatTime(currentTime)}
-          </p>
-          <p className="font-body text-xs 
-            text-[#7B7B9A] mt-0.5">
-            {formatDate(currentTime)}
-          </p>
+          {currentTime && (
+            <>
+              <p className="font-display text-2xl 
+                text-[#FFD166]">
+                {formatTime(currentTime)}
+              </p>
+              <p className="font-body text-xs 
+                text-[#7B7B9A] mt-0.5">
+                {formatDate(currentTime)}
+              </p>
+            </>
+          )}
         </div>
       </div>
 

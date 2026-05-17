@@ -3,11 +3,11 @@ import * as admin from 'firebase-admin'
 if (!admin.apps.length) {
   admin.initializeApp({
     credential: admin.credential.cert({
-      projectId: 
+      project_id: 
         process.env.FIREBASE_PROJECT_ID,
-      clientEmail: 
+      client_email: 
         process.env.FIREBASE_CLIENT_EMAIL,
-      privateKey: 
+      private_key: 
         process.env.FIREBASE_PRIVATE_KEY
           ?.replace(/\\n/g, '\n')
     })
