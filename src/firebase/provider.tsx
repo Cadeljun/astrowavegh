@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { createContext, useContext } from 'react';
@@ -33,10 +34,20 @@ export function FirebaseProvider({
 
 export function useFirebase() {
   const context = useContext(FirebaseContext);
-  if (!context) throw new Error('useFirebase must be used within FirebaseProvider');
+  if (!context) {
+    throw new Error('useFirebase must be used within FirebaseProvider');
+  }
   return context;
 }
 
+/**
+ * Hooks to return initialized service instances from the provider context.
+ */
 export const useFirebaseApp = () => useFirebase().app;
 export const useFirestore = () => useFirebase().firestore;
 export const useAuth = () => useFirebase().auth;
+
+// Aliases for consistency with certain boilerplate patterns
+export const getFirebaseApp = useFirebaseApp;
+export const getFirestore = useFirestore;
+export const getAuth = useAuth;
