@@ -12,30 +12,27 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-// Safety check for browser environment
+// Check if we are in the browser
 const isBrowser = typeof window !== 'undefined';
 
-/**
- * Initialize Firebase.
- * Ensures the snippet requested is present but wrapped for idempotency and SSR safety.
- */
 let app: FirebaseApp;
 let auth: Auth;
 let db: Firestore;
 let storage: FirebaseStorage;
 
 if (isBrowser) {
-  app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+  // Initialize Firebase for the client
+  app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
   auth = getAuth(app);
   db = getFirestore(app);
   storage = getStorage(app);
 } else {
-  // Return stubs for SSR to prevent "Internal Server Error"
+  // Provide stubs for SSR to prevent pre-rendering crashes
   app = {} as FirebaseApp;
   auth = {} as Auth;
   db = {} as Firestore;
   storage = {} as FirebaseStorage;
 }
 
-export { app, auth, db, storage };
+export { app, auth, db, storage, firebaseConfig };
 export default app;

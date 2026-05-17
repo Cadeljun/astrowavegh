@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState } from 'react';
-import { auth } from '@/firebase/config';
+import { auth, db } from '@/firebase/config';
 import {
   onAuthStateChanged,
   signInWithEmailAndPassword,
@@ -28,24 +28,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Skip listener if auth is just a stub (missing keys)
-    if (!auth || typeof auth.onAuthStateChanged !== 'function') {
+    // Only run if we're in the browser and auth is initialized
+    if (typeof window === 'undefined' || !auth.onAuthStateChanged) {
       setLoading(false);
       return;
     }
 
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(user);
+      setUser(currentUser);
       setLoading(false);
     });
+    
     return () => unsubscribe();
   }, []);
 
   const login = async (email: string, password: string) => {
     setError(null);
     
-    if (!auth || typeof auth.signInWithEmailAndPassword !== 'function') {
-      setError('Authentication is not configured. Please check your environment variables.');
+    if (!auth.signInWithEmailAndPassword) {
+      setError('Authentication is not available during server pre-rendering.');
       return;
     }
 
@@ -61,35 +62,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         case 'auth/user-disabled':
           setError('This account has been disabled.');
           break;
+        case 'auth/invalid-credential':
         case 'auth/user-not-found':
         case 'auth/wrong-password':
-        case 'auth/invalid-credential':
           setError('Invalid email or password.');
           break;
         case 'auth/too-many-requests':
           setError('Too many failed attempts. Please try again later.');
           break;
-        case 'auth/network-request-failed':
-          setError('Network error. Please check your connection.');
-          break;
         case 'auth/api-key-not-valid':
-          setError('Firebase configuration error (Invalid API Key).');
+          setError('Firebase configuration error (Invalid API Key). Check your .env file.');
           break;
         default:
-          setError('An unexpected authentication error occurred.');
+          setError('An unexpected error occurred during sign in.');
       }
       throw err;
     }
   };
 
   const logout = async () => {
-    if (auth && typeof auth.signOut === 'function') {
+    if (auth.signOut) {
       await signOut(auth);
     }
   };
 
   const clearError = () => setError(null);
 
+  // Consider a user an admin if they are logged in (role check happens in RoleContext)
   const isAdmin = !!user;
   const isDeveloper = user?.email === 'junioraquils143@gmail.com';
 

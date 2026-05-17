@@ -1,12 +1,10 @@
+'use client';
 
 import app, { db, auth, storage } from './config';
 
-export { db, auth, storage };
-export default app;
-
 /**
- * Initializes Firebase services for client-side usage.
- * Strictly uses production instances (no emulators).
+ * Standardized initialization for client-side Firebase services.
+ * Production only.
  */
 export function initializeFirebase() {
   return {
@@ -30,3 +28,6 @@ export {
   getAuth 
 } from './provider';
 export { FirebaseClientProvider } from './client-provider';
+
+export { db, auth, storage };
+export default app;

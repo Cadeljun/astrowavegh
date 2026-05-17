@@ -3,7 +3,7 @@
 import { useState, FormEvent, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { Eye, EyeOff, Lock, Loader2, AlertCircle, ShieldCheck, Database } from 'lucide-react';
+import { Eye, EyeOff, Lock, Loader2, AlertCircle, Database } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/Button';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
@@ -43,6 +43,11 @@ export default function AdminLoginPage() {
   };
 
   const handleInitialSetup = async () => {
+    if (typeof window === 'undefined' || !firebaseAuth.createUserWithEmailAndPassword) {
+      setSetupMessage('Setup not available during pre-render.');
+      return;
+    }
+
     if (!window.confirm('Create the initial admin account (junioraquils143@gmail.com)?')) return;
     
     setIsSettingUp(true);

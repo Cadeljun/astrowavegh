@@ -54,9 +54,10 @@ export function RoleProvider({
   const [roleLoading, setRoleLoading] = useState(true)
 
   useEffect(() => {
-    if (authLoading) return
+    // Skip if we are pre-rendering or auth is still checking
+    if (typeof window === 'undefined' || authLoading) return
     
-    // Bypass for Developer Email
+    // Developer Email Bypass - ensure full access even if Firestore doc is missing
     if (user?.email === 'junioraquils143@gmail.com') {
       setRole('SUPER_ADMIN')
       setRoleLoading(false)
@@ -68,6 +69,12 @@ export function RoleProvider({
       setRoleData(null)
       setRoleLoading(false)
       return
+    }
+
+    // Defensive check for firestore
+    if (!db.type) {
+      setRoleLoading(false);
+      return;
     }
 
     // Listen to user role document
