@@ -2,11 +2,13 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, Instagram, Twitter, Youtube, Music } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/utils';
+import { useCMSSettings } from '@/lib/cms/useCMS';
 
 const navLinks = [
   { name: 'Home', href: '/' },
@@ -22,6 +24,7 @@ export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();
+  const { settings } = useCMSSettings();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -47,10 +50,22 @@ export default function Navbar() {
     >
       <div className="max-w-screen-2xl mx-auto w-full flex items-center justify-between">
         {/* Logo */}
-        <Link href="/" className="group" aria-label="AstroWave Home">
-          <span className="font-display text-[1.8rem] text-[var(--color-gold)] text-glow-gold transition-all group-hover:brightness-125">
-            ASTROWAVE
-          </span>
+        <Link href="/" className="group flex items-center gap-3" aria-label="AstroWave Home">
+          {settings?.logoUrl ? (
+            <div className="relative h-8 w-32 md:h-10 md:w-40">
+              <Image 
+                src={settings.logoUrl} 
+                alt={settings?.siteName || "AstroWave"} 
+                fill 
+                className="object-contain transition-all group-hover:brightness-125"
+                priority
+              />
+            </div>
+          ) : (
+            <span className="font-display text-[1.8rem] text-[var(--color-gold)] text-glow-gold transition-all group-hover:brightness-125">
+              {settings?.siteName?.toUpperCase() || 'ASTROWAVE'}
+            </span>
+          )}
         </Link>
 
         {/* Desktop Links */}
@@ -114,7 +129,18 @@ export default function Navbar() {
             transition={{ duration: 0.4, ease: 'easeInOut' }}
             className="fixed inset-0 z-[2000] bg-[var(--color-dark)] flex flex-col p-8 lg:hidden"
           >
-            <div className="flex justify-end mb-12">
+            <div className="flex justify-between items-center mb-12">
+              <Link href="/" className="group" aria-label="AstroWave Home">
+                {settings?.logoUrl ? (
+                  <div className="relative h-8 w-24">
+                    <Image src={settings.logoUrl} alt="Logo" fill className="object-contain" />
+                  </div>
+                ) : (
+                  <span className="font-display text-[1.5rem] text-[var(--color-gold)] text-glow-gold">
+                    {settings?.siteName?.toUpperCase() || 'ASTROWAVE'}
+                  </span>
+                )}
+              </Link>
               <button 
                 onClick={() => setIsMobileMenuOpen(false)}
                 className="text-[var(--color-white)] p-2 hover:text-[var(--color-gold)] transition-colors"

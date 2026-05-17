@@ -246,6 +246,7 @@ export const CMS_PAGES: CMSPage[] = [
 export interface GlobalSettings {
   siteName: string
   tagline: string
+  logoUrl: string
   email: string
   location: string
   instagram: string
@@ -258,6 +259,7 @@ export interface GlobalSettings {
 export const DEFAULT_SETTINGS: GlobalSettings = {
   siteName: 'AstroWave',
   tagline: 'Vibes Beyond the Horizon.',
+  logoUrl: '',
   email: 'info@astrowave.com',
   location: 'Accra, Ghana',
   instagram: '',

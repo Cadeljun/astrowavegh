@@ -2,13 +2,17 @@
 
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { Instagram, Twitter, Youtube, Music, Facebook, Mail, MapPin } from 'lucide-react';
 import { Divider } from '@/components/ui/Divider';
 import { SectionLabel } from '@/components/ui/SectionLabel';
 import { staggerContainer, fadeUp } from '@/lib/animations';
+import { useCMSSettings } from '@/lib/cms/useCMS';
 
 export default function Footer() {
+  const { settings } = useCMSSettings();
+
   return (
     <footer className="bg-[var(--color-dark)] border-t border-[var(--color-border)] pt-20 pb-10 px-6 lg:px-12" aria-labelledby="footer-heading">
       <h2 id="footer-heading" className="sr-only">Footer</h2>
@@ -23,12 +27,23 @@ export default function Footer() {
           {/* Column 1 — Brand */}
           <motion.div variants={fadeUp} className="space-y-6">
             <Link href="/" className="group block">
-              <span className="font-display text-[2rem] text-[var(--color-gold)] text-glow-gold transition-all group-hover:brightness-125">
-                ASTROWAVE
-              </span>
+              {settings?.logoUrl ? (
+                <div className="relative h-12 w-40 mb-2">
+                  <Image 
+                    src={settings.logoUrl} 
+                    alt={settings?.siteName || "AstroWave"} 
+                    fill 
+                    className="object-contain object-left transition-all group-hover:brightness-125"
+                  />
+                </div>
+              ) : (
+                <span className="font-display text-[2rem] text-[var(--color-gold)] text-glow-gold transition-all group-hover:brightness-125">
+                  {settings?.siteName?.toUpperCase() || 'ASTROWAVE'}
+                </span>
+              )}
             </Link>
             <p className="font-body italic text-[0.9rem] text-[var(--color-muted)]">
-              &quot;Vibes Beyond the Horizon.&quot;
+              &quot;{settings?.tagline || 'Vibes Beyond the Horizon.'}&quot;
             </p>
             <p className="font-body text-[0.85rem] leading-relaxed text-[var(--color-muted)] max-w-[280px]">
               Africa&apos;s next-generation creative entertainment powerhouse — music, events, talent, and culture.
@@ -97,11 +112,11 @@ export default function Footer() {
             <ul className="flex flex-col gap-6">
               <li className="flex items-center gap-3 font-body text-[0.9rem] text-[var(--color-muted)]">
                 <Mail size={14} className="text-[var(--color-gold)]" />
-                info@astrowave.com
+                {settings?.email || 'info@astrowave.com'}
               </li>
               <li className="flex items-center gap-3 font-body text-[0.9rem] text-[var(--color-muted)]">
                 <MapPin size={14} className="text-[var(--color-gold)]" />
-                Accra, Ghana
+                {settings?.location || 'Accra, Ghana'}
               </li>
               <li>
                 <Link 

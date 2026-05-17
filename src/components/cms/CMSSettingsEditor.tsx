@@ -6,7 +6,7 @@ import { doc, onSnapshot, setDoc, serverTimestamp } from 'firebase/firestore';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Save, Globe, Instagram, Twitter, Music, Youtube, Facebook, Shield, AlertTriangle } from 'lucide-react';
+import { Loader2, Save, Globe, Instagram, Twitter, Music, Youtube, Facebook, Shield, AlertTriangle, Image as ImageIcon } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
 
@@ -57,6 +57,21 @@ export default function CMSSettingsEditor() {
             <div className="space-y-2">
               <label className="admin-label">Tagline</label>
               <input type="text" className="admin-input" value={settings.tagline || ''} onChange={e => setSettings({...settings, tagline: e.target.value})} />
+            </div>
+            <div className="space-y-2">
+              <label className="admin-label flex items-center gap-2"><ImageIcon size={12} /> Logo URL</label>
+              <input 
+                type="url" 
+                className="admin-input" 
+                value={settings.logoUrl || ''} 
+                onChange={e => setSettings({...settings, logoUrl: e.target.value})} 
+                placeholder="Cloudinary URL for brand logo"
+              />
+              {settings.logoUrl && (
+                <div className="mt-2 p-2 bg-black/40 rounded-sm border border-white/5 flex justify-center">
+                  <img src={settings.logoUrl} alt="Logo Preview" className="h-8 object-contain" />
+                </div>
+              )}
             </div>
           </div>
         </Card>
