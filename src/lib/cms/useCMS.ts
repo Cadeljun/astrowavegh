@@ -101,7 +101,13 @@ export function useCMSSettings() {
       ref, 
       (snap) => {
         if (snap.exists()) {
-          setSettings(snap.data())
+          // Merge Firestore data with hardcoded defaults to ensure all keys exist
+          setSettings({
+            ...DEFAULT_SETTINGS,
+            ...snap.data()
+          })
+        } else {
+          setSettings(DEFAULT_SETTINGS)
         }
         setLoading(false)
       },

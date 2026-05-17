@@ -277,7 +277,7 @@ export const DEFAULT_SETTINGS: GlobalSettings = {
   heroVideoUrl: '',
   heroPosterUrl: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=1200',
   heroImageUrl: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=1200',
-  founderImageUrl: 'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?q=80&w=400',
+  founderImageUrl: '',
   defaultEventPoster: 'https://images.unsplash.com/photo-1514525253361-bee8a187449b?q=80&w=800',
   defaultTalentPhoto: 'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?q=80&w=400',
   defaultGalleryPhoto: 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?q=80&w=800'
