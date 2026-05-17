@@ -1,16 +1,20 @@
+
 'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import {
-  Folder, FolderOpen, Image,
+  Folder, FolderOpen, Image as ImageIcon,
   Video, Upload, Trash2, Copy,
   RefreshCw, ChevronRight, 
   Home, Search, X, Check,
-  Eye, FileX, AlertTriangle, Loader2
+  Eye, FileX, AlertTriangle, Loader2,
+  Database, Globe
 } from 'lucide-react'
-import { collection, addDoc, serverTimestamp, query, where, getDocs, deleteDoc, doc } from 'firebase/firestore'
+import { collection, addDoc, serverTimestamp, query, where, getDocs, deleteDoc, doc, orderBy, limit } from 'firebase/firestore'
 import { db } from '@/firebase'
 import { useToast } from '@/hooks/use-toast'
+import { useCollection, useMemoFirebase } from '@/firebase'
+import { cn } from '@/lib/utils'
 
 const ASTROWAVE_FOLDERS = [
   {
@@ -84,6 +88,7 @@ function formatBytes(bytes: number): string {
 
 export default function CloudinaryDevPage() {
   const { toast } = useToast()
+  const [viewMode, setViewViewMode] = useState<'cloud' | 'registry'>('cloud')
   const [selectedFolder, setSelectedFolder] = useState<FolderNode | null>(null)
   const [resources, setResources] = useState<CloudinaryResource[]>([])
   const [loading, setLoading] = useState(false)
@@ -97,7 +102,12 @@ export default function CloudinaryDevPage() {
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set(['astrowave']))
   const [copiedId, setCopiedId] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const [isDragging, setIsDragging] = useState(false)
+
+  // Fetch Firestore registry
+  const registryQuery = useMemoFirebase(() => {
+    return query(collection(db, 'uploads'), orderBy('uploadedAt', 'desc'), limit(50))
+  }, [])
+  const { data: registry, loading: registryLoading } = useCollection(registryQuery)
 
   const loadResources = useCallback(async (folder: FolderNode) => {
     setLoading(true)
@@ -154,7 +164,7 @@ export default function CloudinaryDevPage() {
 
         setUploadProgress(prev => ({ ...prev, [fileId]: 80 }))
 
-        // ADD TO FIRESTORE REGISTRY
+        // Register in Firestore
         await addDoc(collection(db, 'uploads'), {
           fileName: file.name,
           fileType: file.type,
@@ -166,14 +176,14 @@ export default function CloudinaryDevPage() {
         })
 
         setUploadProgress(prev => ({ ...prev, [fileId]: 100 }))
-        toast({ title: 'Upload Success', description: `${file.name} is now registered.` })
+        toast({ title: 'Upload Success', description: `${file.name} registered successfully.` })
       } catch (err: any) {
         setUploadProgress(prev => ({ ...prev, [fileId]: -1 }))
         toast({ variant: 'destructive', title: 'Upload Failed', description: err.message })
       }
     }
 
-    await loadResources(selectedFolder)
+    if (selectedFolder) await loadResources(selectedFolder)
     setUploading(false)
     setTimeout(() => setUploadProgress({}), 3000)
   }
@@ -191,7 +201,7 @@ export default function CloudinaryDevPage() {
       const data = await res.json()
 
       if (data.success) {
-        // 2. Remove from Firestore registry if it exists
+        // 2. Remove from Firestore registry
         const q = query(collection(db, 'uploads'), where('publicId', '==', deleteTarget.public_id))
         const snap = await getDocs(q)
         for (const docSnap of snap.docs) {
@@ -200,7 +210,7 @@ export default function CloudinaryDevPage() {
 
         setResources(prev => prev.filter(r => r.public_id !== deleteTarget.public_id))
         if (selectedResource?.public_id === deleteTarget.public_id) setSelectedResource(null)
-        toast({ title: 'File Terminated', description: 'Resource removed from Cloudinary and Firestore.' })
+        toast({ title: 'Asset Terminated', description: 'Removed from Cloudinary and Firestore.' })
       } else {
         throw new Error('Cloudinary deletion failed')
       }
@@ -216,6 +226,7 @@ export default function CloudinaryDevPage() {
     navigator.clipboard.writeText(url)
     setCopiedId(id)
     setTimeout(() => setCopiedId(null), 2000)
+    toast({ title: 'URL Copied' })
   }
 
   const filteredResources = resources.filter(r =>
@@ -233,14 +244,17 @@ export default function CloudinaryDevPage() {
           return (
             <div key={node.path}>
               <div
-                className={`flex items-center gap-1.5 px-2 py-1.5 rounded-md cursor-pointer transition-all group ${isSelected ? 'bg-cyan-500/10 text-cyan-400' : 'text-white/50 hover:text-white/80 hover:bg-white/5'}`}
+                className={cn(
+                  "flex items-center gap-1.5 px-2 py-1.5 rounded-md cursor-pointer transition-all group",
+                  isSelected ? "bg-cyan-500/10 text-cyan-400" : "text-white/50 hover:text-white/80 hover:bg-white/5"
+                )}
                 style={{ paddingLeft: `${8 + depth * 16}px` }}
                 onClick={() => handleFolderSelect(node)}
               >
                 {hasChildren ? (
                   <button
                     onClick={(e) => { e.stopPropagation(); toggleExpand(node.path) }}
-                    className={`w-4 h-4 flex items-center justify-center hover:text-white transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`}
+                    className={cn("w-4 h-4 flex items-center justify-center hover:text-white transition-transform duration-200", isExpanded ? "rotate-90" : "")}
                   >
                     <ChevronRight size={12} />
                   </button>
@@ -262,111 +276,176 @@ export default function CloudinaryDevPage() {
     <div className="h-[calc(100vh-160px)] flex flex-col">
       <div className="flex items-center justify-between mb-8 flex-shrink-0">
         <div>
-          <h1 className="font-display text-4xl text-[#F8F8FF] uppercase">CLOUDINARY COMMAND</h1>
+          <h1 className="font-display text-4xl text-[#F8F8FF] uppercase tracking-wider">Cloudinary Explorer</h1>
           <p className="font-mono text-[0.6rem] text-cyan-500/40 uppercase tracking-[0.2em] mt-1">Live Asset Management & Registry Sync</p>
         </div>
-        <div className="flex items-center gap-2 px-4 py-2 rounded-sm bg-cyan-500/5 border border-cyan-500/20">
-          <div className="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-pulse" />
-          <span className="font-mono text-[0.65rem] text-cyan-400 uppercase font-bold tracking-widest">Link Active</span>
+        
+        <div className="flex bg-black/40 p-1 rounded-sm border border-white/5">
+          <button 
+            onClick={() => setViewViewMode('cloud')}
+            className={cn(
+              "px-4 py-2 flex items-center gap-2 font-mono text-[0.65rem] font-bold uppercase tracking-widest transition-all",
+              viewMode === 'cloud' ? "bg-cyan-500/10 text-cyan-400" : "text-muted hover:text-white"
+            )}
+          >
+            <Globe size={12} /> Cloud Browser
+          </button>
+          <button 
+            onClick={() => setViewViewMode('registry')}
+            className={cn(
+              "px-4 py-2 flex items-center gap-2 font-mono text-[0.65rem] font-bold uppercase tracking-widest transition-all",
+              viewMode === 'registry' ? "bg-cyan-500/10 text-cyan-400" : "text-muted hover:text-white"
+            )}
+          >
+            <Database size={12} /> Registry (DB)
+          </button>
         </div>
       </div>
 
-      <div className="flex gap-6 flex-1 min-h-0">
-        {/* Sidebar */}
-        <div className="w-64 flex-shrink-0 bg-[#08080C] rounded-sm border border-white/5 overflow-y-auto p-4 space-y-4">
-          <p className="font-mono text-[0.6rem] text-white/20 uppercase tracking-[0.2em] mb-2 font-bold">DIRECTORY_MAP</p>
-          <FolderTree nodes={ASTROWAVE_FOLDERS} />
-        </div>
-
-        {/* Browser */}
-        <div className="flex-1 flex flex-col min-w-0 bg-[#08080C] rounded-sm border border-white/5 overflow-hidden">
-          <div className="flex items-center gap-4 p-4 border-b border-white/5 bg-black/20">
-            <div className="flex-1 flex items-center gap-2 overflow-hidden">
-              <Home size={14} className="text-white/20" />
-              {selectedFolder?.path.split('/').map((p, i) => (
-                <div key={i} className="flex items-center gap-2">
-                  <ChevronRight size={12} className="text-white/10" />
-                  <span className="font-mono text-[10px] text-cyan-400 uppercase font-bold whitespace-nowrap">{p}</span>
-                </div>
-              ))}
-            </div>
-            {selectedFolder && (
-              <div className="flex items-center gap-2">
-                <input 
-                  type="text" placeholder="Filter..." 
-                  className="admin-input h-9 w-40 text-[10px] bg-white/5" 
-                  value={search} onChange={e => setSearch(e.target.value)} 
-                />
-                <button onClick={() => loadResources(selectedFolder)} className="p-2 text-white/30 hover:text-white transition-colors"><RefreshCw size={14} /></button>
-                <button 
-                  onClick={() => fileInputRef.current?.click()} 
-                  disabled={uploading}
-                  className="flex items-center gap-2 px-4 py-2 bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 font-mono text-[10px] font-bold uppercase tracking-widest hover:bg-cyan-500/20 transition-all"
-                >
-                  {uploading ? <Loader2 size={12} className="animate-spin" /> : <Upload size={12} />} UPLOAD
-                </button>
-                <input ref={fileInputRef} type="file" multiple className="hidden" onChange={e => e.target.files && handleUpload(e.target.files)} />
-              </div>
-            )}
+      {viewMode === 'cloud' ? (
+        <div className="flex gap-6 flex-1 min-h-0">
+          {/* Sidebar */}
+          <div className="w-64 flex-shrink-0 bg-[#08080C] rounded-sm border border-white/5 overflow-y-auto p-4 space-y-4">
+            <p className="font-mono text-[0.6rem] text-white/20 uppercase tracking-[0.2em] mb-2 font-bold">DIRECTORY_MAP</p>
+            <FolderTree nodes={ASTROWAVE_FOLDERS} />
           </div>
 
-          <div className={`flex-1 overflow-y-auto p-6 ${isDragging ? 'bg-cyan-500/5' : ''}`}>
-            {!selectedFolder ? (
-              <div className="h-full flex flex-col items-center justify-center opacity-20"><Folder size={48} className="mb-4" /><p className="font-mono text-xs tracking-widest uppercase">Select folder to browse</p></div>
-            ) : loading ? (
-              <div className="h-full flex flex-col items-center justify-center gap-4"><Loader2 size={32} className="animate-spin text-cyan-500" /><p className="font-mono text-[0.6rem] text-cyan-500 uppercase tracking-widest animate-pulse">Requesting resources...</p></div>
-            ) : filteredResources.length === 0 ? (
-              <div className="h-full flex flex-col items-center justify-center opacity-10"><FileX size={48} className="mb-4" /><p className="font-mono text-xs tracking-widest uppercase">{search ? 'No matches' : 'Folder is empty'}</p></div>
-            ) : (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                {filteredResources.map(res => (
-                  <div 
-                    key={res.public_id} 
-                    onClick={() => setSelectedResource(res)}
-                    className={`group relative aspect-square rounded-sm border transition-all cursor-pointer overflow-hidden ${selectedResource?.public_id === res.public_id ? 'border-cyan-500 shadow-[0_0_20px_rgba(6,182,212,0.2)]' : 'border-white/5 hover:border-white/20'}`}
+          {/* Browser */}
+          <div className="flex-1 flex flex-col min-w-0 bg-[#08080C] rounded-sm border border-white/5 overflow-hidden">
+            <div className="flex items-center gap-4 p-4 border-b border-white/5 bg-black/20">
+              <div className="flex-1 flex items-center gap-2 overflow-hidden">
+                <Home size={14} className="text-white/20" />
+                {selectedFolder?.path.split('/').map((p, i) => (
+                  <div key={i} className="flex items-center gap-2">
+                    <ChevronRight size={12} className="text-white/10" />
+                    <span className="font-mono text-[10px] text-cyan-400 uppercase font-bold whitespace-nowrap">{p}</span>
+                  </div>
+                ))}
+              </div>
+              {selectedFolder && (
+                <div className="flex items-center gap-2">
+                  <input 
+                    type="text" placeholder="Filter..." 
+                    className="admin-input h-9 w-40 text-[10px] bg-white/5" 
+                    value={search} onChange={e => setSearch(e.target.value)} 
+                  />
+                  <button onClick={() => loadResources(selectedFolder)} className="p-2 text-white/30 hover:text-white transition-colors"><RefreshCw size={14} /></button>
+                  <button 
+                    onClick={() => fileInputRef.current?.click()} 
+                    disabled={uploading}
+                    className="flex items-center gap-2 px-4 py-2 bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 font-mono text-[10px] font-bold uppercase tracking-widest hover:bg-cyan-500/20 transition-all"
                   >
-                    {res.resource_type === 'image' ? (
-                      <img src={res.secure_url} className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity" alt="" />
-                    ) : (
-                      <div className="w-full h-full flex flex-col items-center justify-center gap-3 bg-black/40"><Video size={32} className="text-cyan-500" /><span className="text-[0.5rem] font-bold text-white/20 uppercase tracking-widest">VIDEO_SRC</span></div>
-                    )}
-                    <div className="absolute inset-0 bg-black/80 opacity-0 group-hover:opacity-100 transition-opacity p-4 flex flex-col justify-between">
-                      <div className="flex justify-end gap-2">
-                        <button onClick={(e) => { e.stopPropagation(); copyUrl(res.secure_url, res.public_id) }} className="p-2 bg-white/10 hover:bg-cyan-500 hover:text-black rounded-sm transition-all">{copiedId === res.public_id ? <Check size={14} /> : <Copy size={14} />}</button>
-                        <button onClick={(e) => { e.stopPropagation(); setDeleteTarget(res) }} className="p-2 bg-red-500/20 text-red-500 hover:bg-red-500 hover:text-white rounded-sm transition-all"><Trash2 size={14} /></button>
+                    {uploading ? <Loader2 size={12} className="animate-spin" /> : <Upload size={12} />} UPLOAD
+                  </button>
+                  <input ref={fileInputRef} type="file" multiple className="hidden" onChange={e => e.target.files && handleUpload(e.target.files)} />
+                </div>
+              )}
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-6">
+              {!selectedFolder ? (
+                <div className="h-full flex flex-col items-center justify-center opacity-20"><Folder size={48} className="mb-4" /><p className="font-mono text-xs tracking-widest uppercase">Select a folder to begin</p></div>
+              ) : loading ? (
+                <div className="h-full flex flex-col items-center justify-center gap-4"><Loader2 size={32} className="animate-spin text-cyan-500" /><p className="font-mono text-[0.6rem] text-cyan-500 uppercase tracking-widest animate-pulse">Scanning Cloud Directory...</p></div>
+              ) : filteredResources.length === 0 ? (
+                <div className="h-full flex flex-col items-center justify-center opacity-10"><FileX size={48} className="mb-4" /><p className="font-mono text-xs tracking-widest uppercase">{search ? 'No matches found' : 'This directory is empty'}</p></div>
+              ) : (
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                  {filteredResources.map(res => (
+                    <div 
+                      key={res.public_id} 
+                      onClick={() => setSelectedResource(res)}
+                      className={cn(
+                        "group relative aspect-square rounded-sm border transition-all cursor-pointer overflow-hidden",
+                        selectedResource?.public_id === res.public_id ? "border-cyan-500 shadow-[0_0_20px_rgba(6,182,212,0.2)]" : "border-white/5 hover:border-white/20"
+                      )}
+                    >
+                      {res.resource_type === 'image' ? (
+                        <img src={res.secure_url} className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity" alt="" />
+                      ) : (
+                        <div className="w-full h-full flex flex-col items-center justify-center gap-3 bg-black/40"><Video size={32} className="text-cyan-500" /><span className="text-[0.5rem] font-bold text-white/20 uppercase tracking-widest">VIDEO_SRC</span></div>
+                      )}
+                      <div className="absolute inset-0 bg-black/80 opacity-0 group-hover:opacity-100 transition-opacity p-4 flex flex-col justify-between">
+                        <div className="flex justify-end gap-2">
+                          <button onClick={(e) => { e.stopPropagation(); copyUrl(res.secure_url, res.public_id) }} className="p-2 bg-white/10 hover:bg-cyan-500 hover:text-black rounded-sm transition-all">{copiedId === res.public_id ? <Check size={14} /> : <Copy size={14} />}</button>
+                          <button onClick={(e) => { e.stopPropagation(); setDeleteTarget(res) }} className="p-2 bg-red-500/20 text-red-500 hover:bg-red-500 hover:text-white rounded-sm transition-all"><Trash2 size={14} /></button>
+                        </div>
+                        <div>
+                          <p className="font-mono text-[9px] text-white truncate font-bold uppercase">{res.public_id.split('/').pop()}</p>
+                          <p className="font-mono text-[8px] text-white/30 uppercase mt-1">{formatBytes(res.bytes)} • {res.format}</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-mono text-[9px] text-white truncate font-bold uppercase">{res.public_id.split('/').pop()}</p>
-                        <p className="font-mono text-[8px] text-white/30 uppercase mt-1">{formatBytes(res.bytes)} • {res.format}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      ) : (
+        /* Registry View */
+        <div className="flex-1 bg-[#08080C] rounded-sm border border-white/5 overflow-hidden flex flex-col">
+          <div className="p-6 border-b border-white/5 bg-black/20 flex items-center justify-between">
+            <div className="space-y-1">
+              <h3 className="font-mono text-xs font-bold text-cyan-400 uppercase tracking-widest">Firestore Registry</h3>
+              <p className="text-[0.6rem] text-white/30 uppercase">Recently recorded uploads across the platform</p>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="text-[0.65rem] font-mono text-muted uppercase">Showing {registry?.length || 0} Records</span>
+            </div>
+          </div>
+          
+          <div className="flex-1 overflow-y-auto p-6">
+            {registryLoading ? (
+              <div className="flex items-center justify-center h-full"><Loader2 className="animate-spin text-cyan-500" /></div>
+            ) : registry && registry.length > 0 ? (
+              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
+                {registry.map((item: any) => (
+                  <div key={item.id} className="space-y-3 group">
+                    <div className="relative aspect-square rounded-sm border border-white/10 overflow-hidden bg-black/40">
+                      {item.fileType?.startsWith('image') ? (
+                        <img src={item.cloudinaryUrl} className="w-full h-full object-cover opacity-80" alt="" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-cyan-500/40"><Video size={32} /></div>
+                      )}
+                      <div className="absolute inset-0 bg-black/80 opacity-0 group-hover:opacity-100 transition-opacity p-4 flex items-center justify-center gap-2">
+                        <button onClick={() => copyUrl(item.cloudinaryUrl, item.id)} className="p-2 bg-white/10 hover:bg-cyan-500 hover:text-black rounded-sm"><Copy size={14} /></button>
+                        <a href={item.cloudinaryUrl} target="_blank" className="p-2 bg-white/10 hover:bg-cyan-500 hover:text-black rounded-sm"><Eye size={14} /></a>
                       </div>
+                    </div>
+                    <div className="space-y-1 px-1">
+                      <p className="font-mono text-[9px] text-white truncate font-bold uppercase">{item.fileName}</p>
+                      <p className="font-mono text-[8px] text-white/20 uppercase truncate">{item.folder || 'ROOT'}</p>
                     </div>
                   </div>
                 ))}
               </div>
+            ) : (
+              <div className="h-full flex flex-col items-center justify-center opacity-10"><Database size={48} className="mb-4" /><p className="font-mono text-xs tracking-widest uppercase">No registry records found</p></div>
             )}
           </div>
         </div>
-      </div>
+      )}
 
-      {/* Delete Confirmation */}
+      {/* Delete Confirmation Modal */}
       {deleteTarget && (
-        <div className="fixed inset-0 z-[1000] flex items-center justify-center p-6 bg-black/80 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center p-6 bg-black/90 backdrop-blur-md">
           <div className="w-full max-w-sm bg-[#0A0A0F] border border-red-500/20 p-8 rounded-sm shadow-2xl space-y-6">
             <div className="flex flex-col items-center gap-4 text-center">
               <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center text-red-500 border border-red-500/20"><Trash2 size={32} /></div>
               <div>
-                <h3 className="font-display text-2xl text-white uppercase tracking-widest">Destroy Asset?</h3>
+                <h3 className="font-display text-2xl text-white uppercase tracking-widest">Terminate Asset?</h3>
                 <p className="font-mono text-[0.6rem] text-red-400 uppercase tracking-widest mt-1">This operation is irreversible.</p>
               </div>
             </div>
             <div className="p-4 bg-black/40 rounded-sm border border-white/5 space-y-2">
-              <p className="font-mono text-[10px] text-white/40 uppercase">Target ID:</p>
+              <p className="font-mono text-[10px] text-white/40 uppercase">Resource ID:</p>
               <p className="font-mono text-[10px] text-white truncate">{deleteTarget.public_id}</p>
             </div>
             <div className="flex gap-4">
               <button onClick={() => setDeleteTarget(null)} disabled={deleting} className="flex-1 h-12 font-mono text-xs uppercase tracking-widest border border-white/10 hover:border-white/30 text-white/40 transition-all">Abort</button>
               <button onClick={handleDelete} disabled={deleting} className="flex-1 h-12 font-mono text-xs uppercase tracking-widest bg-red-500 text-white font-bold hover:bg-red-600 transition-all">
-                {deleting ? <Loader2 className="animate-spin mx-auto" /> : 'Confirm'}
+                {deleting ? <Loader2 size={12} className="animate-spin mx-auto" /> : 'Confirm'}
               </button>
             </div>
           </div>
