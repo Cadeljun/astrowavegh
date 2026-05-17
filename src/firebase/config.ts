@@ -1,7 +1,7 @@
-import { initializeApp, getApps, getApp, FirebaseOptions, FirebaseApp } from 'firebase/app'
-import { getFirestore, Firestore } from 'firebase/firestore'
-import { getAuth, Auth } from 'firebase/auth'
-import { getStorage, FirebaseStorage } from 'firebase/storage'
+import { initializeApp, getApps, getApp, FirebaseOptions, FirebaseApp } from 'firebase/app';
+import { getFirestore, Firestore } from 'firebase/firestore';
+import { getAuth, Auth } from 'firebase/auth';
+import { getStorage, FirebaseStorage } from 'firebase/storage';
 
 const firebaseConfig: FirebaseOptions = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -10,15 +10,17 @@ const firebaseConfig: FirebaseOptions = {
   storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
   messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-}
+};
 
-// Ensure keys exist and we are in a browser environment to avoid SSR crashes
-const isConfigValid = !!firebaseConfig.apiKey && typeof window !== 'undefined';
+// Check if we're in the browser and config is complete
+const isBrowser = typeof window !== 'undefined';
+const isConfigComplete = !!firebaseConfig.apiKey && !!firebaseConfig.projectId;
 
 function getSafeApp(): FirebaseApp {
   if (getApps().length > 0) return getApp();
   
-  if (!isConfigValid) {
+  if (!isConfigComplete) {
+    // Return a dummy app object for SSR/pre-rendering to prevent crashes
     return {
       name: '[DEFAULT]',
       options: {},
@@ -26,18 +28,14 @@ function getSafeApp(): FirebaseApp {
     } as FirebaseApp;
   }
   
-  try {
-    return initializeApp(firebaseConfig);
-  } catch (e) {
-    return getApp();
-  }
+  return initializeApp(firebaseConfig);
 }
 
 const app = getSafeApp();
 
-// Export stub objects if config is missing to prevent top-level crashes
-export const db = isConfigValid ? getFirestore(app) : {} as Firestore;
-export const auth = isConfigValid ? getAuth(app) : {} as Auth;
-export const storage = isConfigValid ? getStorage(app) : {} as FirebaseStorage;
+// Export services only if config is valid to prevent SDK internal errors
+export const db = isConfigComplete && isBrowser ? getFirestore(app) : {} as Firestore;
+export const auth = isConfigComplete && isBrowser ? getAuth(app) : {} as Auth;
+export const storage = isConfigComplete && isBrowser ? getStorage(app) : {} as FirebaseStorage;
 
 export default app;

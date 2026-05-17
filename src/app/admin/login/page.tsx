@@ -1,158 +1,147 @@
-'use client'
+'use client';
 
-import { useState, FormEvent, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { useAuth } from '@/context/AuthContext'
-import { Eye, EyeOff, Lock, Loader2 } from 'lucide-react'
+import { useState, FormEvent, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
+import { Eye, EyeOff, Lock, Loader2, AlertCircle, ShieldCheck } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Button } from '@/components/ui/Button';
 
 export default function AdminLoginPage() {
-  const { login, error, isAdmin, loading } = useAuth()
-  const router = useRouter()
-  const [email, setEmail] = useState('junioraquils143@gmail.com')
-  const [password, setPassword] = useState('Admin@Astrowave')
-  const [showPassword, setShowPassword] = useState(false)
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const { login, error, isAdmin, loading: authLoading, clearError } = useAuth();
+  const router = useRouter();
+  
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Redirect if already logged in
   useEffect(() => {
-    if (!loading && isAdmin) {
-      router.push('/admin/dashboard')
+    if (!authLoading && isAdmin) {
+      router.replace('/admin/dashboard');
     }
-  }, [isAdmin, loading, router])
+  }, [isAdmin, authLoading, router]);
 
   const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault()
-    if (isSubmitting) return
+    e.preventDefault();
+    if (isSubmitting) return;
     
-    setIsSubmitting(true)
+    setIsSubmitting(true);
     try {
-      await login(email, password)
-      // Redirection is handled by the useEffect above once state updates
+      await login(email, password);
     } catch (err) {
-      // Error is caught and displayed via AuthContext
+      // Error handled by AuthContext and displayed below
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
+  };
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <Loader2 className="animate-spin text-gold" size={40} />
+      </div>
+    );
   }
 
   return (
     <div className="min-h-screen bg-[#050505] flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Background glow */}
-      <div className="absolute inset-0 z-0 pointer-events-none"
-        style={{
-          backgroundImage: `radial-gradient(
-            ellipse 60% 40% at 50% 50%,
-            rgba(255,209,102,0.06),
-            transparent 70%
-          )`
-        }}
-      />
-      
-      {/* Grain overlay */}
-      <div className="fixed inset-0 opacity-[0.035] pointer-events-none z-10"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`
-        }}
-      />
+      {/* Dynamic Background */}
+      <div className="absolute inset-0 z-0 pointer-events-none">
+        <div 
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full opacity-[0.08]"
+          style={{
+            backgroundImage: `radial-gradient(ellipse 60% 40% at 50% 50%, #FFD166, transparent 70%)`
+          }}
+        />
+        <div className="fixed inset-0 opacity-[0.03] pointer-events-none z-10 bg-[url('data:image/svg+xml,%3Csvg viewBox=%220 0 256 256%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noise%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.9%22 numOctaves=%224%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noise)%22/%3E%3C/svg%3E')]" />
+      </div>
 
-      <div className="relative z-20 w-full max-w-[420px]">
-        {/* Card */}
-        <div className="bg-[rgba(255,255,255,0.03)] backdrop-blur-xl border border-[rgba(255,255,255,0.07)] border-t-[3px] border-t-[#FFD166] rounded-xl p-10 shadow-2xl">
-          {/* Header */}
-          <div className="text-center mb-8">
-            <h1 className="font-display text-3xl text-[#FFD166] tracking-wider mb-1"
-              style={{ textShadow: '0 0 20px rgba(255,209,102,0.4)' }}
-            >
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="relative z-20 w-full max-w-[420px]"
+      >
+        <div className="glass border-t-2 border-t-gold p-10 shadow-2xl backdrop-blur-2xl bg-white/[0.02]">
+          <div className="text-center mb-10">
+            <h1 className="font-display text-4xl text-gold tracking-widest text-glow-gold mb-2">
               ASTROWAVE
             </h1>
-            <div className="flex items-center justify-center gap-2 mt-2">
-              <Lock size={12} className="text-[#7B7B9A]" />
-              <p className="font-body text-xs tracking-[0.2em] uppercase text-[#7B7B9A]">
-                Admin Access
-              </p>
+            <div className="flex items-center justify-center gap-2 text-muted uppercase tracking-[0.2em] text-[0.65rem] font-bold">
+              <Lock size={12} />
+              Admin Portal
             </div>
           </div>
 
-          {/* Divider */}
-          <div className="h-px w-full mb-8"
-            style={{
-              background: `linear-gradient(90deg, transparent, rgba(255,209,102,0.3), transparent)`
-            }}
-          />
-
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-            {/* Email */}
-            <div className="flex flex-col gap-2">
-              <label className="font-body text-xs font-semibold tracking-[0.1em] uppercase text-[#7B7B9A]">
-                Email
-              </label>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-2">
+              <label className="admin-label m-0 text-[0.65rem]">Email Address</label>
               <input
                 type="email"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 required
-                placeholder="admin@astrowave.com"
-                className="w-full bg-[rgba(255,255,255,0.04)] border border-[#1E1E2E] rounded-md px-4 py-3 font-body text-[0.95rem] text-[#F8F8FF] placeholder:text-[#7B7B9A] outline-none transition-all duration-200 focus:border-[#FFD166] focus:shadow-[0_0_0_3px_rgba(255,209,102,0.15)]"
+                onFocus={clearError}
+                placeholder="admin@astrowave.live"
+                className="admin-input h-12 bg-white/5 border-white/10 focus:border-gold"
               />
             </div>
 
-            {/* Password */}
-            <div className="flex flex-col gap-2">
-              <label className="font-body text-xs font-semibold tracking-[0.1em] uppercase text-[#7B7B9A]">
-                Password
-              </label>
+            <div className="space-y-2">
+              <label className="admin-label m-0 text-[0.65rem]">Password</label>
               <div className="relative">
                 <input
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   required
-                  placeholder="••••••••••"
-                  className="w-full bg-[rgba(255,255,255,0.04)] border border-[#1E1E2E] rounded-md px-4 py-3 pr-12 font-body text-[0.95rem] text-[#F8F8FF] placeholder:text-[#7B7B9A] outline-none transition-all duration-200 focus:border-[#FFD166] focus:shadow-[0_0_0_3px_rgba(255,209,102,0.15)]"
+                  onFocus={clearError}
+                  placeholder="••••••••"
+                  className="admin-input h-12 bg-white/5 border-white/10 focus:border-gold pr-12"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#7B7B9A] hover:text-[#F8F8FF] transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-white transition-colors"
                 >
-                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
             </div>
 
-            {/* Error message */}
-            {error && (
-              <div className="bg-[rgba(239,68,68,0.1)] border border-[rgba(239,68,68,0.3)] rounded-md px-4 py-3">
-                <p className="font-body text-sm text-red-400">
-                  {error}
-                </p>
-              </div>
-            )}
+            <AnimatePresence>
+              {error && (
+                <motion.div 
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="bg-red-500/10 border border-red-500/20 rounded-sm p-4 flex gap-3 text-red-400"
+                >
+                  <AlertCircle size={18} className="shrink-0" />
+                  <p className="text-xs font-medium leading-relaxed">{error}</p>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
-            {/* Submit */}
-            <button
+            <Button
               type="submit"
               disabled={isSubmitting}
-              className="w-full mt-2 bg-transparent border border-[#FFD166] text-[#FFD166] font-body font-semibold text-sm tracking-widest uppercase py-3 px-6 rounded-md transition-all duration-200 hover:bg-[#FFD166] hover:text-black hover:shadow-[0_0_20px_rgba(255,209,102,0.4)] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="w-full h-14 text-sm font-bold tracking-widest"
             >
               {isSubmitting ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Signing In...
-                </>
+                <Loader2 className="animate-spin" />
               ) : (
-                'Sign In'
+                'SIGN IN TO HORIZON'
               )}
-            </button>
+            </Button>
           </form>
         </div>
 
-        {/* Footer note */}
-        <p className="text-center mt-6 font-body text-xs text-[#7B7B9A]">
-          AstroWave Admin — Restricted Access
+        <p className="text-center mt-8 text-muted text-[0.6rem] uppercase tracking-[0.3em] opacity-40">
+          AstroWave Ghana &copy; 2025 • Internal Access Only
         </p>
-      </div>
+      </motion.div>
     </div>
-  )
+  );
 }

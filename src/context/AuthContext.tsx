@@ -17,6 +17,7 @@ interface AuthContextType {
   isDeveloper: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  clearError: () => void;
 }
 
 const AuthContext = createContext<AuthContextType>({} as AuthContextType);
@@ -27,13 +28,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Prevent listening if auth is not initialized
+    // Skip listener if auth is just a stub (missing keys)
     if (!auth || typeof auth.onAuthStateChanged !== 'function') {
       setLoading(false);
       return;
     }
 
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(user);
       setLoading(false);
     });
@@ -43,24 +44,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = async (email: string, password: string) => {
     setError(null);
     
-    if (!auth || typeof auth.app === 'undefined') {
-      setError('Firebase is not properly configured. Please check your settings.');
+    if (!auth || typeof auth.signInWithEmailAndPassword !== 'function') {
+      setError('Authentication is not configured. Please check your environment variables.');
       return;
     }
 
     try {
       await signInWithEmailAndPassword(auth, email, password);
     } catch (err: any) {
-      if (err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
-        setError('Incorrect credentials. Please try again.');
-      } else if (err.code === 'auth/user-not-found') {
-        setError('No admin account found.');
-      } else if (err.code === 'auth/too-many-requests') {
-        setError('Too many attempts. Try later.');
-      } else if (err.code === 'auth/api-key-not-valid') {
-        setError('Firebase API Key is invalid.');
-      } else {
-        setError('Authentication failed. Please check your credentials.');
+      console.error('Auth login error:', err.code);
+      
+      switch (err.code) {
+        case 'auth/invalid-email':
+          setError('Please enter a valid email address.');
+          break;
+        case 'auth/user-disabled':
+          setError('This account has been disabled.');
+          break;
+        case 'auth/user-not-found':
+        case 'auth/wrong-password':
+        case 'auth/invalid-credential':
+          setError('Invalid email or password.');
+          break;
+        case 'auth/too-many-requests':
+          setError('Too many failed attempts. Please try again later.');
+          break;
+        case 'auth/network-request-failed':
+          setError('Network error. Please check your connection.');
+          break;
+        case 'auth/api-key-not-valid':
+          setError('Firebase configuration error (Invalid API Key).');
+          break;
+        default:
+          setError('An unexpected authentication error occurred.');
       }
       throw err;
     }
@@ -71,6 +87,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await signOut(auth);
     }
   };
+
+  const clearError = () => setError(null);
 
   const isAdmin = !!user;
   const isDeveloper = user?.email === 'junioraquils143@gmail.com';
@@ -85,6 +103,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isDeveloper,
         login,
         logout,
+        clearError
       }}
     >
       {children}
