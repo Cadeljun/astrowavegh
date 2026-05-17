@@ -5,7 +5,7 @@ import { useFirestore } from '@/firebase';
 import { collection, addDoc, serverTimestamp, deleteDoc, getDocs, doc, setDoc } from 'firebase/firestore';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
-import { AlertTriangle, Terminal, Database, Loader2, CheckCircle } from 'lucide-react';
+import { AlertTriangle, Terminal, Database, Loader2, CheckCircle, UserCheck } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
 import { errorEmitter } from '@/firebase/error-emitter';
@@ -14,7 +14,7 @@ import Link from 'next/link';
 
 export default function DevSeedPage() {
   const db = useFirestore();
-  const { isAdmin, loading: authLoading } = useAuth();
+  const { isAdmin, user, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [logs, setLogs] = useState<string[]>([]);
@@ -68,6 +68,32 @@ export default function DevSeedPage() {
       addLog('✓ Seeded Home Hero Content');
 
       toast({ title: 'CMS Defaults Seeded' });
+    } catch (e: any) {
+      addLog(`ERR: ${e.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const setupAdminRole = async () => {
+    if (!user) return;
+    setLoading(true);
+    addLog(`Configuring admin role for ${user.email}...`);
+    try {
+      const roleRef = doc(db, 'user_roles', user.uid);
+      await setDoc(roleRef, {
+        uid: user.uid,
+        email: user.email,
+        name: user.displayName || 'Admin User',
+        role: 'SUPER_ADMIN',
+        active: true,
+        updatedAt: serverTimestamp()
+      }, { merge: true }).catch(err => {
+        handlePermissionError(roleRef.path, 'write');
+        throw err;
+      });
+      addLog(`✓ Role SUPER_ADMIN granted to ${user.email}`);
+      toast({ title: 'Admin Privileges Granted' });
     } catch (e: any) {
       addLog(`ERR: ${e.message}`);
     } finally {
@@ -187,6 +213,9 @@ export default function DevSeedPage() {
         <section className="space-y-6">
           <h3 className="text-xs font-bold text-gold uppercase tracking-[0.4em]">Seeding Tools</h3>
           <div className="grid grid-cols-1 gap-4">
+            <Button variant="secondary" className="justify-start border-white/5 h-14" onClick={setupAdminRole} disabled={loading}>
+               <UserCheck size={18} className="mr-3 text-cyan" /> SYNC CURRENT USER ROLE
+            </Button>
             <Button variant="secondary" className="justify-start border-white/5 h-14" onClick={seedCMS} disabled={loading}>
                SEED CMS DEFAULTS
             </Button>

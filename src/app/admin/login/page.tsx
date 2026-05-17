@@ -3,9 +3,12 @@
 import { useState, FormEvent, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { Eye, EyeOff, Lock, Loader2, AlertCircle, ShieldCheck } from 'lucide-react';
+import { Eye, EyeOff, Lock, Loader2, AlertCircle, ShieldCheck, Database } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/Button';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { auth as firebaseAuth, db } from '@/firebase/config';
 
 export default function AdminLoginPage() {
   const { login, error, isAdmin, loading: authLoading, clearError } = useAuth();
@@ -15,6 +18,8 @@ export default function AdminLoginPage() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSettingUp, setIsSettingUp] = useState(false);
+  const [setupMessage, setSetupMessage] = useState<string | null>(null);
 
   // Redirect if already logged in
   useEffect(() => {
@@ -34,6 +39,47 @@ export default function AdminLoginPage() {
       // Error handled by AuthContext and displayed below
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleInitialSetup = async () => {
+    if (!window.confirm('Create the initial admin account (junioraquils143@gmail.com)?')) return;
+    
+    setIsSettingUp(true);
+    setSetupMessage(null);
+    
+    try {
+      // 1. Create the user in Firebase Auth
+      const userCred = await createUserWithEmailAndPassword(
+        firebaseAuth, 
+        'junioraquils143@gmail.com', 
+        'AstroWave2025!'
+      );
+      
+      // 2. Create the role document in Firestore
+      await setDoc(doc(db, 'user_roles', userCred.user.uid), {
+        uid: userCred.user.uid,
+        email: 'junioraquils143@gmail.com',
+        name: 'Developer Admin',
+        role: 'SUPER_ADMIN',
+        active: true,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+        lastLogin: null
+      });
+
+      setSetupMessage('Admin account created! You can now sign in.');
+      setEmail('junioraquils143@gmail.com');
+      setPassword('AstroWave2025!');
+    } catch (err: any) {
+      if (err.code === 'auth/email-already-in-use') {
+        setSetupMessage('Account already exists. Try signing in.');
+        setEmail('junioraquils143@gmail.com');
+      } else {
+        setSetupMessage(`Setup failed: ${err.message}`);
+      }
+    } finally {
+      setIsSettingUp(false);
     }
   };
 
@@ -111,22 +157,22 @@ export default function AdminLoginPage() {
             </div>
 
             <AnimatePresence>
-              {error && (
+              {(error || setupMessage) && (
                 <motion.div 
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: 'auto' }}
                   exit={{ opacity: 0, height: 0 }}
-                  className="bg-red-500/10 border border-red-500/20 rounded-sm p-4 flex gap-3 text-red-400"
+                  className={`border rounded-sm p-4 flex gap-3 ${error ? 'bg-red-500/10 border-red-500/20 text-red-400' : 'bg-gold/10 border-gold/20 text-gold'}`}
                 >
                   <AlertCircle size={18} className="shrink-0" />
-                  <p className="text-xs font-medium leading-relaxed">{error}</p>
+                  <p className="text-xs font-medium leading-relaxed">{error || setupMessage}</p>
                 </motion.div>
               )}
             </AnimatePresence>
 
             <Button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isSubmitting || isSettingUp}
               className="w-full h-14 text-sm font-bold tracking-widest"
             >
               {isSubmitting ? (
@@ -136,6 +182,17 @@ export default function AdminLoginPage() {
               )}
             </Button>
           </form>
+
+          <div className="mt-8 pt-8 border-t border-white/5">
+            <button
+              onClick={handleInitialSetup}
+              disabled={isSubmitting || isSettingUp}
+              className="w-full flex items-center justify-center gap-2 text-[0.6rem] font-bold uppercase tracking-[0.2em] text-muted hover:text-gold transition-colors disabled:opacity-40"
+            >
+              {isSettingUp ? <Loader2 size={12} className="animate-spin" /> : <Database size={12} />}
+              Initial Admin Setup (Dev Only)
+            </button>
+          </div>
         </div>
 
         <p className="text-center mt-8 text-muted text-[0.6rem] uppercase tracking-[0.3em] opacity-40">
