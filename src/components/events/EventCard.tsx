@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/Badge';
 import CloudinaryImage from '@/components/ui/CloudinaryImage';
 import { cardHover } from '@/lib/animations';
 import { cn } from '@/lib/utils';
+import { useCMSSettings } from '@/lib/cms/useCMS';
 
 interface EventCardProps {
   name: string;
@@ -29,6 +30,9 @@ export default function EventCard({
   imageUrl,
   className
 }: EventCardProps) {
+  const { settings } = useCMSSettings();
+  const systemPlaceholder = settings?.defaultEventPoster || 'https://picsum.photos/seed/event/800/600';
+
   return (
     <motion.div
       variants={cardHover}
@@ -42,7 +46,7 @@ export default function EventCard({
       {/* Background Image Layer */}
       <div className="absolute inset-0">
         <CloudinaryImage 
-          src={imageUrl} 
+          src={imageUrl || systemPlaceholder} 
           alt={`${name} event in Accra Ghana by AstroWave`}
           fill
           className="transition-transform duration-700 group-hover:scale-105"
@@ -53,7 +57,7 @@ export default function EventCard({
             quality: 'auto',
             format: 'auto'
           }}
-          fallback="https://picsum.photos/seed/event/800/600"
+          fallback={systemPlaceholder}
         />
         <div className="absolute inset-0 bg-black/40 group-hover:bg-black/60 transition-colors duration-300 z-10" />
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent z-20" />

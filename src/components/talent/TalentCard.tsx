@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/Badge';
 import CloudinaryImage from '@/components/ui/CloudinaryImage';
 import { cardHover } from '@/lib/animations';
 import { cn } from '@/lib/utils';
+import { useCMSSettings } from '@/lib/cms/useCMS';
 
 interface TalentCardProps {
   name: string;
@@ -23,6 +24,9 @@ export default function TalentCard({
   imageUrl,
   className
 }: TalentCardProps) {
+  const { settings } = useCMSSettings();
+  const systemPlaceholder = settings?.defaultTalentPhoto || 'https://picsum.photos/seed/talent/400/400';
+
   const roleStyles = {
     DJ: {
       badge: 'bg-purple-dim text-purple border-purple',
@@ -49,7 +53,7 @@ export default function TalentCard({
     >
       <div className="relative aspect-square rounded-[var(--radius-md)] overflow-hidden mb-6">
         <CloudinaryImage 
-          src={imageUrl} 
+          src={imageUrl || systemPlaceholder} 
           alt={`${name} — ${role} managed by AstroWave Ghana`}
           fill
           className="grayscale transition-all duration-500 group-hover:grayscale-0 group-hover:scale-105"
@@ -60,7 +64,7 @@ export default function TalentCard({
             quality: 'auto',
             format: 'auto'
           }}
-          fallback="https://picsum.photos/seed/talent/400/400"
+          fallback={systemPlaceholder}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60 z-10" />
         

@@ -6,7 +6,7 @@ import { doc, onSnapshot, setDoc, serverTimestamp } from 'firebase/firestore';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Save, Globe, Instagram, Twitter, Music, Youtube, Facebook, Shield, AlertTriangle, Image as ImageIcon, Video, Grid } from 'lucide-react';
+import { Loader2, Save, Globe, Instagram, Twitter, Music, Youtube, Shield, AlertTriangle, Image as ImageIcon, Video, Grid } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
 import MediaPickerModal from '@/components/admin/MediaPickerModal';
@@ -132,6 +132,37 @@ export default function CMSSettingsEditor() {
                 The video URL will take priority. If no video is present, the fallback image will be shown. The poster image appears while the video is loading.
               </div>
            </div>
+        </div>
+      </Card>
+
+      {/* Default System Media */}
+      <Card className="p-8 space-y-8" glowColor="muted">
+        <div className="flex items-center gap-3 mb-2">
+          <ImageIcon className="text-gold" size={18} />
+          <p className="admin-label m-0 text-white">Default System Media (Placeholders)</p>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="space-y-2">
+            <div className="flex justify-between items-center mb-1">
+              <label className="admin-label">Default Event Poster</label>
+              <button type="button" onClick={() => openPicker('defaultEventPoster', ['astrowave/events/general'])} className="text-[0.6rem] text-gold hover:underline">BROWSE</button>
+            </div>
+            <input type="url" className="admin-input" value={settings.defaultEventPoster || ''} onChange={e => setSettings({...settings, defaultEventPoster: e.target.value})} />
+          </div>
+          <div className="space-y-2">
+            <div className="flex justify-between items-center mb-1">
+              <label className="admin-label">Default Talent Photo</label>
+              <button type="button" onClick={() => openPicker('defaultTalentPhoto', ['astrowave/talent/artist'])} className="text-[0.6rem] text-gold hover:underline">BROWSE</button>
+            </div>
+            <input type="url" className="admin-input" value={settings.defaultTalentPhoto || ''} onChange={e => setSettings({...settings, defaultTalentPhoto: e.target.value})} />
+          </div>
+          <div className="space-y-2">
+            <div className="flex justify-between items-center mb-1">
+              <label className="admin-label">Default Gallery Photo</label>
+              <button type="button" onClick={() => openPicker('defaultGalleryPhoto', ['astrowave/gallery/past-events'])} className="text-[0.6rem] text-gold hover:underline">BROWSE</button>
+            </div>
+            <input type="url" className="admin-input" value={settings.defaultGalleryPhoto || ''} onChange={e => setSettings({...settings, defaultGalleryPhoto: e.target.value})} />
+          </div>
         </div>
       </Card>
 

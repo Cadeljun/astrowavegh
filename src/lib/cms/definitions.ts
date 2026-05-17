@@ -258,6 +258,9 @@ export interface GlobalSettings {
   heroPosterUrl: string
   heroImageUrl: string
   founderImageUrl: string
+  defaultEventPoster: string
+  defaultTalentPhoto: string
+  defaultGalleryPhoto: string
 }
 
 export const DEFAULT_SETTINGS: GlobalSettings = {
@@ -274,5 +277,8 @@ export const DEFAULT_SETTINGS: GlobalSettings = {
   heroVideoUrl: '',
   heroPosterUrl: '',
   heroImageUrl: '',
-  founderImageUrl: ''
+  founderImageUrl: '',
+  defaultEventPoster: '',
+  defaultTalentPhoto: '',
+  defaultGalleryPhoto: ''
 }

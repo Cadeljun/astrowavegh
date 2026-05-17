@@ -52,6 +52,13 @@ export default function DevSeedPage() {
         maintenanceMode: false,
         instagram: 'https://instagram.com/astrowavegh',
         twitter: 'https://twitter.com/astrowavegh',
+        logoUrl: '',
+        heroVideoUrl: '',
+        heroPosterUrl: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=1200',
+        heroImageUrl: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=1200',
+        defaultEventPoster: 'https://images.unsplash.com/photo-1514525253361-bee8a187449b?q=80&w=800',
+        defaultTalentPhoto: 'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?q=80&w=400',
+        defaultGalleryPhoto: 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?q=80&w=800',
         updatedAt: serverTimestamp()
       });
       addLog('✓ Queued Global Settings');
@@ -171,7 +178,7 @@ export default function DevSeedPage() {
               >
                 <div className="flex flex-col items-start gap-1">
                   <span className="flex items-center gap-2 group-hover:text-gold transition-colors">
-                    <Edit3 size={14} /> SEED CMS CONTENT
+                    <Zap size={14} /> SEED CMS CONTENT
                   </span>
                   <span className="text-[0.6rem] text-muted normal-case font-normal">Defaults for all site pages</span>
                 </div>
