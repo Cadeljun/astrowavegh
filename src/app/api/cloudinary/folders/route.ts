@@ -11,20 +11,20 @@ cloudinary.config({
 
 /**
  * GET /api/cloudinary/folders
- * Fetches subfolders and resources for a specific Cloudinary path.
- * Enhanced to use Search API for all resource types.
+ * Fetches subfolders and resources for a specific Cloudinary path using the Search API.
+ * This ensures that even newly uploaded images/videos are visible and filtered correctly.
  */
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
     const folder = searchParams.get('folder') || 'astrowave'
 
-    // 1. Get subfolders for navigation
-    // Note: Cloudinary Admin API has lower rate limits than Search API
+    // 1. Get subfolders for navigation (Admin API)
     const subfoldersResult = await cloudinary.api.sub_folders(folder).catch(() => ({ folders: [] }))
 
-    // 2. Get resources using Search API (faster, indexed, supports all types)
-    // We search within the specific folder prefix
+    // 2. Get resources using Search API (Indexed and supports all types)
+    // We search within the specific folder prefix to get everything in the subtree if needed
+    // or strictly the folder if search expression is refined.
     const searchResult = await cloudinary.search
       .expression(`folder:${folder}/*`)
       .sort_by('created_at', 'desc')
@@ -51,7 +51,7 @@ export async function GET(request: Request) {
   } catch (error: any) {
     console.error('Cloudinary Folders API Error:', error)
     return NextResponse.json(
-      { error: error.message || 'Failed to fetch directory content' },
+      { error: error.message || 'Failed to fetch directory content. Check your API Keys.' },
       { status: 500 }
     )
   }
