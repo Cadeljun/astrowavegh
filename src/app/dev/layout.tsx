@@ -79,6 +79,14 @@ export default function DevLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const { canEditCMS, isSuperAdmin } = useRole()
 
+  const isLoginPage = pathname === '/dev/login'
+  const isNoAccessPage = pathname === '/dev/no-access'
+
+  // Skip guard and sidebar for login and no-access pages
+  if (isLoginPage || isNoAccessPage) {
+    return <div className="min-h-screen bg-[#050505]">{children}</div>
+  }
+
   const isActive = (href: string) => pathname === href || pathname.startsWith(href + '/')
 
   const filteredNavItems = navItems.filter(item => {
