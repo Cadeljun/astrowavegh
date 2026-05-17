@@ -12,44 +12,26 @@ cloudinary.config({
 /**
  * GET /api/cloudinary/folders
  * Fetches subfolders and resources for a specific Cloudinary path.
- * Hardened to handle empty folders and API errors gracefully.
+ * Enhanced to use Search API for all resource types.
  */
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
-    const folder = searchParams.get('folder') || ''
+    const folder = searchParams.get('folder') || 'astrowave'
 
-    if (!folder) {
-      const result = await cloudinary.api.root_folders()
-      return NextResponse.json({
-        folders: result.folders || [],
-        subfolders: [],
-        resources: []
-      })
-    }
+    // 1. Get subfolders for navigation
+    // Note: Cloudinary Admin API has lower rate limits than Search API
+    const subfoldersResult = await cloudinary.api.sub_folders(folder).catch(() => ({ folders: [] }))
 
-    // Use catch on individual promises to prevent one failure from breaking the whole list
-    const [subfoldersResult, imagesResult, videosResult] = await Promise.all([
-      cloudinary.api.sub_folders(folder).catch(() => ({ folders: [] })),
-      cloudinary.api.resources({
-        type: 'upload',
-        prefix: folder + '/',
-        max_results: 100,
-        resource_type: 'image'
-      }).catch(() => ({ resources: [] })),
-      cloudinary.api.resources({
-        type: 'upload',
-        prefix: folder + '/',
-        max_results: 50,
-        resource_type: 'video'
-      }).catch(() => ({ resources: [] }))
-    ])
+    // 2. Get resources using Search API (faster, indexed, supports all types)
+    // We search within the specific folder prefix
+    const searchResult = await cloudinary.search
+      .expression(`folder:${folder}/*`)
+      .sort_by('created_at', 'desc')
+      .max_results(100)
+      .execute();
 
-    // Filter resources to only show those directly in the current folder (optional, Cloudinary prefix is deep)
-    const allResources = [
-      ...imagesResult.resources,
-      ...videosResult.resources
-    ].map(res => ({
+    const resources = (searchResult.resources || []).map((res: any) => ({
       public_id: res.public_id,
       secure_url: res.secure_url,
       format: res.format,
@@ -63,8 +45,8 @@ export async function GET(request: Request) {
 
     return NextResponse.json({
       subfolders: subfoldersResult.folders || [],
-      resources: allResources,
-      total: allResources.length
+      resources: resources,
+      total: resources.length
     })
   } catch (error: any) {
     console.error('Cloudinary Folders API Error:', error)
