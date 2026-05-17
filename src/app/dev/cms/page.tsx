@@ -29,7 +29,7 @@ import {
   saveGlobalSettings
 } from '@/lib/cms/useCMS'
 import { doc, getDoc } from 'firebase/firestore'
-import { db } from '@/firebase/config'
+import { db } from '@/firebase'
 import { useAuth } from '@/context/AuthContext'
 import Link from 'next/link'
 
