@@ -38,7 +38,7 @@ export default function Navbar() {
     setIsMobileMenuOpen(false);
   }, [pathname]);
 
-  const logoSrc = settings?.logoUrl || 'https://res.cloudinary.com/dmd5bq3va/image/upload/v1779033029/nrvw7mwpedxhujuflqvp.jpg';
+  const logoSrc = settings?.logoUrl || 'https://res.cloudinary.com/dmd5bq3va/image/upload/v1779043643/astrowave/psrbctea1omffb2phyqu.png';
 
   return (
     <header

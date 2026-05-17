@@ -12,7 +12,7 @@ import { ScrollToTop } from '@/components/ui/ScrollToTop';
 
 function MaintenancePage() {
   const { settings } = useCMSSettings();
-  const logoUrl = settings?.logoUrl || 'https://res.cloudinary.com/dmd5bq3va/image/upload/v1779033029/nrvw7mwpedxhujuflqvp.jpg';
+  const logoUrl = settings?.logoUrl || 'https://res.cloudinary.com/dmd5bq3va/image/upload/v1779043643/astrowave/psrbctea1omffb2phyqu.png';
 
   return (
     <div className="fixed inset-0 z-[5000] bg-black flex flex-col items-center justify-center p-6 text-center">

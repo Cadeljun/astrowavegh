@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { heroTextReveal, fadeIn } from '@/lib/animations';
 
 export default function LoadingScreen() {
-  const logoUrl = 'https://res.cloudinary.com/dmd5bq3va/image/upload/v1779033029/nrvw7mwpedxhujuflqvp.jpg';
+  const logoUrl = 'https://res.cloudinary.com/dmd5bq3va/image/upload/v1779043643/astrowave/psrbctea1omffb2phyqu.png';
 
   return (
     <motion.div
