@@ -12,14 +12,13 @@ const firebaseConfig: FirebaseOptions = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 }
 
-// Minimum required fields for Firebase to not throw on initialization
-const isConfigValid = !!firebaseConfig.apiKey;
+// Ensure keys exist and we are in a browser environment to avoid SSR crashes
+const isConfigValid = !!firebaseConfig.apiKey && typeof window !== 'undefined';
 
 function getSafeApp(): FirebaseApp {
   if (getApps().length > 0) return getApp();
   
   if (!isConfigValid) {
-    // Return a dummy app object for SSR or missing config environments
     return {
       name: '[DEFAULT]',
       options: {},
@@ -27,12 +26,16 @@ function getSafeApp(): FirebaseApp {
     } as FirebaseApp;
   }
   
-  return initializeApp(firebaseConfig);
+  try {
+    return initializeApp(firebaseConfig);
+  } catch (e) {
+    return getApp();
+  }
 }
 
 const app = getSafeApp();
 
-// Only initialize services if we have a valid app instance with config
+// Export stub objects if config is missing to prevent top-level crashes
 export const db = isConfigValid ? getFirestore(app) : {} as Firestore;
 export const auth = isConfigValid ? getAuth(app) : {} as Auth;
 export const storage = isConfigValid ? getStorage(app) : {} as FirebaseStorage;

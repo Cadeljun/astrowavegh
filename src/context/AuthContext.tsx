@@ -27,6 +27,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // Prevent listening if auth is not initialized
+    if (!auth || typeof auth.onAuthStateChanged !== 'function') {
+      setLoading(false);
+      return;
+    }
+
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
       setLoading(false);
@@ -36,16 +42,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (email: string, password: string) => {
     setError(null);
+    
+    if (!auth || typeof auth.app === 'undefined') {
+      setError('Firebase is not properly configured. Please check your settings.');
+      return;
+    }
+
     try {
       await signInWithEmailAndPassword(auth, email, password);
     } catch (err: any) {
-      console.error(err);
       if (err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
         setError('Incorrect credentials. Please try again.');
       } else if (err.code === 'auth/user-not-found') {
         setError('No admin account found.');
       } else if (err.code === 'auth/too-many-requests') {
         setError('Too many attempts. Try later.');
+      } else if (err.code === 'auth/api-key-not-valid') {
+        setError('Firebase API Key is invalid.');
       } else {
         setError('Authentication failed. Please check your credentials.');
       }
@@ -54,7 +67,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const logout = async () => {
-    await signOut(auth);
+    if (auth && typeof auth.signOut === 'function') {
+      await signOut(auth);
+    }
   };
 
   const isAdmin = !!user;

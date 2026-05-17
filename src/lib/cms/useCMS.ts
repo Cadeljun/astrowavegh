@@ -15,7 +15,8 @@ export function useCMSContent(
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (!db || !('type' in db)) {
+    // Defensive check for initialized firestore
+    if (!db || typeof db.type === 'undefined') {
       setLoading(false);
       return;
     }
@@ -36,8 +37,8 @@ export function useCMSContent(
         }
         setLoading(false)
       },
-      async (error) => {
-        if (process.env.NODE_ENV === 'development') {
+      (error) => {
+        if (process.env.NODE_ENV === 'development' && error.code === 'permission-denied') {
           const permissionError = new FirestorePermissionError({
             path: ref.path,
             operation: 'get',
@@ -49,6 +50,7 @@ export function useCMSContent(
     )
 
     return () => unsub()
+    // pageSlug and sectionKey are stable strings, db is a singleton
   }, [pageSlug, sectionKey])
 
   return { content, loading }
@@ -59,7 +61,7 @@ export function useCMSSections(pageSlug: string) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!db || !('type' in db)) {
+    if (!db || typeof db.type === 'undefined') {
       setLoading(false);
       return;
     }
@@ -75,7 +77,7 @@ export function useCMSSections(pageSlug: string) {
         setSections(sorted);
       }
       setLoading(false);
-    }, (error) => {
+    }, () => {
       setLoading(false);
     });
     
@@ -85,28 +87,12 @@ export function useCMSSections(pageSlug: string) {
   return { sections, loading };
 }
 
-export function useCMSSEO(pageSlug: string) {
-  const [seo, setSEO] = useState<any>(null);
-
-  useEffect(() => {
-    if (!db || !('type' in db)) return;
-
-    const ref = doc(db, 'cms_seo', pageSlug);
-    const unsub = onSnapshot(ref, (snap) => {
-      if (snap.exists()) setSEO(snap.data());
-    });
-    return unsub;
-  }, [pageSlug]);
-
-  return seo;
-}
-
 export function useCMSSettings() {
   const [settings, setSettings] = useState<Record<string, any>>({})
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (!db || !('type' in db)) {
+    if (!db || typeof db.type === 'undefined') {
       setLoading(false);
       return;
     }
@@ -120,8 +106,8 @@ export function useCMSSettings() {
         }
         setLoading(false)
       },
-      async (error) => {
-        if (process.env.NODE_ENV === 'development') {
+      (error) => {
+        if (process.env.NODE_ENV === 'development' && error.code === 'permission-denied') {
           const permissionError = new FirestorePermissionError({
             path: ref.path,
             operation: 'get',
@@ -143,6 +129,8 @@ export async function saveCMSSection(
   label: string,
   fields: Record<string, string>
 ): Promise<void> {
+  if (!db || typeof db.type === 'undefined') return;
+
   const docId = `${pageSlug}_${sectionKey}`
   const ref = doc(db, 'cms_content', docId)
   
@@ -153,7 +141,7 @@ export async function saveCMSSection(
     fields,
     updatedAt: serverTimestamp()
   }, { merge: true })
-    .catch(async (serverError) => {
+    .catch((serverError) => {
       const permissionError = new FirestorePermissionError({
         path: ref.path,
         operation: 'write',
@@ -168,6 +156,8 @@ export async function loadPageContent(
   sectionKeys: string[]
 ): Promise<Record<string, Record<string, string>>> {
   const results: Record<string, Record<string, string>> = {}
+
+  if (!db || typeof db.type === 'undefined') return results;
 
   await Promise.all(
     sectionKeys.map(async (key) => {
@@ -197,12 +187,13 @@ export async function loadPageContent(
 }
 
 export async function saveGlobalSettings(data: Record<string, string>): Promise<void> {
+  if (!db || typeof db.type === 'undefined') return;
   const ref = doc(db, 'cms_settings', 'global')
   setDoc(ref, {
     ...data,
     updatedAt: serverTimestamp()
   }, { merge: true })
-    .catch(async (serverError) => {
+    .catch((serverError) => {
       const permissionError = new FirestorePermissionError({
         path: ref.path,
         operation: 'write',
