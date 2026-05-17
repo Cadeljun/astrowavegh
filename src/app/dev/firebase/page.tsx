@@ -1,47 +1,78 @@
 'use client';
 
-import React, { useState } from 'react';
-import app, { db } from '@/firebase';
-import { collection, getDocs, getCountFromServer, addDoc, serverTimestamp } from 'firebase/firestore';
-import { useAuth } from '@/context/AuthContext';
+import React, { useState, useEffect } from 'react';
+import { db } from '@/firebase';
+import { 
+  collection, 
+  getDocs, 
+  getCountFromServer, 
+  addDoc, 
+  serverTimestamp,
+  query,
+  limit,
+  orderBy
+} from 'firebase/firestore';
+import { SectionHeading } from '@/components/ui/SectionHeading';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
-import { Database, Terminal as TerminalIcon, Search, Trash2, PlusCircle } from 'lucide-react';
+import { 
+  Database, 
+  Terminal as TerminalIcon, 
+  Search, 
+  PlusCircle, 
+  Hash, 
+  ExternalLink,
+  Loader2,
+  Trash2
+} from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import Link from 'next/link';
+import { cn } from '@/lib/utils';
 
 const COLLECTIONS = [
-  'events', 'talent', 'contacts', 'waitlist', 'talent_inquiries', 'gallery', 'uploads'
+  'events', 'talent', 'contacts', 'waitlist', 'talent_inquiries', 'gallery', 'uploads', 'cms_content', 'cms_settings'
 ];
 
 export default function DevFirebasePage() {
-  const { user, isAdmin, loading: authLoading } = useAuth();
   const { toast } = useToast();
   
   const [selectedCol, setSelectedCol] = useState(COLLECTIONS[0]);
   const [output, setOutput] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const [counts, setCounts] = useState<Record<string, number>>({});
 
-  const fetchAll = async () => {
-    setLoading(true);
-    try {
-      const snap = await getDocs(collection(db, selectedCol));
-      const data = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setOutput(data);
-    } catch (e: any) {
-      setOutput({ error: e.message });
-    } finally {
-      setLoading(false);
+  useEffect(() => {
+    refreshCounts();
+  }, []);
+
+  const refreshCounts = async () => {
+    const newCounts: Record<string, number> = {};
+    for (const col of COLLECTIONS) {
+      try {
+        const snap = await getCountFromServer(collection(db, col));
+        newCounts[col] = snap.data().count;
+      } catch (e) {
+        newCounts[col] = -1;
+      }
     }
+    setCounts(newCounts);
   };
 
-  const countDocs = async () => {
+  const fetchRecent = async () => {
     setLoading(true);
+    setOutput(null);
     try {
-      const snap = await getCountFromServer(collection(db, selectedCol));
-      setOutput({ collection: selectedCol, count: snap.data().count });
+      const q = query(collection(db, selectedCol), limit(20));
+      const snap = await getDocs(q);
+      const data = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setOutput({ 
+        collection: selectedCol, 
+        count: data.length,
+        documents: data 
+      });
+      toast({ title: 'Data Retrieved' });
     } catch (e: any) {
       setOutput({ error: e.message });
+      toast({ variant: 'destructive', title: 'Fetch Failed' });
     } finally {
       setLoading(false);
     }
@@ -51,13 +82,17 @@ export default function DevFirebasePage() {
     setLoading(true);
     try {
       const docRef = await addDoc(collection(db, selectedCol), {
-        test: true,
-        source: 'Dev Panel',
+        __is_dev_test: true,
+        source: 'Dev Firebase Explorer',
         timestamp: serverTimestamp(),
-        note: `Sample entry for ${selectedCol}`
+        payload: {
+          note: `Auto-generated test entry for ${selectedCol}`,
+          random_id: Math.random().toString(36).substring(7)
+        }
       });
-      setOutput({ status: 'success', id: docRef.id, collection: selectedCol });
       toast({ title: 'Document Added', description: `ID: ${docRef.id}` });
+      fetchRecent();
+      refreshCounts();
     } catch (e: any) {
       setOutput({ error: e.message });
     } finally {
@@ -65,106 +100,96 @@ export default function DevFirebasePage() {
     }
   };
 
-  if (authLoading) return (
-    <div className="flex items-center 
-      justify-center min-h-[400px]">
-      <div className="w-8 h-8 rounded-full 
-        border-2 border-[#FFD166] 
-        border-t-transparent animate-spin" 
-      />
-    </div>
-  )
-
-  if (!isAdmin) return (
-    <div className="max-w-md mx-auto 
-      mt-16 text-center">
-      <div className="bg-[#16161F] 
-        border border-[#1E1E2E] 
-        rounded-xl p-8">
-        <h2 className="font-display 
-          text-2xl text-[#FFD166] 
-          uppercase mb-3">
-          Authentication Required
-        </h2>
-        <p className="font-mono text-xs 
-          text-white/40 mb-6">
-          You must be signed in as admin 
-          to perform Firestore operations.
-        </p>
-        <Link 
-          href="/admin/login"
-          className="inline-flex items-center 
-            gap-2 px-6 py-3 rounded-md
-            border border-[#FFD166]
-            text-[#FFD166]
-            font-mono text-xs uppercase
-            tracking-wider
-            hover:bg-[#FFD166] 
-            hover:text-black
-            transition-all"
-        >
-          Sign In to Admin
-        </Link>
-      </div>
-    </div>
-  )
-
   return (
     <div className="space-y-12">
-      {/* CONNECTION STATUS */}
-      <Card className="p-8 bg-[#0A0A0F] border-white/5" glowColor="muted">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-6">
-            <div className="flex items-center gap-2">
-               <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-               <span className="text-xs font-bold text-white">CONNECTED</span>
-            </div>
-            <div className="h-8 w-px bg-white/10" />
-            <div className="space-y-1">
-              <p className="text-[10px] text-muted uppercase">Project ID</p>
-              <p className="text-xs text-gold font-mono">{app.options.projectId}</p>
-            </div>
-            <div className="h-8 w-px bg-white/10" />
-            <div className="space-y-1">
-              <p className="text-[10px] text-muted uppercase">Auth State</p>
-              <p className="text-xs text-white font-mono">{user ? `Signed in as ${user.email}` : 'Signed out'}</p>
-            </div>
-          </div>
-          <Database size={32} className="text-white/10" />
-        </div>
-      </Card>
+      <SectionHeading 
+        title="FIREBASE EXPLORER" 
+        subtitle="Direct production database interaction and inspection."
+        label="CORE INFRASTRUCTURE"
+      />
 
-      {/* COLLECTION TESTER */}
-      <section className="space-y-6">
-        <div className="flex items-center gap-4">
-          <select 
-            className="admin-input flex-1 h-12"
-            value={selectedCol}
-            onChange={(e) => setSelectedCol(e.target.value)}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        {/* Collection List */}
+        <Card className="lg:col-span-1 p-6 space-y-4" glowColor="muted">
+          <p className="admin-label text-[0.6rem]">COLLECTIONS</p>
+          <div className="space-y-1">
+            {COLLECTIONS.map(col => (
+              <button
+                key={col}
+                onClick={() => setSelectedCol(col)}
+                className={cn(
+                  "w-full flex items-center justify-between px-3 py-2 rounded-md font-mono text-[0.7rem] uppercase transition-all",
+                  selectedCol === col 
+                    ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/20" 
+                    : "text-muted hover:text-white hover:bg-white/5 border border-transparent"
+                )}
+              >
+                {col}
+                <span className="text-[0.6rem] opacity-40">{counts[col] ?? '...'}</span>
+              </button>
+            ))}
+          </div>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="w-full mt-4 text-[0.6rem] border border-white/5" 
+            onClick={refreshCounts}
           >
-            {COLLECTIONS.map(c => <option key={c} value={c}>{c.toUpperCase()}</option>)}
-          </select>
-          <Button variant="secondary" className="h-12 border-white/5" onClick={fetchAll} disabled={loading}>
-            <Search size={16} className="mr-2" /> FETCH ALL
+            <RefreshCw size={10} className="mr-2" /> REFRESH COUNTS
           </Button>
-          <Button variant="secondary" className="h-12 border-white/5" onClick={countDocs} disabled={loading}>
-             COUNT
-          </Button>
-          <Button variant="ghost" className="h-12 border border-white/5 text-gold" onClick={addTestDoc} disabled={loading}>
-            <PlusCircle size={16} className="mr-2" /> ADD TEST
-          </Button>
-        </div>
+        </Card>
 
-        <div className="relative rounded-md overflow-hidden bg-black border border-white/5">
-          <div className="flex items-center gap-2 px-4 py-2 bg-white/5 border-b border-white/5">
-            <TerminalIcon size={12} className="text-muted" />
-            <span className="text-[10px] text-muted font-bold uppercase tracking-widest">Output Log</span>
+        {/* Console / Explorer */}
+        <div className="lg:col-span-3 space-y-6">
+          <Card className="p-6 bg-[#0A0A0F]" glowColor="muted">
+            <div className="flex flex-col sm:flex-row items-center gap-4">
+              <div className="flex-1 flex items-center gap-4 bg-black/40 border border-white/5 px-4 h-12 rounded-sm w-full">
+                <Hash size={14} className="text-cyan-500" />
+                <span className="font-mono text-xs text-white uppercase tracking-widest">{selectedCol}</span>
+              </div>
+              <div className="flex gap-2 w-full sm:w-auto">
+                <Button variant="secondary" className="flex-1 sm:flex-none h-12 border-white/5" onClick={fetchRecent} disabled={loading}>
+                  {loading ? <Loader2 size={16} className="animate-spin" /> : <Search size={16} className="mr-2" />} QUERY
+                </Button>
+                <Button variant="ghost" className="flex-1 sm:flex-none h-12 border border-white/5 text-gold" onClick={addTestDoc} disabled={loading}>
+                  <PlusCircle size={16} className="mr-2" /> INJECT TEST
+                </Button>
+              </div>
+            </div>
+          </Card>
+
+          <div className="relative rounded-md overflow-hidden bg-black border border-white/5 shadow-2xl">
+            <div className="flex items-center justify-between px-5 py-3 bg-white/5 border-b border-white/5">
+              <div className="flex items-center gap-3">
+                <TerminalIcon size={14} className="text-cyan-500" />
+                <span className="text-[0.65rem] text-white font-mono font-bold uppercase tracking-[0.2em]">Live Output Stream</span>
+              </div>
+              <div className="flex gap-4">
+                {output && <span className="text-[0.6rem] text-muted uppercase font-bold">{output.documents?.length || 0} Records</span>}
+                <button onClick={() => setOutput(null)} className="text-[0.6rem] text-muted hover:text-white uppercase font-bold">Clear</button>
+              </div>
+            </div>
+            
+            <pre className="p-8 text-[0.7rem] text-cyan-400/90 font-mono overflow-auto max-h-[600px] scrollbar-hide leading-relaxed">
+              {loading ? (
+                <div className="flex items-center gap-3 animate-pulse">
+                  <Loader2 size={12} className="animate-spin" />
+                  <span>INITIALIZING READ FROM FIREBASE...</span>
+                </div>
+              ) : output ? (
+                JSON.stringify(output, (key, value) => 
+                  value && typeof value === 'object' && 'seconds' in value ? new Date(value.seconds * 1000).toISOString() : value
+                , 2)
+              ) : (
+                <div className="text-muted/20 italic">
+                  // Console ready. Select a collection and click QUERY to inspect data.
+                  // All timestamps are automatically converted to ISO strings for readability.
+                </div>
+              )}
+            </pre>
           </div>
-          <pre className="p-6 text-xs text-green-500 font-mono overflow-auto max-h-[500px] scrollbar-hide leading-relaxed">
-            {loading ? '// Initializing Firebase operation...' : output ? JSON.stringify(output, null, 2) : '// Select a collection and action to begin.'}
-          </pre>
         </div>
-      </section>
+      </div>
     </div>
   );
 }
