@@ -15,7 +15,6 @@ export function useCMSContent(
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Only run if db is properly initialized
     if (!db || !('type' in db)) {
       setLoading(false);
       return;
@@ -38,11 +37,13 @@ export function useCMSContent(
         setLoading(false)
       },
       async (error) => {
-        const permissionError = new FirestorePermissionError({
-          path: ref.path,
-          operation: 'get',
-        } satisfies SecurityRuleContext);
-        errorEmitter.emit('permission-error', permissionError);
+        if (process.env.NODE_ENV === 'development') {
+          const permissionError = new FirestorePermissionError({
+            path: ref.path,
+            operation: 'get',
+          } satisfies SecurityRuleContext);
+          errorEmitter.emit('permission-error', permissionError);
+        }
         setLoading(false);
       }
     )
@@ -53,9 +54,6 @@ export function useCMSContent(
   return { content, loading }
 }
 
-/**
- * Hook to fetch visible sections and their order for a specific page.
- */
 export function useCMSSections(pageSlug: string) {
   const [sections, setSections] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -87,9 +85,6 @@ export function useCMSSections(pageSlug: string) {
   return { sections, loading };
 }
 
-/**
- * Hook to fetch SEO metadata for a page.
- */
 export function useCMSSEO(pageSlug: string) {
   const [seo, setSEO] = useState<any>(null);
 
@@ -126,11 +121,13 @@ export function useCMSSettings() {
         setLoading(false)
       },
       async (error) => {
-        const permissionError = new FirestorePermissionError({
-          path: ref.path,
-          operation: 'get',
-        } satisfies SecurityRuleContext);
-        errorEmitter.emit('permission-error', permissionError);
+        if (process.env.NODE_ENV === 'development') {
+          const permissionError = new FirestorePermissionError({
+            path: ref.path,
+            operation: 'get',
+          } satisfies SecurityRuleContext);
+          errorEmitter.emit('permission-error', permissionError);
+        }
         setLoading(false);
       }
     )
@@ -184,7 +181,7 @@ export async function loadPageContent(
           results[key] = {}
         }
       } catch (serverError: any) {
-        if (serverError.code === 'permission-denied') {
+        if (serverError.code === 'permission-denied' && process.env.NODE_ENV === 'development') {
           const permissionError = new FirestorePermissionError({
             path: ref.path,
             operation: 'get',

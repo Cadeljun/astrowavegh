@@ -18,8 +18,8 @@ const isConfigValid = !!firebaseConfig.apiKey;
 function getSafeApp(): FirebaseApp {
   if (getApps().length > 0) return getApp();
   
-  if (typeof window === 'undefined' && !isConfigValid) {
-    // Return a dummy app object for SSR if config is missing
+  if (!isConfigValid) {
+    // Return a dummy app object for SSR or missing config environments
     return {
       name: '[DEFAULT]',
       options: {},
@@ -32,8 +32,7 @@ function getSafeApp(): FirebaseApp {
 
 const app = getSafeApp();
 
-// Export initialized services only if we have a valid app/config
-// On the server during pre-rendering, we provide a safe fallback
+// Only initialize services if we have a valid app instance with config
 export const db = isConfigValid ? getFirestore(app) : {} as Firestore;
 export const auth = isConfigValid ? getAuth(app) : {} as Auth;
 export const storage = isConfigValid ? getStorage(app) : {} as FirebaseStorage;

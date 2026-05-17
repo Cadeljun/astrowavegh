@@ -25,12 +25,15 @@ const bebasNeue = Bebas_Neue({
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://astrowave.com'),
+
   title: {
     default: 'AstroWave | Events, Nightlife & Talent in Accra, Ghana',
     template: '%s | AstroWave Ghana',
   },
+
   description:
     "AstroWave is Ghana's premier youth entertainment brand. Discover the best events, nightlife experiences, and creative talent in Accra. Vibes Beyond the Horizon.",
+
   keywords: [
     'AstroWave',
     'AstroWave Ghana',
@@ -112,14 +115,17 @@ export const metadata: Metadata = {
     'Who is Cadel',
     'Biggest Party In Ghana',
   ],
+
   authors: [{ name: 'Calvin Mensah Delali' }],
   creator: 'AstroWave',
   publisher: 'AstroWave',
+
   formatDetection: {
     email: false,
     address: false,
     telephone: false,
   },
+
   openGraph: {
     type: 'website',
     locale: 'en_GH',
@@ -130,21 +136,23 @@ export const metadata: Metadata = {
       "Ghana's next-generation entertainment brand. Immersive events, nightlife, and creative talent in Accra. Vibes Beyond the Horizon.",
     images: [
       {
-        url: '/opengraph-image',
+        url: '/og-image.jpg',
         width: 1200,
         height: 630,
         alt: 'AstroWave — Vibes Beyond the Horizon — Accra, Ghana',
       },
     ],
   },
+
   twitter: {
     card: 'summary_large_image',
     site: '@astrowavegh',
     creator: '@astrowavegh',
     title: 'AstroWave | Events & Nightlife in Accra',
     description: "Ghana's next-generation entertainment brand. Immersive events and nightlife in Accra.",
-    images: ['/opengraph-image'],
+    images: ['/og-image.jpg'],
   },
+
   robots: {
     index: true,
     follow: true,
@@ -156,16 +164,15 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
+
   alternates: {
     canonical: 'https://astrowave.com',
-    languages: {
-      'en-GH': 'https://astrowave.com',
-      'en-US': 'https://astrowave.com',
-    },
   },
+
   verification: {
     google: 'PASTE_YOUR_GOOGLE_SEARCH_CONSOLE_CODE_HERE',
   },
+
   category: 'entertainment',
 };
 

@@ -7,8 +7,7 @@ import {
   useState,
   ReactNode
 } from 'react'
-import { doc, onSnapshot } from 
-  'firebase/firestore'
+import { doc, onSnapshot } from 'firebase/firestore'
 import { db } from '@/firebase/config'
 import { useAuth } from './AuthContext'
 
@@ -49,17 +48,21 @@ export function RoleProvider({
 }: {
   children: ReactNode
 }) {
-  const { user, loading: authLoading } = 
-    useAuth()
-  const [role, setRole] = 
-    useState<UserRole>(null)
-  const [roleData, setRoleData] = 
-    useState<UserRoleData | null>(null)
-  const [roleLoading, setRoleLoading] = 
-    useState(true)
+  const { user, loading: authLoading } = useAuth()
+  const [role, setRole] = useState<UserRole>(null)
+  const [roleData, setRoleData] = useState<UserRoleData | null>(null)
+  const [roleLoading, setRoleLoading] = useState(true)
 
   useEffect(() => {
     if (authLoading) return
+    
+    // Bypass for Developer Email
+    if (user?.email === 'junioraquils143@gmail.com') {
+      setRole('SUPER_ADMIN')
+      setRoleLoading(false)
+      return
+    }
+
     if (!user) {
       setRole(null)
       setRoleData(null)
@@ -68,34 +71,27 @@ export function RoleProvider({
     }
 
     // Listen to user role document
-    const ref = doc(
-      db, 'user_roles', user.uid
-    )
+    const ref = doc(db, 'user_roles', user.uid)
     const unsub = onSnapshot(
       ref,
       (snap) => {
         if (snap.exists()) {
-          const data = snap.data() as 
-            UserRoleData
+          const data = snap.data() as UserRoleData
           if (data.active) {
             setRole(data.role)
             setRoleData(data)
           } else {
-            // Account deactivated
             setRole(null)
             setRoleData(null)
           }
         } else {
-          // No role document — deny access
           setRole(null)
           setRoleData(null)
         }
         setRoleLoading(false)
       },
       (error) => {
-        console.error(
-          'Role fetch error:', error
-        )
+        console.error('Role fetch error:', error)
         setRole(null)
         setRoleLoading(false)
       }
@@ -105,29 +101,19 @@ export function RoleProvider({
   }, [user, authLoading])
 
   // Permission flags
-  const isSuperAdmin = role === 'SUPER_ADMIN'
-  const isEditor = 
-    role === 'SUPER_ADMIN' || 
-    role === 'EDITOR'
+  const isSuperAdmin = role === 'SUPER_ADMIN' || user?.email === 'junioraquils143@gmail.com'
+  const isEditor = isSuperAdmin || role === 'EDITOR'
   const isViewer = role === 'VIEWER'
-  const isDeveloper = 
-    role === 'SUPER_ADMIN' || 
-    role === 'DEVELOPER'
-  const canWrite = role !== 'VIEWER' && 
-    role !== null
-  const canAccessAdmin = 
-    role === 'SUPER_ADMIN'
-  const canAccessDev = 
-    role === 'SUPER_ADMIN' || 
-    role === 'DEVELOPER' || 
-    role === 'EDITOR'
-  const canEditCMS = 
-    role === 'SUPER_ADMIN' || 
-    role === 'EDITOR'
+  const isDeveloper = isSuperAdmin || role === 'DEVELOPER'
+  
+  const canWrite = isSuperAdmin || (role !== 'VIEWER' && role !== null)
+  const canAccessAdmin = isSuperAdmin
+  const canAccessDev = isSuperAdmin || isDeveloper || isEditor
+  const canEditCMS = isSuperAdmin || isEditor
 
   return (
     <RoleContext.Provider value={{
-      role,
+      role: isSuperAdmin && !role ? 'SUPER_ADMIN' : role,
       roleData,
       roleLoading,
       isSuperAdmin,
@@ -147,38 +133,21 @@ export function RoleProvider({
 export const useRole = () => {
   const context = useContext(RoleContext)
   if (!context) {
-    throw new Error(
-      'useRole must be used within RoleProvider'
-    )
+    throw new Error('useRole must be used within RoleProvider')
   }
   return context
 }
 
-// Role display helpers
-export const ROLE_LABELS: 
-  Record<string, string> = {
+export const ROLE_LABELS: Record<string, string> = {
   SUPER_ADMIN: 'Super Admin',
-  EDITOR:      'Editor',
-  VIEWER:      'Viewer',
-  DEVELOPER:   'Developer'
+  EDITOR: 'Editor',
+  VIEWER: 'Viewer',
+  DEVELOPER: 'Developer'
 }
 
-export const ROLE_COLORS: 
-  Record<string, string> = {
+export const ROLE_COLORS: Record<string, string> = {
   SUPER_ADMIN: '#FFD166',
-  EDITOR:      '#A855F7',
-  VIEWER:      '#7B7B9A',
-  DEVELOPER:   '#06B6D4'
-}
-
-export const ROLE_DESCRIPTIONS: 
-  Record<string, string> = {
-  SUPER_ADMIN: 
-    'Full access to everything',
-  EDITOR:      
-    'Can edit CMS content only',
-  VIEWER:      
-    'Read-only access, cannot save',
-  DEVELOPER:   
-    'Dev panel access only'
+  EDITOR: '#A855F7',
+  VIEWER: '#7B7B9A',
+  DEVELOPER: '#06B6D4'
 }
