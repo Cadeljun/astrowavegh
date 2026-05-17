@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Mail, Phone, Instagram, CheckCircle, Trash2, UserPlus, Copy } from 'lucide-react';
 import { doc, updateDoc } from 'firebase/firestore';
-import { db } from '@/firebase/config';
+import { db } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/Badge';

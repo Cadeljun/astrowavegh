@@ -1,8 +1,7 @@
-
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { db } from '@/firebase/config';
+import { db } from '@/firebase';
 import { doc, onSnapshot, setDoc, serverTimestamp } from 'firebase/firestore';
 import { 
   DndContext, 
@@ -70,6 +69,7 @@ export default function CMSSectionManager({ pageId }: CMSSectionManagerProps) {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
+    if (!db) return;
     const ref = doc(db, 'cms_sections', pageId);
     return onSnapshot(ref, (snap) => {
       if (snap.exists()) {
@@ -102,6 +102,7 @@ export default function CMSSectionManager({ pageId }: CMSSectionManagerProps) {
   };
 
   const saveOrder = async () => {
+    if (!db) return;
     setSaving(true);
     try {
       await setDoc(doc(db, 'cms_sections', pageId), {

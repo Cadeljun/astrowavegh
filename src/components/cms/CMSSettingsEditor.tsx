@@ -1,8 +1,7 @@
-
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { db } from '@/firebase/config';
+import { db } from '@/firebase';
 import { doc, onSnapshot, setDoc, serverTimestamp } from 'firebase/firestore';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -17,12 +16,14 @@ export default function CMSSettingsEditor() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
+    if (!db) return;
     return onSnapshot(doc(db, 'cms_settings', 'global'), (snap) => {
       if (snap.exists()) setSettings(snap.data());
     });
   }, []);
 
   const handleSave = async () => {
+    if (!db) return;
     setSaving(true);
     try {
       await setDoc(doc(db, 'cms_settings', 'global'), {

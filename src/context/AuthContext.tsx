@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState } from 'react';
-import { auth } from '@/firebase/config';
+import { useAuth as useFirebaseAuth } from '@/firebase';
 import {
   onAuthStateChanged,
   signInWithEmailAndPassword,
@@ -22,16 +22,13 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType>({} as AuthContextType);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const auth = useFirebaseAuth();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Only run if we're in the browser and auth is initialized
-    if (typeof window === 'undefined' || !auth.onAuthStateChanged) {
-      setLoading(false);
-      return;
-    }
+    if (!auth) return;
 
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
@@ -39,15 +36,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
     
     return () => unsubscribe();
-  }, []);
+  }, [auth]);
 
   const login = async (email: string, password: string) => {
+    if (!auth) return;
     setError(null);
-    
-    if (!auth.signInWithEmailAndPassword) {
-      setError('Authentication is not currently available.');
-      return;
-    }
 
     try {
       await signInWithEmailAndPassword(auth, email, password);
@@ -74,7 +67,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const logout = async () => {
-    if (auth.signOut) {
+    if (auth) {
       await signOut(auth);
     }
   };

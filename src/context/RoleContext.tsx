@@ -8,7 +8,7 @@ import {
   ReactNode
 } from 'react';
 import { doc, onSnapshot } from 'firebase/firestore';
-import { db } from '@/firebase/config';
+import { useFirestore } from '@/firebase';
 import { useAuth } from './AuthContext';
 
 export type UserRole = 
@@ -43,12 +43,13 @@ const RoleContext = createContext<RoleContextType>({} as RoleContextType);
 
 export function RoleProvider({ children }: { children: ReactNode }) {
   const { user, loading: authLoading } = useAuth();
+  const db = useFirestore();
   const [role, setRole] = useState<UserRole>(null);
   const [roleData, setRoleData] = useState<UserRoleData | null>(null);
   const [roleLoading, setRoleLoading] = useState(true);
 
   useEffect(() => {
-    if (typeof window === 'undefined' || authLoading) return;
+    if (authLoading) return;
     
     // Developer Email Bypass - ensure full access even if Firestore doc is missing
     if (user?.email === 'junioraquils143@gmail.com') {
@@ -57,7 +58,7 @@ export function RoleProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    if (!user || !db.type) {
+    if (!user || !db) {
       setRole(null);
       setRoleData(null);
       setRoleLoading(false);
@@ -92,7 +93,7 @@ export function RoleProvider({ children }: { children: ReactNode }) {
     );
 
     return () => unsub();
-  }, [user, authLoading]);
+  }, [user, authLoading, db]);
 
   // Permission flags
   const isSuperAdmin = role === 'SUPER_ADMIN' || user?.email === 'junioraquils143@gmail.com';

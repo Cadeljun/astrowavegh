@@ -8,7 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/Button';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
-import { auth as firebaseAuth, db } from '@/firebase/config';
+import { auth as firebaseAuth, db } from '@/firebase';
 
 export default function AdminLoginPage() {
   const { login, error, isAdmin, loading: authLoading, clearError } = useAuth();
@@ -43,7 +43,7 @@ export default function AdminLoginPage() {
   };
 
   const handleInitialSetup = async () => {
-    if (typeof window === 'undefined' || !firebaseAuth.createUserWithEmailAndPassword) {
+    if (typeof window === 'undefined' || !firebaseAuth) {
       setSetupMessage('Setup not available during pre-render.');
       return;
     }

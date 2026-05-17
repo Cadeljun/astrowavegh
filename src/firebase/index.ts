@@ -1,15 +1,26 @@
 'use client';
 
-import app, { db, auth } from './config';
+import { initializeApp, getApps, getApp } from 'firebase/app';
+import { getFirestore } from 'firebase/firestore';
+import { getAuth } from 'firebase/auth';
+import { firebaseConfig } from './config';
+
+// Initialize Firebase idempotently to ensure singletons across the client
+const firebaseApp = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+const firestore = getFirestore(firebaseApp);
+const auth = getAuth(firebaseApp);
+
+// Export instances for use in non-hook functions and components
+export { firebaseApp as default, firebaseApp as app, firestore as db, auth };
 
 /**
  * Standardized initialization for client-side Firebase services.
- * Production only.
+ * Primarily used by the FirebaseClientProvider.
  */
 export function initializeFirebase() {
   return {
-    app,
-    firestore: db,
+    app: firebaseApp,
+    firestore,
     auth,
   };
 }
@@ -28,6 +39,3 @@ export {
   getAuth 
 } from './provider';
 export { FirebaseClientProvider } from './client-provider';
-
-export { db, auth };
-export default app;

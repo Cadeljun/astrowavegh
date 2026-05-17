@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { db } from '@/firebase/config';
+import { db } from '@/firebase';
 import { doc, setDoc, onSnapshot, serverTimestamp } from 'firebase/firestore';
 import { 
   Accordion, 
@@ -33,7 +33,7 @@ export default function CMSContentEditor({ pageId }: CMSContentEditorProps) {
   const [loading, setLoading] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
-    if (!sections.length) return;
+    if (!sections.length || !db) return;
 
     const unsubs = sections.map(s => {
       const docId = `${pageId}_${s.key}`;
@@ -60,6 +60,7 @@ export default function CMSContentEditor({ pageId }: CMSContentEditorProps) {
   };
 
   const saveSection = async (sectionKey: string, label: string) => {
+    if (!db) return;
     setLoading(prev => ({ ...prev, [sectionKey]: true }));
     const docId = `${pageId}_${sectionKey}`;
     const docRef = doc(db, 'cms_content', docId);

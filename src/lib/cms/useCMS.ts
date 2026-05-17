@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { doc, getDoc, setDoc, onSnapshot, serverTimestamp } from 'firebase/firestore'
-import { db } from '@/firebase/config'
+import { db } from '@/firebase'
 import { errorEmitter } from '@/firebase/error-emitter'
 import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors'
 
@@ -15,8 +15,7 @@ export function useCMSContent(
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Defensive check for initialized firestore
-    if (!db || typeof db.type === 'undefined') {
+    if (!db) {
       setLoading(false);
       return;
     }
@@ -50,8 +49,7 @@ export function useCMSContent(
     )
 
     return () => unsub()
-    // pageSlug and sectionKey are stable strings, db is a singleton
-  }, [pageSlug, sectionKey])
+  }, [pageSlug, sectionKey, defaultValues])
 
   return { content, loading }
 }
@@ -61,7 +59,7 @@ export function useCMSSections(pageSlug: string) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!db || typeof db.type === 'undefined') {
+    if (!db) {
       setLoading(false);
       return;
     }
@@ -92,7 +90,7 @@ export function useCMSSettings() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (!db || typeof db.type === 'undefined') {
+    if (!db) {
       setLoading(false);
       return;
     }
@@ -129,7 +127,7 @@ export async function saveCMSSection(
   label: string,
   fields: Record<string, string>
 ): Promise<void> {
-  if (!db || typeof db.type === 'undefined') return;
+  if (!db) return;
 
   const docId = `${pageSlug}_${sectionKey}`
   const ref = doc(db, 'cms_content', docId)
@@ -157,7 +155,7 @@ export async function loadPageContent(
 ): Promise<Record<string, Record<string, string>>> {
   const results: Record<string, Record<string, string>> = {}
 
-  if (!db || typeof db.type === 'undefined') return results;
+  if (!db) return results;
 
   await Promise.all(
     sectionKeys.map(async (key) => {
@@ -187,7 +185,7 @@ export async function loadPageContent(
 }
 
 export async function saveGlobalSettings(data: Record<string, string>): Promise<void> {
-  if (!db || typeof db.type === 'undefined') return;
+  if (!db) return;
   const ref = doc(db, 'cms_settings', 'global')
   setDoc(ref, {
     ...data,

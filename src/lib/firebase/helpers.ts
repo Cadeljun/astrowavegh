@@ -17,7 +17,7 @@ import {
   getCountFromServer,
   serverTimestamp
 } from 'firebase/firestore'
-import { db } from '@/firebase/config'
+import { db } from '@/firebase'
 import { errorEmitter } from '@/firebase/error-emitter'
 import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors'
 
@@ -136,7 +136,7 @@ export function addDocument(path: string, data: any) {
   addDoc(colRef, addData)
     .catch(async (serverError) => {
       const permissionError = new FirestorePermissionError({
-        path,
+        path: colRef.path,
         operation: 'create',
         requestResourceData: addData,
       });

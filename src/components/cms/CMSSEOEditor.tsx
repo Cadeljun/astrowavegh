@@ -1,8 +1,7 @@
-
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { db } from '@/firebase/config';
+import { db } from '@/firebase';
 import { doc, onSnapshot, setDoc, serverTimestamp } from 'firebase/firestore';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -28,12 +27,14 @@ export default function CMSSEOEditor({ pageId }: CMSSEOEditorProps) {
   const [keywordInput, setKeywordInput] = useState('');
 
   useEffect(() => {
+    if (!db) return;
     return onSnapshot(doc(db, 'cms_seo', pageId), (snap) => {
       if (snap.exists()) setSeo(snap.data());
     });
   }, [pageId]);
 
   const handleSave = async () => {
+    if (!db) return;
     setSaving(true);
     try {
       await setDoc(doc(db, 'cms_seo', pageId), {
