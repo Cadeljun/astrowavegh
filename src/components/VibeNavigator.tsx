@@ -1,13 +1,13 @@
-
 "use client";
 
 import { useState } from "react";
 import { getUserVibeRecommendation, type UserVibeOutput } from "@/ai/flows/user-vibe-recommendation-flow";
 import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent } from "@/components/ui/Card";
-import { Sparkles, Loader2, Music, Calendar, User } from "lucide-react";
+import { Card } from "@/components/ui/Card";
+import { Sparkles, Loader2, Music, Calendar, Users, Target } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
+import { motion, AnimatePresence } from "framer-motion";
+import { fadeUp, staggerContainer, scaleIn } from "@/lib/animations";
 
 export default function VibeNavigator() {
   const [mood, setMood] = useState("");
@@ -29,96 +29,125 @@ export default function VibeNavigator() {
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto py-12 px-6">
-      <div className="text-center mb-10">
-        <h2 className="font-headline text-4xl lg:text-5xl tracking-widest text-primary neon-gold mb-4 uppercase">
-          AI Vibe Navigator
+    <div className="w-full max-w-5xl mx-auto py-24 px-6">
+      <motion.div 
+        initial="hidden"
+        whileInView="show"
+        viewport={{ once: true }}
+        variants={fadeUp}
+        className="text-center mb-12"
+      >
+        <div className="label text-gold tracking-[0.4em] mb-4">AI-POWERED DISCOVERY</div>
+        <h2 className="display-lg text-glow-gold mb-6 uppercase">
+          Find Your Wave
         </h2>
-        <p className="text-muted-foreground text-lg">
-          Describe your mood, and let the wave find your perfect experience.
+        <p className="body-lg text-muted max-w-2xl mx-auto">
+          Describe your mood or the kind of energy you're looking for, and let our AI navigate you to the perfect AstroWave experience.
         </p>
-      </div>
+      </motion.div>
 
-      <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-4 mb-12">
-        <Input
+      <motion.form 
+        initial="hidden"
+        whileInView="show"
+        viewport={{ once: true }}
+        variants={fadeUp}
+        onSubmit={handleSearch} 
+        className="flex flex-col md:flex-row gap-4 mb-20"
+      >
+        <input
           value={mood}
           onChange={(e) => setMood(e.target.value)}
           placeholder="e.g. 'Chill sunset vibes', 'High energy afrobeats', 'Midnight mystery'..."
-          className="bg-brand-surface border-white/10 h-14 text-lg focus:border-primary/50 transition-all text-white placeholder:text-muted-foreground"
+          className="flex-1 bg-white/5 border border-white/10 h-16 px-6 rounded-sm text-lg focus:border-gold outline-none transition-all text-white placeholder:text-muted/50"
         />
         <Button 
           type="submit" 
           disabled={loading}
-          className="bg-primary text-background h-14 px-8 font-bold text-lg tracking-widest uppercase hover:bg-primary/80 rounded-none shadow-[0_0_20px_rgba(255,209,102,0.3)]"
+          size="lg"
+          className="h-16 px-10 min-w-[200px]"
         >
-          {loading ? <Loader2 className="animate-spin" /> : <Sparkles className="mr-2" />}
-          Navigate
+          {loading ? <Loader2 className="animate-spin" /> : <><Sparkles className="mr-2" /> NAVIGATE</>}
         </Button>
-      </form>
+      </motion.form>
 
-      {recommendations && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {/* Events */}
-          <div className="space-y-4">
-            <h3 className="font-headline text-2xl tracking-widest flex items-center gap-2">
-              <Calendar className="text-primary" /> Events
-            </h3>
-            {recommendations.events.map((event, i) => (
-              <Card key={i} className="glass border-white/5 bg-transparent overflow-hidden">
-                <CardContent className="p-4">
-                  <div className="flex justify-between items-start mb-2">
-                    <h4 className="font-bold text-primary">{event.name}</h4>
-                    <Badge variant="secondary" className="bg-primary/20 text-primary text-[10px]">
-                      {event.vibeMatchScore}% Match
-                    </Badge>
-                  </div>
-                  <p className="text-xs text-muted-foreground line-clamp-2">{event.description}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+      <AnimatePresence mode="wait">
+        {recommendations && (
+          <motion.div 
+            key="results"
+            variants={staggerContainer}
+            initial="hidden"
+            animate="show"
+            className="grid grid-cols-1 md:grid-cols-3 gap-8"
+          >
+            {/* Events */}
+            <div className="space-y-6">
+              <h3 className="font-display text-2xl tracking-widest flex items-center gap-3 text-gold">
+                <Calendar size={20} /> EVENTS
+              </h3>
+              <div className="space-y-4">
+                {recommendations.events.map((event, i) => (
+                  <motion.div key={i} variants={scaleIn}>
+                    <Card className="p-6 border-white/5 bg-white/[0.02]" glowColor="gold">
+                      <div className="flex justify-between items-start mb-3">
+                        <h4 className="font-bold text-white text-lg leading-tight">{event.name}</h4>
+                        <Badge variant="live" className="text-[0.6rem] whitespace-nowrap">
+                          {event.vibeMatchScore}%
+                        </Badge>
+                      </div>
+                      <p className="text-xs text-muted leading-relaxed line-clamp-3">{event.description}</p>
+                    </Card>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
 
-          {/* Music */}
-          <div className="space-y-4">
-            <h3 className="font-headline text-2xl tracking-widest flex items-center gap-2">
-              <Music className="text-secondary" /> Music
-            </h3>
-            {recommendations.music.map((m, i) => (
-              <Card key={i} className="glass border-white/5 bg-transparent overflow-hidden">
-                <CardContent className="p-4">
-                  <div className="flex justify-between items-start mb-2">
-                    <h4 className="font-bold text-secondary">{m.title}</h4>
-                    <Badge variant="secondary" className="bg-secondary/20 text-secondary text-[10px]">
-                      {m.vibeMatchScore}% Match
-                    </Badge>
-                  </div>
-                  <p className="text-xs text-muted-foreground">{m.artist} • {m.genre}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+            {/* Music */}
+            <div className="space-y-6">
+              <h3 className="font-display text-2xl tracking-widest flex items-center gap-3 text-purple">
+                <Music size={20} /> MUSIC
+              </h3>
+              <div className="space-y-4">
+                {recommendations.music.map((m, i) => (
+                  <motion.div key={i} variants={scaleIn}>
+                    <Card className="p-6 border-white/5 bg-white/[0.02]" glowColor="purple">
+                      <div className="flex justify-between items-start mb-3">
+                        <h4 className="font-bold text-white text-lg leading-tight">{m.title}</h4>
+                        <Badge variant="active" className="bg-purple-dim text-purple border-purple text-[0.6rem]">
+                          {m.vibeMatchScore}%
+                        </Badge>
+                      </div>
+                      <p className="text-xs text-muted">{m.artist} • {m.genre}</p>
+                    </Card>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
 
-          {/* Artists */}
-          <div className="space-y-4">
-            <h3 className="font-headline text-2xl tracking-widest flex items-center gap-2">
-              <User className="text-accent" /> Talent
-            </h3>
-            {recommendations.artists.map((a, i) => (
-              <Card key={i} className="glass border-white/5 bg-transparent overflow-hidden">
-                <CardContent className="p-4">
-                  <div className="flex justify-between items-start mb-2">
-                    <h4 className="font-bold text-accent">{a.name}</h4>
-                    <Badge variant="secondary" className="bg-accent/20 text-accent text-[10px]">
-                      {a.vibeMatchScore}% Match
-                    </Badge>
-                  </div>
-                  <p className="text-xs text-muted-foreground">{a.role}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      )}
+            {/* Artists */}
+            <div className="space-y-6">
+              <h3 className="font-display text-2xl tracking-widest flex items-center gap-3 text-cyan">
+                <Users size={20} /> TALENT
+              </h3>
+              <div className="space-y-4">
+                {recommendations.artists.map((a, i) => (
+                  <motion.div key={i} variants={scaleIn}>
+                    <Card className="p-6 border-white/5 bg-white/[0.02]" glowColor="cyan">
+                      <div className="flex justify-between items-start mb-3">
+                        <h4 className="font-bold text-white text-lg leading-tight">{a.name}</h4>
+                        <Badge variant="free" className="text-[0.6rem]">
+                          {a.vibeMatchScore}%
+                        </Badge>
+                      </div>
+                      <p className="text-xs text-muted mb-2">{a.role}</p>
+                      <p className="text-[0.65rem] text-muted italic line-clamp-2">{a.description}</p>
+                    </Card>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

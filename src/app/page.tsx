@@ -13,6 +13,11 @@ const EcosystemSection = dynamic(() => import('@/components/sections/EcosystemSe
   ssr: true,
 });
 
+const VibeNavigator = dynamic(() => import('@/components/VibeNavigator'), {
+  loading: () => <div className="h-[400px] bg-black" />,
+  ssr: false, // AI interactions are client-side only
+});
+
 const FeaturedEvents = dynamic(() => import('@/components/sections/FeaturedEvents'), {
   loading: () => <div className="h-[800px] bg-black" />,
   ssr: true,
@@ -35,6 +40,7 @@ export default function Home() {
       <HeroSection />
       <AboutTeaser />
       <EcosystemSection />
+      <VibeNavigator />
       <FeaturedEvents />
       <TalentTeaser />
       <CTABanner />
