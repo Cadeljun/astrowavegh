@@ -3,34 +3,34 @@
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
 import { getFirestore, Firestore } from 'firebase/firestore';
 import { getAuth, Auth } from 'firebase/auth';
-import { getStorage, FirebaseStorage } from 'firebase/storage';
 
+/**
+ * PRODUCTION FIREBASE CONFIGURATION
+ * Connected to: studio-9129689546-ca9f2
+ */
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  apiKey: "AIzaSyAyTaxmsONXftJd6Tp-cLYq2sjR0yqI61c",
+  authDomain: "studio-9129689546-ca9f2.firebaseapp.com",
+  projectId: "studio-9129689546-ca9f2",
+  storageBucket: "studio-9129689546-ca9f2.firebasestorage.app",
+  messagingSenderId: "722453105018",
+  appId: "1:722453105018:web:4a16b3fb2f954cb1cd6ec3"
 };
 
-// Check if we are in the browser and if config is valid
+// Next.js SSR Safety Check
 const isBrowser = typeof window !== 'undefined';
-const hasConfig = !!process.env.NEXT_PUBLIC_FIREBASE_API_KEY;
 
 let app: FirebaseApp;
 let auth: Auth;
 let db: Firestore;
-let storage: FirebaseStorage;
 
-if (isBrowser && hasConfig) {
-  // Initialize Firebase for the client
+if (isBrowser) {
+  // Initialize Firebase for the browser
   app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
   auth = getAuth(app);
   db = getFirestore(app);
-  storage = getStorage(app);
 } else {
-  // Provide safe stubs for SSR to prevent pre-rendering crashes
+  // Safe stubs for server-side pre-rendering
   app = {} as FirebaseApp;
   auth = {
     onAuthStateChanged: () => () => {},
@@ -40,8 +40,7 @@ if (isBrowser && hasConfig) {
     type: 'firestore',
     toJSON: () => ({}),
   } as unknown as Firestore;
-  storage = {} as FirebaseStorage;
 }
 
-export { app, auth, db, storage, firebaseConfig };
+export { app, auth, db, firebaseConfig };
 export default app;

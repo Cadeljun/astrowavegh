@@ -36,7 +36,7 @@ export default function AdminLoginPage() {
     try {
       await login(email, password);
     } catch (err) {
-      // Error handled by AuthContext and displayed below
+      // Error handled by AuthContext and displayed via state
     } finally {
       setIsSubmitting(false);
     }
@@ -98,15 +98,12 @@ export default function AdminLoginPage() {
 
   return (
     <div className="min-h-screen bg-[#050505] flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Dynamic Background */}
+      {/* Background Decor */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         <div 
           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full opacity-[0.08]"
-          style={{
-            backgroundImage: `radial-gradient(ellipse 60% 40% at 50% 50%, #FFD166, transparent 70%)`
-          }}
+          style={{ backgroundImage: `radial-gradient(ellipse 60% 40% at 50% 50%, #FFD166, transparent 70%)` }}
         />
-        <div className="fixed inset-0 opacity-[0.03] pointer-events-none z-10 bg-[url('data:image/svg+xml,%3Csvg viewBox=%220 0 256 256%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noise%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.9%22 numOctaves=%224%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noise)%22/%3E%3C/svg%3E')]" />
       </div>
 
       <motion.div 
@@ -199,10 +196,6 @@ export default function AdminLoginPage() {
             </button>
           </div>
         </div>
-
-        <p className="text-center mt-8 text-muted text-[0.6rem] uppercase tracking-[0.3em] opacity-40">
-          AstroWave Ghana &copy; 2025 • Internal Access Only
-        </p>
       </motion.div>
     </div>
   );

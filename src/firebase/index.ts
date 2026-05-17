@@ -1,6 +1,6 @@
 'use client';
 
-import app, { db, auth, storage } from './config';
+import app, { db, auth } from './config';
 
 /**
  * Standardized initialization for client-side Firebase services.
@@ -29,5 +29,5 @@ export {
 } from './provider';
 export { FirebaseClientProvider } from './client-provider';
 
-export { db, auth, storage };
+export { db, auth };
 export default app;

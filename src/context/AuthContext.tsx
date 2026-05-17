@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState } from 'react';
-import { auth, db } from '@/firebase/config';
+import { auth } from '@/firebase/config';
 import {
   onAuthStateChanged,
   signInWithEmailAndPassword,
@@ -14,7 +14,6 @@ interface AuthContextType {
   loading: boolean;
   error: string | null;
   isAdmin: boolean;
-  isDeveloper: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   clearError: () => void;
@@ -46,32 +45,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setError(null);
     
     if (!auth.signInWithEmailAndPassword) {
-      setError('Authentication is not available during server pre-rendering.');
+      setError('Authentication is not currently available.');
       return;
     }
 
     try {
       await signInWithEmailAndPassword(auth, email, password);
     } catch (err: any) {
-      console.error('Auth login error:', err.code);
+      console.error('Login error:', err.code);
       
       switch (err.code) {
         case 'auth/invalid-email':
           setError('Please enter a valid email address.');
           break;
-        case 'auth/user-disabled':
-          setError('This account has been disabled.');
-          break;
         case 'auth/invalid-credential':
-        case 'auth/user-not-found':
         case 'auth/wrong-password':
+        case 'auth/user-not-found':
           setError('Invalid email or password.');
           break;
         case 'auth/too-many-requests':
-          setError('Too many failed attempts. Please try again later.');
-          break;
-        case 'auth/api-key-not-valid':
-          setError('Firebase configuration error (Invalid API Key). Check your .env file.');
+          setError('Too many failed attempts. Try again later.');
           break;
         default:
           setError('An unexpected error occurred during sign in.');
@@ -88,9 +81,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const clearError = () => setError(null);
 
-  // Consider a user an admin if they are logged in (role check happens in RoleContext)
+  // Consider a user an admin if they are logged in (RoleContext handles granular roles)
   const isAdmin = !!user;
-  const isDeveloper = user?.email === 'junioraquils143@gmail.com';
 
   return (
     <AuthContext.Provider
@@ -99,7 +91,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         loading,
         error,
         isAdmin,
-        isDeveloper,
         login,
         logout,
         clearError
