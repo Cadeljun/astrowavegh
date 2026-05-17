@@ -52,7 +52,7 @@ export default function DevSeedPage() {
         maintenanceMode: false,
         instagram: 'https://instagram.com/astrowavegh',
         twitter: 'https://twitter.com/astrowavegh',
-        logoUrl: 'https://res.cloudinary.com/dmd5bq3va/image/upload/v1779037411/astrowave/brand/logos/exh6fktxl59ixntyaqnz.jpg',
+        logoUrl: 'https://res.cloudinary.com/dmd5bq3va/image/upload/v1779033029/nrvw7mwpedxhujuflqvp.jpg',
         heroVideoUrl: '',
         heroPosterUrl: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=1200',
         heroImageUrl: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=1200',
