@@ -6,7 +6,6 @@ import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, Instagram, Twitter, Youtube, Music } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import CloudinaryImage from '@/components/ui/CloudinaryImage';
 import { cn } from '@/lib/utils';
 import { useCMSSettings } from '@/lib/cms/useCMS';
 
@@ -38,7 +37,7 @@ export default function Navbar() {
     setIsMobileMenuOpen(false);
   }, [pathname]);
 
-  const logoSrc = settings?.logoUrl || 'https://res.cloudinary.com/dmd5bq3va/image/upload/v1779043643/astrowave/psrbctea1omffb2phyqu.png';
+  const siteName = settings?.siteName || 'ASTROWAVE';
 
   return (
     <header
@@ -53,22 +52,9 @@ export default function Navbar() {
       <div className="max-w-screen-2xl mx-auto w-full flex items-center justify-between">
         {/* Logo */}
         <Link href="/" className="group flex items-center gap-3" aria-label="AstroWave Home">
-          <div className="relative w-32 md:w-40 h-8 md:h-10">
-            <CloudinaryImage 
-              src={logoSrc} 
-              alt={settings?.siteName || "AstroWave"} 
-              width={160}
-              height={40}
-              transforms={{
-                height: 80,
-                crop: 'fit',
-                quality: 'auto',
-                format: 'auto'
-              }}
-              className="object-contain transition-all group-hover:brightness-125"
-              priority
-            />
-          </div>
+          <span className="font-display text-2xl text-[var(--color-gold)] text-glow-gold transition-all group-hover:brightness-125 uppercase tracking-widest">
+            {siteName}
+          </span>
         </Link>
 
         {/* Desktop Links */}
@@ -134,9 +120,9 @@ export default function Navbar() {
           >
             <div className="flex justify-between items-center mb-12">
               <Link href="/" className="group" aria-label="AstroWave Home">
-                <div className="relative w-32 h-10">
-                  <CloudinaryImage src={logoSrc} alt="Logo" fill objectFit="contain" />
-                </div>
+                <span className="font-display text-[2rem] text-[var(--color-gold)] text-glow-gold uppercase tracking-widest">
+                  {siteName}
+                </span>
               </Link>
               <button 
                 onClick={() => setIsMobileMenuOpen(false)}
