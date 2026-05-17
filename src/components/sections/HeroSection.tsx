@@ -5,13 +5,15 @@ import Link from 'next/link';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { ArrowRight, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import CloudinaryImage from '@/components/ui/CloudinaryImage';
 import { heroTextReveal, fadeIn, fadeUp } from '@/lib/animations';
-import { useCMSContent } from '@/lib/cms/useCMS';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { useCMSContent, useCMSSettings } from '@/lib/cms/useCMS';
+import { CloudinaryPresets } from '@/lib/cloudinary/getUrl';
 
 export default function HeroSection() {
   const { scrollY } = useScroll();
   const opacity = useTransform(scrollY, [0, 100], [1, 0]);
+  const { settings } = useCMSSettings();
   
   const { content } = useCMSContent('home', 'hero', {
     label: "AFRICA'S CREATIVE POWERHOUSE",
@@ -21,23 +23,37 @@ export default function HeroSection() {
     cta2: "OUR STORY"
   });
 
-  const heroPlaceholder = PlaceHolderImages.find(img => img.id === 'hero-fallback');
-
   return (
     <section className="relative h-screen w-full flex items-center justify-center overflow-hidden bg-[var(--color-black)]">
-      {/* Video Background */}
+      {/* Background Layer */}
       <div className="absolute inset-0 z-0">
-        <video
-          autoPlay
-          muted
-          loop
-          playsInline
-          poster={heroPlaceholder?.imageUrl}
-          className="w-full h-full object-cover"
-          data-ai-hint="cinematic nightlife"
-        >
-          <source src="https://player.vimeo.com/external/494163965.hd.mp4?s=78473e047ed6b785f79a29a101287c2b64a13e61&profile_id=175" type="video/mp4" />
-        </video>
+        {settings?.heroVideoUrl ? (
+          <video
+            autoPlay
+            muted
+            loop
+            playsInline
+            poster={settings.heroPosterUrl ? CloudinaryPresets.heroBg(settings.heroPosterUrl) : ''}
+            className="absolute inset-0 w-full h-full object-cover"
+          >
+            <source src={settings.heroVideoUrl} type="video/mp4" />
+          </video>
+        ) : settings?.heroImageUrl ? (
+          <CloudinaryImage
+            src={settings.heroImageUrl}
+            alt="AstroWave hero background"
+            fill
+            priority
+            transforms={{
+              width: 1920,
+              height: 1080,
+              crop: 'fill',
+              quality: 'auto'
+            }}
+          />
+        ) : (
+          <div className="absolute inset-0 bg-gradient-to-br from-purple/20 via-black to-gold/10" />
+        )}
         
         <div className="absolute inset-0 bg-black/65 z-10" />
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[var(--color-black)] z-20" />

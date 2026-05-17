@@ -2,16 +2,14 @@
 
 import { useState, useEffect, FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, Upload, X } from 'lucide-react'
-import {
-  addDocument,
-  updateDocument,
-  getDocument
-} from '@/lib/firebase/helpers'
+import { ArrowLeft, Upload, X, Grid } from 'lucide-react'
+import { addDocument, updateDocument, getDocument } from '@/lib/firebase/helpers'
 import { useToast } from '@/hooks/use-toast'
+import MediaPickerModal from '@/components/admin/MediaPickerModal'
+import CloudinaryImage from '@/components/ui/CloudinaryImage'
 
 interface EventFormProps {
-  eventId?: string  // If provided = edit mode
+  eventId?: string
 }
 
 interface EventData {
@@ -38,14 +36,9 @@ const defaultData: EventData = {
   active: true
 }
 
-const categories = [
-  'Parties', 'Concerts', 'Nightlife',
-  'Networking', 'Festivals', 'Other'
-]
+const categories = ['Parties', 'Concerts', 'Nightlife', 'Networking', 'Festivals', 'Other']
 
-export default function EventForm({ 
-  eventId 
-}: EventFormProps) {
+export default function EventForm({ eventId }: EventFormProps) {
   const router = useRouter()
   const { toast } = useToast()
   const isEdit = !!eventId
@@ -55,8 +48,8 @@ export default function EventForm({
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string>('')
   const [uploadProgress, setUploadProgress] = useState(0)
+  const [isPickerOpen, setIsPickerOpen] = useState(false)
 
-  // Load existing event for edit
   useEffect(() => {
     if (!eventId) return
     async function loadEvent() {
@@ -67,9 +60,7 @@ export default function EventForm({
           setData({
             name: e.name || '',
             category: e.category || 'Nightlife',
-            date: e.date?.toDate
-              ? e.date.toDate().toISOString().slice(0,16)
-              : e.date || '',
+            date: e.date?.toDate ? e.date.toDate().toISOString().slice(0, 16) : e.date || '',
             venue: e.venue || '',
             ticketLink: e.ticketLink || '',
             shortDescription: e.shortDescription || '',
@@ -77,9 +68,7 @@ export default function EventForm({
             imageUrl: e.imageUrl || '',
             active: e.active ?? true
           })
-          if (e.imageUrl) {
-            setImagePreview(e.imageUrl)
-          }
+          if (e.imageUrl) setImagePreview(e.imageUrl)
         }
       } catch {
         toast({ variant: "destructive", title: "Error", description: "Failed to load event" })
@@ -90,44 +79,27 @@ export default function EventForm({
     loadEvent()
   }, [eventId, toast])
 
-  // Handle image selection
-  const handleImageChange = (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
-    if (file.size > 5 * 1024 * 1024) {
-      toast({ variant: "destructive", title: "Error", description: "Image must be under 5MB" })
-      return
-    }
     setImageFile(file)
     setImagePreview(URL.createObjectURL(file))
+    update('imageUrl', '') // Clear existing URL to prioritize upload
   }
 
-  // Upload to Cloudinary
   const uploadImage = async (file: File): Promise<string> => {
     const formData = new FormData()
     formData.append('file', file)
-    formData.append('upload_preset', process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'astrowave_preset')
-    formData.append('folder', 'astrowave/events/general')
+    formData.append('upload_preset', 'astrowave_preset')
+    formData.append('folder', `astrowave/events/${data.category.toLowerCase().replace(' ', '-')}`)
 
     setUploadProgress(10)
-    const res = await fetch(
-      `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
-      { method: 'POST', body: formData }
-    )
-
-    setUploadProgress(90)
+    const res = await fetch(`https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`, { method: 'POST', body: formData })
     const result = await res.json()
-    setUploadProgress(100)
-
-    if (!result.secure_url) {
-      throw new Error('Upload failed')
-    }
+    if (!result.secure_url) throw new Error('Upload failed')
     return result.secure_url
   }
 
-  // Submit form
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
     if (!data.name || !data.venue) {
@@ -138,242 +110,118 @@ export default function EventForm({
     setLoading(true)
     try {
       let imageUrl = data.imageUrl
-
       if (imageFile) {
         imageUrl = await uploadImage(imageFile)
       }
 
-      const eventData = {
-        ...data,
-        imageUrl,
-        date: data.date ? new Date(data.date) : null
-      }
+      const eventData = { ...data, imageUrl, date: data.date ? new Date(data.date) : null }
 
       if (isEdit && eventId) {
         updateDocument('events', eventId, eventData)
-        toast({ title: "Success", description: "Event update initiated" })
+        toast({ title: "Updated", description: "Event changes saved." })
       } else {
         addDocument('events', eventData)
-        toast({ title: "Success", description: "Event creation initiated" })
+        toast({ title: "Created", description: "New event added." })
       }
-
-      setTimeout(() => {
-        router.push('/admin/events')
-      }, 1500)
-
+      setTimeout(() => router.push('/admin/events'), 1000)
     } catch (error) {
-      toast({ variant: "destructive", title: "Error", description: "Failed to initiate save. Check connection." })
+      toast({ variant: "destructive", title: "Save Failed" })
     } finally {
       setLoading(false)
-      setUploadProgress(0)
     }
   }
 
-  const update = (field: keyof EventData, value: any) => {
-    setData(prev => ({ ...prev, [field]: value }))
-  }
+  const update = (field: keyof EventData, value: any) => setData(prev => ({ ...prev, [field]: value }))
 
-  if (fetchLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="w-8 h-8 rounded-full border-2 border-[#FFD166] border-t-transparent animate-spin" />
-      </div>
-    )
-  }
+  if (fetchLoading) return <div className="flex items-center justify-center min-h-[400px]"><Loader2 className="animate-spin text-gold" /></div>
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="max-w-4xl mx-auto pb-20">
       <div className="mb-8">
-        <button
-          type="button"
-          onClick={() => router.push('/admin/events')}
-          className="flex items-center gap-2 font-body text-sm text-[#7B7B9A] hover:text-[#F8F8FF] transition-colors mb-4"
-        >
-          <ArrowLeft size={16} />
-          Back to Events
-        </button>
-        <h1 className="font-display text-4xl text-[#F8F8FF] uppercase">
-          {isEdit ? 'Edit Event' : 'Add Event'}
-        </h1>
+        <button type="button" onClick={() => router.push('/admin/events')} className="flex items-center gap-2 text-sm text-muted hover:text-white mb-4"><ArrowLeft size={16} /> Back to Events</button>
+        <h1 className="display-md text-white">{isEdit ? 'Edit Event' : 'Add Event'}</h1>
       </div>
 
-      <form onSubmit={handleSubmit}>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 flex flex-col gap-5">
-            <div className="bg-[#16161F] border border-[#1E1E2E] rounded-xl p-5">
-              <h3 className="font-body text-xs font-semibold tracking-[0.15em] uppercase text-[#7B7B9A] mb-4">
-                Event Details
-              </h3>
-              <div className="flex flex-col gap-4">
-                <div>
-                  <label className="font-body text-xs font-semibold tracking-[0.1em] uppercase text-[#7B7B9A] block mb-2">
-                    Event Name *
-                  </label>
-                  <input
-                    type="text"
-                    value={data.name}
-                    onChange={e => update('name', e.target.value)}
-                    required
-                    placeholder="e.g. Mask Mirage"
-                    className="admin-input"
-                  />
+      <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 space-y-6">
+          <div className="admin-card space-y-6">
+            <div className="space-y-4">
+              <label className="admin-label">Event Name *</label>
+              <input type="text" value={data.name} onChange={e => update('name', e.target.value)} required className="admin-input" />
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="admin-label">Category *</label>
+                  <select value={data.category} onChange={e => update('category', e.target.value)} className="admin-input">
+                    {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                  </select>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="font-body text-xs font-semibold tracking-[0.1em] uppercase text-[#7B7B9A] block mb-2">
-                      Category *
-                    </label>
-                    <select
-                      value={data.category}
-                      onChange={e => update('category', e.target.value)}
-                      className="admin-input cursor-pointer"
-                    >
-                      {categories.map(cat => (
-                        <option key={cat} value={cat} className="bg-[#16161F]">{cat}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="font-body text-xs font-semibold tracking-[0.1em] uppercase text-[#7B7B9A] block mb-2">
-                      Date & Time
-                    </label>
-                    <input
-                      type="datetime-local"
-                      value={data.date}
-                      onChange={e => update('date', e.target.value)}
-                      className="admin-input [color-scheme:dark]"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="font-body text-xs font-semibold tracking-[0.1em] uppercase text-[#7B7B9A] block mb-2">
-                    Venue *
-                  </label>
-                  <input
-                    type="text"
-                    value={data.venue}
-                    onChange={e => update('venue', e.target.value)}
-                    required
-                    placeholder="e.g. Accra, Ghana"
-                    className="admin-input"
-                  />
-                </div>
-                <div>
-                  <label className="font-body text-xs font-semibold tracking-[0.1em] uppercase text-[#7B7B9A] block mb-2">
-                    Ticket Link
-                  </label>
-                  <input
-                    type="url"
-                    value={data.ticketLink}
-                    onChange={e => update('ticketLink', e.target.value)}
-                    placeholder="https://..."
-                    className="admin-input"
-                  />
+                <div className="space-y-2">
+                  <label className="admin-label">Date & Time</label>
+                  <input type="datetime-local" value={data.date} onChange={e => update('date', e.target.value)} className="admin-input [color-scheme:dark]" />
                 </div>
               </div>
-            </div>
-            <div className="bg-[#16161F] border border-[#1E1E2E] rounded-xl p-5">
-              <h3 className="font-body text-xs font-semibold tracking-[0.15em] uppercase text-[#7B7B9A] mb-4">
-                Descriptions
-              </h3>
-              <div className="flex flex-col gap-4">
-                <div>
-                  <div className="flex justify-between mb-2">
-                    <label className="font-body text-xs font-semibold tracking-[0.1em] uppercase text-[#7B7B9A]">
-                      Short Description *
-                    </label>
-                    <span className="font-body text-xs text-[#7B7B9A]">
-                      {data.shortDescription.length}/200
-                    </span>
-                  </div>
-                  <textarea
-                    value={data.shortDescription}
-                    onChange={e => update('shortDescription', e.target.value.slice(0, 200))}
-                    rows={3}
-                    placeholder="Brief event description shown on cards..."
-                    className="admin-input resize-none"
-                  />
-                </div>
-                <div>
-                  <label className="font-body text-xs font-semibold tracking-[0.1em] uppercase text-[#7B7B9A] block mb-2">
-                    Full Description
-                  </label>
-                  <textarea
-                    value={data.fullDescription}
-                    onChange={e => update('fullDescription', e.target.value)}
-                    rows={5}
-                    placeholder="Full event details..."
-                    className="admin-input resize-none"
-                  />
-                </div>
-              </div>
+
+              <label className="admin-label">Venue *</label>
+              <input type="text" value={data.venue} onChange={e => update('venue', e.target.value)} required className="admin-input" />
             </div>
           </div>
-          <div className="flex flex-col gap-5">
-            <div className="bg-[#16161F] border border-[#1E1E2E] rounded-xl p-5">
-              <h3 className="font-body text-xs font-semibold tracking-[0.15em] uppercase text-[#7B7B9A] mb-4">
-                Event Image
-              </h3>
-              <div className="relative w-full aspect-video rounded-lg overflow-hidden bg-[#0A0A0F] border-2 border-dashed border-[#1E1E2E] mb-3">
-                {imagePreview ? (
-                  <>
-                    <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
-                    <button
-                      type="button"
-                      onClick={() => { setImagePreview(''); setImageFile(null); update('imageUrl', ''); }}
-                      className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/70 flex items-center justify-center text-white hover:bg-red-500 transition-colors"
-                    >
-                      <X size={14} />
-                    </button>
-                  </>
-                ) : (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
-                    <Upload size={24} className="text-[#7B7B9A]" />
-                    <p className="font-body text-xs text-[#7B7B9A] text-center px-4">Click to upload image</p>
-                  </div>
-                )}
-              </div>
-              {uploadProgress > 0 && uploadProgress < 100 && (
-                <div className="mb-3">
-                  <div className="w-full h-1 bg-[#1E1E2E] rounded-full">
-                    <div className="h-full bg-[#FFD166] rounded-full transition-all" style={{ width: `${uploadProgress}%` }} />
-                  </div>
-                </div>
-              )}
-              <label className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-md border border-[#1E1E2E] font-body text-sm font-semibold uppercase tracking-wider text-[#7B7B9A] hover:border-[#FFD166] hover:text-[#FFD166] transition-all cursor-pointer">
-                <Upload size={14} />
-                {imagePreview ? 'Change Image' : 'Upload Image'}
-                <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
-              </label>
-            </div>
-            <div className="bg-[#16161F] border border-[#1E1E2E] rounded-xl p-5">
-              <h3 className="font-body text-xs font-semibold tracking-[0.15em] uppercase text-[#7B7B9A] mb-4">Visibility</h3>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-body text-sm text-[#F8F8FF]">{data.active ? 'Published' : 'Hidden'}</p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => update('active', !data.active)}
-                  className={`relative w-12 h-6 rounded-full transition-colors ${data.active ? 'bg-[#22c55e]' : 'bg-[#1E1E2E]'}`}
-                >
-                  <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${data.active ? 'translate-x-6' : 'translate-x-0.5'}`} />
-                </button>
-              </div>
-            </div>
-            <div className="flex flex-col gap-3">
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full py-3 px-6 border border-[#FFD166] text-[#FFD166] font-body font-semibold text-sm tracking-widest uppercase rounded-md hover:bg-[#FFD166] hover:text-black transition-all flex items-center justify-center gap-2"
-              >
-                {loading ? <span className="animate-spin w-4 h-4 border-2 border-current border-t-transparent rounded-full" /> : (isEdit ? 'Update Event' : 'Create Event')}
-              </button>
-              <button type="button" onClick={() => router.push('/admin/events')} className="admin-btn-secondary">Cancel</button>
-            </div>
+
+          <div className="admin-card space-y-6">
+             <label className="admin-label">Short Description</label>
+             <textarea value={data.shortDescription} onChange={e => update('shortDescription', e.target.value.slice(0, 200))} rows={3} className="admin-input resize-none" />
+             <label className="admin-label">Full Details</label>
+             <textarea value={data.fullDescription} onChange={e => update('fullDescription', e.target.value)} rows={5} className="admin-input resize-none" />
           </div>
         </div>
+
+        <div className="space-y-6">
+          <div className="admin-card space-y-4">
+            <label className="admin-label">Event Poster</label>
+            <div className="relative aspect-[4/5] rounded-md overflow-hidden bg-black/40 border border-white/5">
+              {imagePreview ? (
+                <img src={imagePreview} className="w-full h-full object-cover" alt="Preview" />
+              ) : (
+                <div className="absolute inset-0 flex flex-col items-center justify-center text-muted gap-2">
+                   <Upload size={32} />
+                   <p className="text-[0.6rem] uppercase">No Image</p>
+                </div>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 gap-2">
+               <label className="w-full h-11 flex items-center justify-center gap-2 border border-white/10 rounded-sm text-[0.7rem] font-bold uppercase tracking-widest hover:bg-white/5 cursor-pointer transition-all">
+                 <Upload size={14} /> Upload New
+                 <input type="file" onChange={handleImageChange} className="hidden" />
+               </label>
+               <button type="button" onClick={() => setIsPickerOpen(true)} className="w-full h-11 flex items-center justify-center gap-2 border border-gold/20 text-gold rounded-sm text-[0.7rem] font-bold uppercase tracking-widest hover:bg-gold/5 transition-all">
+                 <Grid size={14} /> Library
+               </button>
+            </div>
+            
+            {uploadProgress > 0 && <div className="h-1 bg-white/5 rounded-full overflow-hidden"><div className="h-full bg-gold" style={{ width: `${uploadProgress}%` }} /></div>}
+          </div>
+
+          <Button type="submit" disabled={loading} className="w-full h-14">
+            {loading ? <Loader2 className="animate-spin" /> : 'SAVE EVENT'}
+          </Button>
+        </div>
       </form>
+
+      <MediaPickerModal 
+        isOpen={isPickerOpen} 
+        onClose={() => setIsPickerOpen(false)} 
+        onSelect={(url) => {
+          update('imageUrl', url);
+          setImagePreview(url);
+          setImageFile(null);
+        }}
+        folders={[
+          'astrowave/events/general',
+          'astrowave/events/mask-mirage',
+          'astrowave/events/splash-and-seduction'
+        ]}
+      />
     </div>
   )
 }

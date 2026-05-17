@@ -1,10 +1,10 @@
 'use client';
 
 import React from 'react';
-import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { Instagram, Music, Youtube } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
+import CloudinaryImage from '@/components/ui/CloudinaryImage';
 import { cardHover } from '@/lib/animations';
 import { cn } from '@/lib/utils';
 
@@ -34,7 +34,7 @@ export default function TalentCard({
     }
   };
 
-  const currentStyle = roleStyles[role];
+  const currentStyle = roleStyles[role] || roleStyles.Artist;
 
   return (
     <motion.div
@@ -48,17 +48,23 @@ export default function TalentCard({
       )}
     >
       <div className="relative aspect-square rounded-[var(--radius-md)] overflow-hidden mb-6">
-        <Image 
+        <CloudinaryImage 
           src={imageUrl} 
-          alt={name}
+          alt={`${name} — ${role} managed by AstroWave Ghana`}
           fill
-          className="object-cover grayscale transition-all duration-500 group-hover:grayscale-0 group-hover:scale-105"
-          sizes="(max-width: 768px) 100vw, 33vw"
-          loading="lazy"
+          className="grayscale transition-all duration-500 group-hover:grayscale-0 group-hover:scale-105"
+          transforms={{
+            width: 400,
+            height: 400,
+            crop: 'fill',
+            quality: 'auto',
+            format: 'auto'
+          }}
+          fallback="https://picsum.photos/seed/talent/400/400"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60 z-10" />
         
-        <div className="absolute bottom-4 left-4">
+        <div className="absolute bottom-4 left-4 z-20">
           <Badge variant="active" className={currentStyle.badge}>
             {role}
           </Badge>

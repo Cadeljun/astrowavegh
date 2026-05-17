@@ -254,6 +254,10 @@ export interface GlobalSettings {
   tiktok: string
   youtube: string
   facebook: string
+  heroVideoUrl: string
+  heroPosterUrl: string
+  heroImageUrl: string
+  founderImageUrl: string
 }
 
 export const DEFAULT_SETTINGS: GlobalSettings = {
@@ -266,5 +270,9 @@ export const DEFAULT_SETTINGS: GlobalSettings = {
   twitter: '',
   tiktok: '',
   youtube: '',
-  facebook: ''
+  facebook: '',
+  heroVideoUrl: '',
+  heroPosterUrl: '',
+  heroImageUrl: '',
+  founderImageUrl: ''
 }

@@ -2,11 +2,11 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, Instagram, Twitter, Youtube, Music } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import CloudinaryImage from '@/components/ui/CloudinaryImage';
 import { cn } from '@/lib/utils';
 import { useCMSSettings } from '@/lib/cms/useCMS';
 
@@ -52,11 +52,18 @@ export default function Navbar() {
         {/* Logo */}
         <Link href="/" className="group flex items-center gap-3" aria-label="AstroWave Home">
           {settings?.logoUrl ? (
-            <div className="relative h-8 w-32 md:h-10 md:w-40">
-              <Image 
+            <div className="relative w-32 md:w-40 h-8 md:h-10">
+              <CloudinaryImage 
                 src={settings.logoUrl} 
                 alt={settings?.siteName || "AstroWave"} 
-                fill 
+                width={160}
+                height={40}
+                transforms={{
+                  height: 80,
+                  crop: 'fit',
+                  quality: 'auto',
+                  format: 'auto'
+                }}
                 className="object-contain transition-all group-hover:brightness-125"
                 priority
               />
@@ -132,8 +139,8 @@ export default function Navbar() {
             <div className="flex justify-between items-center mb-12">
               <Link href="/" className="group" aria-label="AstroWave Home">
                 {settings?.logoUrl ? (
-                  <div className="relative h-8 w-24">
-                    <Image src={settings.logoUrl} alt="Logo" fill className="object-contain" />
+                   <div className="relative w-24 h-8">
+                    <CloudinaryImage src={settings.logoUrl} alt="Logo" fill objectFit="contain" />
                   </div>
                 ) : (
                   <span className="font-display text-[1.5rem] text-[var(--color-gold)] text-glow-gold">

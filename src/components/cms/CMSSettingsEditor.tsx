@@ -6,14 +6,16 @@ import { doc, onSnapshot, setDoc, serverTimestamp } from 'firebase/firestore';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Save, Globe, Instagram, Twitter, Music, Youtube, Facebook, Shield, AlertTriangle, Image as ImageIcon } from 'lucide-react';
+import { Loader2, Save, Globe, Instagram, Twitter, Music, Youtube, Facebook, Shield, AlertTriangle, Image as ImageIcon, Video, Grid } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
+import MediaPickerModal from '@/components/admin/MediaPickerModal';
 
 export default function CMSSettingsEditor() {
   const { toast } = useToast();
   const [settings, setSettings] = useState<any>(null);
   const [saving, setSaving] = useState(false);
+  const [pickerConfig, setPickerOpen] = useState<{ isOpen: boolean; field: string; folders: string[] }>({ isOpen: false, field: '', folders: [] });
 
   useEffect(() => {
     if (!db) return;
@@ -38,6 +40,10 @@ export default function CMSSettingsEditor() {
     }
   };
 
+  const openPicker = (field: string, folders: string[]) => {
+    setPickerOpen({ isOpen: true, field, folders });
+  };
+
   if (!settings) return <div className="p-20 text-center"><Loader2 className="animate-spin text-gold mx-auto" /></div>;
 
   return (
@@ -59,19 +65,12 @@ export default function CMSSettingsEditor() {
               <input type="text" className="admin-input" value={settings.tagline || ''} onChange={e => setSettings({...settings, tagline: e.target.value})} />
             </div>
             <div className="space-y-2">
-              <label className="admin-label flex items-center gap-2"><ImageIcon size={12} /> Logo URL</label>
-              <input 
-                type="url" 
-                className="admin-input" 
-                value={settings.logoUrl || ''} 
-                onChange={e => setSettings({...settings, logoUrl: e.target.value})} 
-                placeholder="Cloudinary URL for brand logo"
-              />
-              {settings.logoUrl && (
-                <div className="mt-2 p-2 bg-black/40 rounded-sm border border-white/5 flex justify-center">
-                  <img src={settings.logoUrl} alt="Logo Preview" className="h-8 object-contain" />
-                </div>
-              )}
+              <div className="flex justify-between items-center mb-1">
+                <label className="admin-label flex items-center gap-2"><ImageIcon size={12} /> Logo URL</label>
+                <button type="button" onClick={() => openPicker('logoUrl', ['astrowave/brand/logos'])} className="text-[0.6rem] text-gold hover:underline">PICK FROM LIBRARY</button>
+              </div>
+              <input type="url" className="admin-input" value={settings.logoUrl || ''} onChange={e => setSettings({...settings, logoUrl: e.target.value})} />
+              {settings.logoUrl && <div className="mt-2 p-2 bg-black/40 rounded-sm border border-white/5 flex justify-center"><img src={settings.logoUrl} className="h-8 object-contain" alt="" /></div>}
             </div>
           </div>
         </Card>
@@ -92,12 +91,51 @@ export default function CMSSettingsEditor() {
           {settings.maintenanceMode && (
             <div className="p-4 rounded-sm bg-red-500/10 border border-red-500/20 flex gap-3 text-red-500">
               <AlertTriangle size={16} className="shrink-0" />
-              <p className="text-[0.65rem] leading-relaxed font-bold uppercase">Caution: Enabling maintenance mode will block all public access to the AstroWave website.</p>
+              <p className="text-[0.65rem] leading-relaxed font-bold uppercase">Public access is currently blocked.</p>
             </div>
           )}
         </Card>
       </div>
 
+      {/* Hero Media */}
+      <Card className="p-8 space-y-8" glowColor="muted">
+        <div className="flex items-center gap-3 mb-2">
+          <Video className="text-cyan" size={18} />
+          <p className="admin-label m-0 text-white">Homepage Hero Media</p>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+           <div className="space-y-4">
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <label className="admin-label flex items-center gap-2"><Video size={12} /> Video URL (MP4)</label>
+                  <button type="button" onClick={() => openPicker('heroVideoUrl', ['astrowave/videos/hero'])} className="text-[0.6rem] text-gold hover:underline">BROWSE</button>
+                </div>
+                <input type="url" className="admin-input" value={settings.heroVideoUrl || ''} onChange={e => setSettings({...settings, heroVideoUrl: e.target.value})} />
+              </div>
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <label className="admin-label flex items-center gap-2"><ImageIcon size={12} /> Video Poster URL</label>
+                  <button type="button" onClick={() => openPicker('heroPosterUrl', ['astrowave/brand/backgrounds'])} className="text-[0.6rem] text-gold hover:underline">BROWSE</button>
+                </div>
+                <input type="url" className="admin-input" value={settings.heroPosterUrl || ''} onChange={e => setSettings({...settings, heroPosterUrl: e.target.value})} />
+              </div>
+           </div>
+           <div className="space-y-4">
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <label className="admin-label flex items-center gap-2"><ImageIcon size={12} /> Fallback Image URL</label>
+                  <button type="button" onClick={() => openPicker('heroImageUrl', ['astrowave/brand/backgrounds'])} className="text-[0.6rem] text-gold hover:underline">BROWSE</button>
+                </div>
+                <input type="url" className="admin-input" value={settings.heroImageUrl || ''} onChange={e => setSettings({...settings, heroImageUrl: e.target.value})} />
+              </div>
+              <div className="p-4 bg-black/40 rounded border border-white/5 text-[0.65rem] text-muted italic">
+                The video URL will take priority. If no video is present, the fallback image will be shown. The poster image appears while the video is loading.
+              </div>
+           </div>
+        </div>
+      </Card>
+
+      {/* Socials */}
       <Card className="p-8 space-y-8" glowColor="muted">
         <div className="flex items-center gap-3 mb-2">
           <Instagram className="text-purple" size={18} />
@@ -127,6 +165,13 @@ export default function CMSSettingsEditor() {
         {saving ? <Loader2 className="animate-spin mr-2" /> : <Save className="mr-2" />}
         SAVE GLOBAL SETTINGS
       </Button>
+
+      <MediaPickerModal 
+        isOpen={pickerConfig.isOpen} 
+        onClose={() => setPickerOpen({...pickerConfig, isOpen: false})} 
+        onSelect={url => setSettings({...settings, [pickerConfig.field]: url})}
+        folders={pickerConfig.folders}
+      />
     </div>
   );
 }

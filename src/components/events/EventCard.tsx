@@ -2,11 +2,11 @@
 
 import React from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { Calendar, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
+import CloudinaryImage from '@/components/ui/CloudinaryImage';
 import { cardHover } from '@/lib/animations';
 import { cn } from '@/lib/utils';
 
@@ -39,22 +39,28 @@ export default function EventCard({
         className
       )}
     >
-      {/* Background Image */}
-      <Image 
-        src={imageUrl} 
-        alt={name}
-        fill
-        className="object-cover transition-transform duration-700 group-hover:scale-105"
-        sizes="(max-width: 768px) 100vw, 33vw"
-        loading="lazy"
-      />
-      
-      {/* Overlays */}
-      <div className="absolute inset-0 bg-black/40 group-hover:bg-black/60 transition-colors duration-300" />
-      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
+      {/* Background Image Layer */}
+      <div className="absolute inset-0">
+        <CloudinaryImage 
+          src={imageUrl} 
+          alt={`${name} event in Accra Ghana by AstroWave`}
+          fill
+          className="transition-transform duration-700 group-hover:scale-105"
+          transforms={{
+            width: 800,
+            height: 600,
+            crop: 'fill',
+            quality: 'auto',
+            format: 'auto'
+          }}
+          fallback="https://picsum.photos/seed/event/800/600"
+        />
+        <div className="absolute inset-0 bg-black/40 group-hover:bg-black/60 transition-colors duration-300 z-10" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent z-20" />
+      </div>
 
-      {/* Content */}
-      <div className="absolute inset-0 p-6 md:p-8 flex flex-col justify-between">
+      {/* Content Layer */}
+      <div className="absolute inset-0 p-6 md:p-8 flex flex-col justify-between z-30">
         <div className="flex justify-start">
           <Badge variant="active" className="bg-gold text-black border-none">
             {category}
