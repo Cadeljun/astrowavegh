@@ -7,6 +7,7 @@ import { ArrowRight, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { heroTextReveal, fadeIn, fadeUp } from '@/lib/animations';
 import { useCMSContent } from '@/lib/cms/useCMS';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 export default function HeroSection() {
   const { scrollY } = useScroll();
@@ -20,6 +21,8 @@ export default function HeroSection() {
     cta2: "OUR STORY"
   });
 
+  const heroPlaceholder = PlaceHolderImages.find(img => img.id === 'hero-fallback');
+
   return (
     <section className="relative h-screen w-full flex items-center justify-center overflow-hidden bg-[var(--color-black)]">
       {/* Video Background */}
@@ -29,8 +32,9 @@ export default function HeroSection() {
           muted
           loop
           playsInline
-          poster="https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=1200&h=800&auto=format&fit=crop"
+          poster={heroPlaceholder?.imageUrl}
           className="w-full h-full object-cover"
+          data-ai-hint="cinematic nightlife"
         >
           <source src="https://player.vimeo.com/external/494163965.hd.mp4?s=78473e047ed6b785f79a29a101287c2b64a13e61&profile_id=175" type="video/mp4" />
         </video>

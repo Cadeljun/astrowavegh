@@ -15,7 +15,7 @@ const EcosystemSection = dynamic(() => import('@/components/sections/EcosystemSe
 
 const VibeNavigator = dynamic(() => import('@/components/VibeNavigator'), {
   loading: () => <div className="h-[400px] bg-black" />,
-  ssr: false, // AI interactions are client-side only
+  ssr: false, 
 });
 
 const FeaturedEvents = dynamic(() => import('@/components/sections/FeaturedEvents'), {

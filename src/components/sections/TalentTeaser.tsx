@@ -8,12 +8,7 @@ import { Button } from '@/components/ui/Button';
 import TalentCard from '@/components/talent/TalentCard';
 import { staggerContainer, scaleIn } from '@/lib/animations';
 import { useCMSContent } from '@/lib/cms/useCMS';
-
-const talent = [
-  { name: 'DJ Horizon', role: 'DJ' as const, bio: 'Accra-based DJ delivering high-energy sets across Ghana. Known for seamless Amapiano and Afrobeats mixes.', imageUrl: 'https://images.unsplash.com/photo-1571266028243-e4733b0f0bb1?q=80&w=400&h=400&auto=format&fit=crop' },
-  { name: 'DJ Void', role: 'DJ' as const, bio: 'Pushing boundaries with futuristic house and electronic rhythms. A staple of the AstroWave night.', imageUrl: 'https://images.unsplash.com/photo-1516280440614-37939bbacd81?q=80&w=400&h=500&auto=format&fit=crop' },
-  { name: 'Uzy', role: 'Artist' as const, bio: 'The creative pulse of the brand. A fresh voice redefining the sound of modern African storytelling.', imageUrl: 'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?q=80&w=400&h=400&auto=format&fit=crop' }
-];
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 export default function TalentTeaser() {
   const { content } = useCMSContent('home', 'talent', {
@@ -21,6 +16,16 @@ export default function TalentTeaser() {
     heading: 'THE TALENT',
     subtitle: 'The faces behind the wave.'
   });
+
+  const dj1 = PlaceHolderImages.find(img => img.id === 'dj-roster-1')?.imageUrl || '';
+  const dj2 = PlaceHolderImages.find(img => img.id === 'dj-roster-2')?.imageUrl || '';
+  const art1 = PlaceHolderImages.find(img => img.id === 'artist-roster-1')?.imageUrl || '';
+
+  const talent = [
+    { name: 'DJ Horizon', role: 'DJ' as const, bio: 'Accra-based DJ delivering high-energy sets across Ghana. Known for seamless Amapiano and Afrobeats mixes.', imageUrl: dj1 },
+    { name: 'DJ Void', role: 'DJ' as const, bio: 'Pushing boundaries with futuristic house and electronic rhythms. A staple of the AstroWave night.', imageUrl: dj2 },
+    { name: 'Uzy', role: 'Artist' as const, bio: 'The creative pulse of the brand. A fresh voice redefining the sound of modern African storytelling.', imageUrl: art1 }
+  ];
 
   return (
     <section 
