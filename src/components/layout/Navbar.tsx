@@ -38,6 +38,8 @@ export default function Navbar() {
     setIsMobileMenuOpen(false);
   }, [pathname]);
 
+  const logoSrc = settings?.logoUrl || 'https://res.cloudinary.com/dmd5bq3va/image/upload/v1779033029/nrvw7mwpedxhujuflqvp.jpg';
+
   return (
     <header
       className={cn(
@@ -51,28 +53,22 @@ export default function Navbar() {
       <div className="max-w-screen-2xl mx-auto w-full flex items-center justify-between">
         {/* Logo */}
         <Link href="/" className="group flex items-center gap-3" aria-label="AstroWave Home">
-          {settings?.logoUrl ? (
-            <div className="relative w-32 md:w-40 h-8 md:h-10">
-              <CloudinaryImage 
-                src={settings.logoUrl} 
-                alt={settings?.siteName || "AstroWave"} 
-                width={160}
-                height={40}
-                transforms={{
-                  height: 80,
-                  crop: 'fit',
-                  quality: 'auto',
-                  format: 'auto'
-                }}
-                className="object-contain transition-all group-hover:brightness-125"
-                priority
-              />
-            </div>
-          ) : (
-            <span className="font-display text-[1.8rem] text-[var(--color-gold)] text-glow-gold transition-all group-hover:brightness-125">
-              {settings?.siteName?.toUpperCase() || 'ASTROWAVE'}
-            </span>
-          )}
+          <div className="relative w-32 md:w-40 h-8 md:h-10">
+            <CloudinaryImage 
+              src={logoSrc} 
+              alt={settings?.siteName || "AstroWave"} 
+              width={160}
+              height={40}
+              transforms={{
+                height: 80,
+                crop: 'fit',
+                quality: 'auto',
+                format: 'auto'
+              }}
+              className="object-contain transition-all group-hover:brightness-125"
+              priority
+            />
+          </div>
         </Link>
 
         {/* Desktop Links */}
@@ -138,15 +134,9 @@ export default function Navbar() {
           >
             <div className="flex justify-between items-center mb-12">
               <Link href="/" className="group" aria-label="AstroWave Home">
-                {settings?.logoUrl ? (
-                   <div className="relative w-24 h-8">
-                    <CloudinaryImage src={settings.logoUrl} alt="Logo" fill objectFit="contain" />
-                  </div>
-                ) : (
-                  <span className="font-display text-[1.5rem] text-[var(--color-gold)] text-glow-gold">
-                    {settings?.siteName?.toUpperCase() || 'ASTROWAVE'}
-                  </span>
-                )}
+                <div className="relative w-32 h-10">
+                  <CloudinaryImage src={logoSrc} alt="Logo" fill objectFit="contain" />
+                </div>
               </Link>
               <button 
                 onClick={() => setIsMobileMenuOpen(false)}

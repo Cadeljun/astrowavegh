@@ -5,6 +5,7 @@ import { doc, getDoc, setDoc, onSnapshot, serverTimestamp } from 'firebase/fires
 import { db } from '@/firebase'
 import { errorEmitter } from '@/firebase/error-emitter'
 import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors'
+import { DEFAULT_SETTINGS } from './definitions'
 
 export function useCMSContent(
   pageSlug: string,
@@ -86,7 +87,7 @@ export function useCMSSections(pageSlug: string) {
 }
 
 export function useCMSSettings() {
-  const [settings, setSettings] = useState<Record<string, any>>({})
+  const [settings, setSettings] = useState<Record<string, any>>(DEFAULT_SETTINGS)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
