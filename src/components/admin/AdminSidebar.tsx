@@ -13,7 +13,9 @@ import {
   Bell,
   FileText,
   LogOut,
-  ExternalLink
+  ExternalLink,
+  Edit3,
+  Terminal
 } from 'lucide-react'
 
 const navItems = [
@@ -21,6 +23,11 @@ const navItems = [
     label: 'Dashboard',
     href: '/admin/dashboard',
     icon: LayoutDashboard
+  },
+  {
+    label: 'CMS Content',
+    href: '/admin/cms',
+    icon: Edit3
   },
   {
     label: 'Events',
@@ -61,7 +68,7 @@ const navItems = [
 
 export default function AdminSidebar() {
   const pathname = usePathname()
-  const { logout, user } = useAuth()
+  const { logout, user, isDeveloper } = useAuth()
 
   const isActive = (href: string) =>
     pathname === href || 
@@ -94,7 +101,7 @@ export default function AdminSidebar() {
 
       {/* Navigation */}
       <nav className="flex-1 px-3 py-4 
-        flex flex-col gap-1">
+        flex flex-col gap-1 overflow-y-auto">
         {navItems.map((item) => {
           const Icon = item.icon
           const active = isActive(item.href)
@@ -118,6 +125,22 @@ export default function AdminSidebar() {
             </Link>
           )
         })}
+
+        {isDeveloper && (
+          <Link
+            href="/dev"
+            className={`
+              flex items-center gap-3
+              px-3 py-2.5 rounded-md
+              font-body text-sm font-medium
+              text-cyan-400/70 hover:text-cyan-400 hover:bg-cyan-400/5
+              transition-all duration-200 mt-4
+            `}
+          >
+            <Terminal size={18} />
+            Dev Panel
+          </Link>
+        )}
       </nav>
 
       {/* Bottom */}
@@ -144,8 +167,8 @@ export default function AdminSidebar() {
         {/* User email */}
         {user?.email && (
           <p className="px-3 py-1
-            font-body text-xs 
-            text-[#7B7B9A] truncate"
+            font-body text-[0.7rem] 
+            text-[#7B7B9A] truncate italic"
             title={user.email}
           >
             {user.email}

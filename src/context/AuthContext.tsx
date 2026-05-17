@@ -14,6 +14,7 @@ interface AuthContextType {
   loading: boolean;
   error: string | null;
   isAdmin: boolean;
+  isDeveloper: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
 }
@@ -39,8 +40,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await signInWithEmailAndPassword(auth, email, password);
     } catch (err: any) {
       console.error(err);
-      if (err.code === 'auth/wrong-password') {
-        setError('Incorrect password. Try again.');
+      if (err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
+        setError('Incorrect credentials. Please try again.');
       } else if (err.code === 'auth/user-not-found') {
         setError('No admin account found.');
       } else if (err.code === 'auth/too-many-requests') {
@@ -56,13 +57,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await signOut(auth);
   };
 
+  const isAdmin = !!user;
+  const isDeveloper = user?.email === 'junioraquils143@gmail.com';
+
   return (
     <AuthContext.Provider
       value={{
         user,
         loading,
         error,
-        isAdmin: !!user,
+        isAdmin,
+        isDeveloper,
         login,
         logout,
       }}

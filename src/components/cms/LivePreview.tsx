@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useRef, useEffect } from 'react';
@@ -14,11 +13,15 @@ export default function LivePreview({ route, device }: LivePreviewProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [loading, setLoading] = React.useState(true);
 
-  const baseUrl = process.env.NODE_ENV === 'development' ? 'http://localhost:9002' : 'https://astrowave.live';
+  // In NextJS Turbopack, the port is usually 9003 for the dev server based on scripts
+  const baseUrl = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.host}` : '';
   const url = `${baseUrl}${route}`;
 
   useEffect(() => {
     setLoading(true);
+    if (iframeRef.current) {
+      iframeRef.current.src = url;
+    }
   }, [url]);
 
   const handleRefresh = () => {
