@@ -2,12 +2,9 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import Image from 'next/image';
 import { heroTextReveal, fadeIn } from '@/lib/animations';
 
 export default function LoadingScreen() {
-  const logoUrl = 'https://res.cloudinary.com/dmd5bq3va/image/upload/v1779043643/astrowave/psrbctea1omffb2phyqu.png';
-
   return (
     <motion.div
       initial={{ opacity: 1 }}
@@ -23,15 +20,11 @@ export default function LoadingScreen() {
           variants={heroTextReveal}
           initial="hidden"
           animate="show"
-          className="relative w-48 h-12 md:w-64 md:h-16 mb-4"
+          className="mb-4"
         >
-          <Image 
-            src={logoUrl}
-            alt="AstroWave"
-            fill
-            className="object-contain"
-            priority
-          />
+          <span className="font-display text-[3rem] md:text-[5rem] text-[var(--color-gold)] text-glow-gold tracking-widest uppercase">
+            ASTROWAVE
+          </span>
         </motion.div>
         
         <motion.p

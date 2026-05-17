@@ -3,16 +3,16 @@
 import React, { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
-import Image from 'next/image';
 import { useCMSSettings } from '@/lib/cms/useCMS';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import LoadingScreen from '@/components/ui/LoadingScreen';
 import { ScrollToTop } from '@/components/ui/ScrollToTop';
+import Image from 'next/image';
 
 function MaintenancePage() {
   const { settings } = useCMSSettings();
-  const logoUrl = settings?.logoUrl || 'https://res.cloudinary.com/dmd5bq3va/image/upload/v1779043643/astrowave/psrbctea1omffb2phyqu.png';
+  const siteName = settings?.siteName || 'ASTROWAVE';
 
   return (
     <div className="fixed inset-0 z-[5000] bg-black flex flex-col items-center justify-center p-6 text-center">
@@ -21,14 +21,22 @@ function MaintenancePage() {
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative w-64 h-20 md:w-80 md:h-24 mb-12"
+        className="mb-12"
       >
-        <Image 
-          src={logoUrl}
-          alt="AstroWave"
-          fill
-          className="object-contain"
-        />
+        {settings?.logoUrl ? (
+          <div className="relative w-64 h-20 md:w-80 md:h-24 mx-auto">
+            <Image 
+              src={settings.logoUrl}
+              alt={siteName}
+              fill
+              className="object-contain"
+            />
+          </div>
+        ) : (
+          <span className="font-display text-[4rem] md:text-[6rem] text-[var(--color-gold)] text-glow-gold tracking-widest uppercase">
+            {siteName}
+          </span>
+        )}
       </motion.div>
 
       <motion.p 
@@ -45,7 +53,7 @@ function MaintenancePage() {
         transition={{ delay: 0.6 }}
         className="font-body italic text-muted"
       >
-        Vibes Beyond the Horizon.
+        {settings?.tagline || 'Vibes Beyond the Horizon.'}
       </motion.p>
     </div>
   );

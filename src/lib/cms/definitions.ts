@@ -266,7 +266,7 @@ export interface GlobalSettings {
 export const DEFAULT_SETTINGS: GlobalSettings = {
   siteName: 'AstroWave',
   tagline: 'Vibes Beyond the Horizon.',
-  logoUrl: 'https://res.cloudinary.com/dmd5bq3va/image/upload/v1779043643/astrowave/psrbctea1omffb2phyqu.png',
+  logoUrl: '',
   email: 'info@astrowave.live',
   location: 'Accra, Ghana',
   instagram: 'https://instagram.com/astrowavegh',
