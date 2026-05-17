@@ -1,10 +1,13 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React from 'react';
+import { motion } from 'framer-motion';
+import Image from 'next/image';
 import { heroTextReveal, fadeIn } from '@/lib/animations';
 
 export default function LoadingScreen() {
+  const logoUrl = 'https://res.cloudinary.com/dmd5bq3va/image/upload/v1779033029/nrvw7mwpedxhujuflqvp.jpg';
+
   return (
     <motion.div
       initial={{ opacity: 1 }}
@@ -16,14 +19,20 @@ export default function LoadingScreen() {
       <div className="absolute inset-0 pointer-events-none opacity-[0.035] bg-[url('data:image/svg+xml,%3Csvg viewBox=%220 0 256 256%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noise%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.9%22 numOctaves=%224%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noise)%22/%3E%3C/svg%3E')]" />
 
       <div className="relative z-10 flex flex-col items-center">
-        <motion.h1
+        <motion.div
           variants={heroTextReveal}
           initial="hidden"
           animate="show"
-          className="font-display text-[5rem] text-[var(--color-gold)] text-glow-gold uppercase tracking-widest"
+          className="relative w-48 h-12 md:w-64 md:h-16 mb-4"
         >
-          ASTROWAVE
-        </motion.h1>
+          <Image 
+            src={logoUrl}
+            alt="AstroWave"
+            fill
+            className="object-contain"
+            priority
+          />
+        </motion.div>
         
         <motion.p
           variants={fadeIn}
