@@ -1,41 +1,34 @@
-import { initializeApp, getApps, getApp, FirebaseOptions, FirebaseApp } from 'firebase/app';
+import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
 import { getFirestore, Firestore } from 'firebase/firestore';
 import { getAuth, Auth } from 'firebase/auth';
 import { getStorage, FirebaseStorage } from 'firebase/storage';
 
-const firebaseConfig: FirebaseOptions = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+// Your web app's Firebase configuration (hardcoded as requested)
+const firebaseConfig = {
+  apiKey: "AIzaSyAyTaxmsONXftJd6Tp-cLYq2sjR0yqI61c",
+  authDomain: "studio-9129689546-ca9f2.firebaseapp.com",
+  projectId: "studio-9129689546-ca9f2",
+  storageBucket: "studio-9129689546-ca9f2.firebasestorage.app",
+  messagingSenderId: "722453105018",
+  appId: "1:722453105018:web:4a16b3fb2f954cb1cd6ec3"
 };
 
-// Check if we're in the browser and config is complete
+// Check if we're in the browser
 const isBrowser = typeof window !== 'undefined';
-const isConfigComplete = !!firebaseConfig.apiKey && !!firebaseConfig.projectId;
 
 function getSafeApp(): FirebaseApp {
   if (getApps().length > 0) return getApp();
-  
-  if (!isConfigComplete) {
-    // Return a dummy app object for SSR/pre-rendering to prevent crashes
-    return {
-      name: '[DEFAULT]',
-      options: {},
-      automaticDataCollectionEnabled: false,
-    } as FirebaseApp;
-  }
-  
   return initializeApp(firebaseConfig);
 }
 
 const app = getSafeApp();
 
-// Export services only if config is valid to prevent SDK internal errors
-export const db = isConfigComplete && isBrowser ? getFirestore(app) : {} as Firestore;
-export const auth = isConfigComplete && isBrowser ? getAuth(app) : {} as Auth;
-export const storage = isConfigComplete && isBrowser ? getStorage(app) : {} as FirebaseStorage;
+/**
+ * Export services only when in the browser to prevent Next.js SSR crashes.
+ * These are singletons used primarily in client components.
+ */
+export const db = isBrowser ? getFirestore(app) : {} as Firestore;
+export const auth = isBrowser ? getAuth(app) : {} as Auth;
+export const storage = isBrowser ? getStorage(app) : {} as FirebaseStorage;
 
 export default app;
