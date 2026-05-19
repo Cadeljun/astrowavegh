@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Bell, Zap, CheckCircle, XCircle, Star, Award, MessageSquare } from 'lucide-react';
+import { X, Bell, Zap, CheckCircle, XCircle, Star, Award, MessageSquare, Clock } from 'lucide-react';
 import { collection, query, where, orderBy, onSnapshot, doc, updateDoc } from 'firebase/firestore';
 import { db, useAuth } from '@/firebase';
 import { useRouter } from 'next/navigation';
@@ -14,13 +14,13 @@ interface NotificationPanelProps {
   onClose: () => void;
 }
 
-const TYPE_CONFIG: Record<string, { icon: any, color: string }> = {
-  booking_request: { icon: MessageSquare, color: 'gold' },
-  booking_accepted: { icon: CheckCircle, color: 'green-500' },
-  booking_declined: { icon: XCircle, color: 'red-500' },
-  rating_received: { icon: Star, color: 'purple' },
-  new_match: { icon: Zap, color: 'cyan' },
-  default: { icon: Bell, color: 'muted' }
+const TYPE_CONFIG: Record<string, { icon: any, color: string, border: string }> = {
+  booking_request: { icon: MessageSquare, color: 'text-gold', border: 'border-gold' },
+  booking_accepted: { icon: CheckCircle, color: 'text-green-500', border: 'border-green-500' },
+  booking_declined: { icon: XCircle, color: 'text-red-500', border: 'border-red-500' },
+  rating_received: { icon: Star, color: 'text-purple', border: 'border-purple' },
+  new_match: { icon: Zap, color: 'text-cyan', border: 'border-cyan' },
+  default: { icon: Bell, color: 'text-muted', border: 'border-white/10' }
 };
 
 export default function NotificationPanel({ isOpen, onClose }: NotificationPanelProps) {
@@ -70,14 +70,14 @@ export default function NotificationPanel({ isOpen, onClose }: NotificationPanel
             animate={{ opacity: 1 }} 
             exit={{ opacity: 0 }} 
             onClick={onClose}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100]"
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[2000]"
           />
           <motion.aside
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed top-0 right-0 h-screen w-full max-w-[400px] bg-dark border-l border-white/5 z-[110] flex flex-col shadow-2xl"
+            className="fixed top-0 right-0 h-screen w-full max-w-[380px] bg-dark border-l border-white/5 z-[2001] flex flex-col shadow-2xl"
           >
             <div className="p-6 border-b border-white/5 flex items-center justify-between bg-black/20">
               <div className="flex items-center gap-3">
@@ -97,7 +97,7 @@ export default function NotificationPanel({ isOpen, onClose }: NotificationPanel
               </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto">
+            <div className="flex-1 overflow-y-auto scrollbar-hide">
               {loading ? (
                 <div className="p-20 text-center animate-pulse"><p className="text-xs text-muted uppercase tracking-[0.2em]">Syncing Feed...</p></div>
               ) : notifications.length > 0 ? (
@@ -111,17 +111,19 @@ export default function NotificationPanel({ isOpen, onClose }: NotificationPanel
                         onClick={() => handleNotifyClick(n)}
                         className={cn(
                           "p-6 flex gap-4 cursor-pointer transition-colors relative group",
-                          n.read ? "bg-transparent opacity-60" : "bg-purple/5 hover:bg-purple/10"
+                          n.read ? "bg-transparent opacity-60" : "bg-purple/5 hover:bg-purple/10",
+                          "border-l-4",
+                          config.border
                         )}
                       >
-                        {!n.read && <div className="absolute left-0 top-0 bottom-0 w-1 bg-purple" />}
-                        <div className={cn("p-3 rounded-lg h-fit", `bg-${config.color}-dim text-${config.color}`)}>
-                          <Icon size={18} />
+                        <div className={cn("p-2 rounded-lg h-fit bg-white/5", config.color)}>
+                          <Icon size={16} />
                         </div>
-                        <div className="space-y-1 flex-1">
+                        <div className="space-y-1 flex-1 min-w-0">
                           <p className={cn("text-sm leading-tight text-white", !n.read && "font-bold")}>{n.title}</p>
                           <p className="text-xs text-muted leading-relaxed line-clamp-2">{n.message}</p>
-                          <p className="text-[0.6rem] text-muted/40 uppercase font-bold mt-2">
+                          <p className="text-[0.6rem] text-muted/40 uppercase font-bold mt-2 flex items-center gap-1.5">
+                            <Clock size={10} />
                             {n.createdAt ? formatDistanceToNow(n.createdAt.toDate()) + ' ago' : 'Just now'}
                           </p>
                         </div>
