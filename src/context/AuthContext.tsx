@@ -1,13 +1,16 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState } from 'react';
-import { useAuth as useFirebaseAuth } from '@/firebase';
+import { useAuth as useFirebaseAuth, db } from '@/firebase';
 import {
   onAuthStateChanged,
   signInWithEmailAndPassword,
   signOut,
   User,
+  GoogleAuthProvider,
+  signInWithPopup,
 } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
 
 interface AuthContextType {
   user: User | null;
@@ -15,6 +18,7 @@ interface AuthContextType {
   error: string | null;
   isAdmin: boolean;
   login: (email: string, password: string) => Promise<void>;
+  loginWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
   clearError: () => void;
 }
@@ -66,6 +70,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const loginWithGoogle = async () => {
+    if (!auth) return;
+    setError(null);
+    const provider = new GoogleAuthProvider();
+    try {
+      await signInWithPopup(auth, provider);
+    } catch (err: any) {
+      console.error('Google login error:', err);
+      setError('Google authentication failed.');
+      throw err;
+    }
+  };
+
   const logout = async () => {
     if (auth) {
       await signOut(auth);
@@ -85,6 +102,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         error,
         isAdmin,
         login,
+        loginWithGoogle,
         logout,
         clearError
       }}
