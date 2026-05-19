@@ -1,19 +1,97 @@
-
 'use client';
 
-import React from 'react';
-import { useParams } from 'next/navigation';
-import { motion } from 'framer-motion';
-import { Sparkles, ArrowLeft, Zap, Users, Info } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Sparkles, ArrowLeft, Zap, Users, ShieldCheck, Star, Music, Award, Loader2 } from 'lucide-react';
 import Link from 'next/link';
+import { doc, getDoc, collection, getDocs } from 'firebase/firestore';
+import { db } from '@/firebase';
+import { calculateTalentMatch, type TalentMatchOutput } from '@/ai/flows/talent-match-flow';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
+import { Badge } from '@/components/ui/Badge';
 import { SectionLabel } from '@/components/ui/SectionLabel';
 import { fadeUp, staggerContainer, scaleIn } from '@/lib/animations';
+import { useToast } from '@/hooks/use-toast';
 
 export default function MatchingPage() {
   const params = useParams();
+  const router = useRouter();
+  const { toast } = useToast();
   const eventId = params.eventId as string;
+
+  const [event, setEvent] = useState<any>(null);
+  const [results, setResults] = useState<TalentMatchOutput | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [processing, setProcessing] = useState(false);
+  const [talentMap, setTalentMap] = useState<Record<string, any>>({});
+
+  useEffect(() => {
+    async function initMatching() {
+      try {
+        // 1. Fetch Event
+        const eventSnap = await getDoc(doc(db, 'events', eventId));
+        if (!eventSnap.exists()) {
+          toast({ variant: 'destructive', title: "Event not found" });
+          router.push('/organizer/dashboard');
+          return;
+        }
+        const eventData = eventSnap.data();
+        setEvent(eventData);
+
+        // 2. Fetch all Talent
+        const talentSnap = await getDocs(collection(db, 'talent_profiles'));
+        const roster = talentSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        
+        const tMap: Record<string, any> = {};
+        roster.forEach(t => tMap[t.id] = t);
+        setTalentMap(tMap);
+
+        // 3. Run Matching
+        setProcessing(true);
+        const matchResults = await calculateTalentMatch({
+          event: {
+            name: eventData.name,
+            description: eventData.description,
+            category: eventData.category,
+            venue: eventData.venue,
+          },
+          roster: roster.map(t => ({
+            id: t.id,
+            name: t.name,
+            stageName: t.stageName,
+            role: t.role,
+            bio: t.bio,
+          }))
+        });
+
+        setResults(matchResults);
+      } catch (error: any) {
+        console.error(error);
+        toast({ variant: 'destructive', title: "Matching Error", description: error.message });
+      } finally {
+        setLoading(false);
+        setProcessing(false);
+      }
+    }
+
+    if (eventId) initMatching();
+  }, [eventId, router, toast]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-black flex flex-col items-center justify-center p-6 text-center space-y-8">
+        <motion.div animate={{ rotate: 360 }} transition={{ duration: 2, repeat: Infinity, ease: "linear" }}>
+          <Sparkles className="text-gold" size={64} />
+        </motion.div>
+        <div className="space-y-2">
+          <h1 className="display-md text-white">WAVE SCAN IN PROGRESS</h1>
+          <p className="body-md text-muted">Analyzing artist DNA against your event requirements...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-black p-6 lg:p-12">
@@ -28,45 +106,87 @@ export default function MatchingPage() {
           </div>
         </header>
 
-        <div className="text-center space-y-6">
+        <div className="text-center space-y-4">
           <motion.div variants={fadeUp} initial="hidden" animate="show">
-            <div className="inline-flex items-center justify-center p-4 rounded-full bg-gold/10 border border-gold/20 mb-6">
-              <Sparkles className="text-gold" size={32} />
+            <SectionLabel className="justify-center">MATCH RESULTS</SectionLabel>
+            <h1 className="display-xl text-white">{event?.name.toUpperCase()}</h1>
+            <div className="flex items-center justify-center gap-6 text-muted text-sm uppercase tracking-widest font-bold">
+               <span className="flex items-center gap-2"><Music size={14} className="text-gold" /> {event?.category}</span>
+               <span className="opacity-20">•</span>
+               <span className="flex items-center gap-2"><Award size={14} className="text-gold" /> {results?.matches.length} POTENTIAL MATCHES</span>
             </div>
-            <h1 className="display-xl text-white">THE PERFECT MATCH.</h1>
-            <p className="body-lg text-muted max-w-2xl mx-auto">
-              Analyzing vibe, category, and energy for Event ID: <span className="text-gold font-mono uppercase">{eventId}</span>
-            </p>
           </motion.div>
         </div>
 
-        <Card className="p-12 text-center space-y-6 bg-white/[0.02]" glowColor="cyan">
-           <div className="flex flex-col items-center gap-6">
-              <Users size={64} className="text-cyan-500 opacity-20" />
-              <div className="space-y-2">
-                 <h2 className="display-md text-white">CALIBRATING RESULTS</h2>
-                 <p className="body-md text-muted italic">"Finding talent that resonates with your vision..."</p>
-              </div>
-              <div className="w-full max-w-md h-1 bg-white/5 rounded-full overflow-hidden">
-                 <motion.div 
-                    initial={{ width: 0 }} 
-                    animate={{ width: '100%' }} 
-                    transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                    className="h-full bg-cyan-500" 
-                 />
-              </div>
-           </div>
-        </Card>
+        <motion.div 
+          variants={staggerContainer}
+          initial="hidden"
+          animate="show"
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+        >
+          {results?.matches.map((match, i) => {
+            const talent = talentMap[match.talentId];
+            if (!talent) return null;
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 opacity-30 pointer-events-none">
-           {[1,2,3].map(i => (
-             <Card key={i} className="p-8 space-y-4">
-                <div className="w-20 h-20 rounded-full bg-white/5 mx-auto" />
-                <div className="h-4 w-3/4 bg-white/5 mx-auto rounded" />
-                <div className="h-3 w-1/2 bg-white/5 mx-auto rounded" />
-             </Card>
-           ))}
-        </div>
+            return (
+              <motion.div key={match.talentId} variants={scaleIn}>
+                <Card className="p-8 h-full flex flex-col justify-between relative group" glowColor={i === 0 ? 'gold' : 'muted'}>
+                  {i === 0 && (
+                    <div className="absolute -top-3 -right-3 bg-gold text-black px-4 py-1.5 rounded-full font-bold text-[0.65rem] tracking-[0.2em] shadow-xl z-20">
+                      TOP MATCH
+                    </div>
+                  )}
+                  
+                  <div className="space-y-6">
+                    <div className="flex justify-between items-start">
+                      <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-white/10">
+                         <img src={talent.imageUrl || `https://picsum.photos/seed/${match.talentId}/100/100`} className="w-full h-full object-cover" alt="" />
+                      </div>
+                      <div className="text-right">
+                         <p className="text-4xl font-display text-white leading-none">{match.matchPercentage}%</p>
+                         <p className="text-[0.6rem] label m-0">MATCH</p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <h3 className="font-display text-2xl text-white tracking-widest uppercase">{talent.stageName}</h3>
+                      <Badge variant="active" className="bg-purple-dim text-purple border-purple">{talent.role}</Badge>
+                    </div>
+
+                    <div className="space-y-3 p-4 rounded-sm bg-black/40 border border-white/5">
+                       <div className="flex items-center gap-2 mb-2">
+                          <Zap size={14} className="text-gold" />
+                          <span className="text-[0.65rem] font-bold text-white uppercase tracking-widest">Vibe Score: {match.waveScore}/10</span>
+                       </div>
+                       <p className="text-xs text-muted leading-relaxed italic">
+                         "{match.reasoning}"
+                       </p>
+                    </div>
+                  </div>
+
+                  <div className="pt-8 grid grid-cols-2 gap-4">
+                    <Button variant="ghost" className="text-[0.65rem] border-white/10" onClick={() => router.push(`/talent/${match.talentId}`)}>
+                       VIEW PROFILE
+                    </Button>
+                    <Button className="text-[0.65rem] h-11">
+                       BOOK NOW
+                    </Button>
+                  </div>
+                </Card>
+              </motion.div>
+            );
+          })}
+        </motion.div>
+
+        {results?.matches.length === 0 && (
+          <div className="py-32 text-center space-y-6">
+            <Users size={64} className="mx-auto text-muted opacity-20" />
+            <div className="space-y-2">
+              <h2 className="display-md text-muted">NO DIRECT MATCHES</h2>
+              <p className="body-md text-muted max-w-lg mx-auto">Our current roster doesn't quite hit this specific wave yet. Try refining your event description or invite more talent to join the platform.</p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
