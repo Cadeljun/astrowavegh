@@ -1,4 +1,3 @@
-
 {
   "entities": {
     "Event": {
@@ -27,13 +26,26 @@
         "uid": { "type": "string" },
         "email": { "type": "string" },
         "name": { "type": "string" },
-        "role": { "type": "string", "enum": ["ORGANIZER", "TALENT", "ADMIN"] },
+        "role": { "type": "string", "enum": ["ORGANIZER", "TALENT", "ADMIN", "PENDING"] },
         "onboarded": { "type": "boolean" },
         "profileImageUrl": { "type": "string" },
         "createdAt": { "type": "string", "format": "date-time" },
         "updatedAt": { "type": "string", "format": "date-time" }
       },
       "required": ["uid", "email", "role"]
+    },
+    "OrganizerProfile": {
+      "title": "Organizer Profile",
+      "description": "Extended metadata for event organizers.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "companyName": { "type": "string" },
+        "bio": { "type": "string" },
+        "website": { "type": "string" },
+        "location": { "type": "string" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      }
     },
     "Talent": {
       "title": "Talent",
@@ -49,6 +61,7 @@
         "instagram": { "type": "string" },
         "soundcloud": { "type": "string" },
         "spotify": { "type": "string" },
+        "waveScore": { "type": "number" },
         "active": { "type": "boolean" },
         "createdAt": { "type": "string", "format": "date-time" }
       },
@@ -68,11 +81,47 @@
         "organizerName": { "type": "string" },
         "status": { "type": "string", "enum": ["PENDING", "CONFIRMED", "CANCELLED", "COMPLETED"] },
         "price": { "type": "number" },
-        "rating": { "type": "number", "minimum": 1, "maximum": 5 },
-        "review": { "type": "string" },
         "timestamp": { "type": "string", "format": "date-time" }
       },
       "required": ["eventId", "talentId", "organizerId", "status"]
+    },
+    "Rating": {
+      "title": "Rating",
+      "description": "Post-event talent review.",
+      "type": "object",
+      "properties": {
+        "bookingId": { "type": "string" },
+        "talentId": { "type": "string" },
+        "organizerId": { "type": "string" },
+        "score": { "type": "number", "minimum": 1, "maximum": 5 },
+        "comment": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      }
+    },
+    "Match": {
+      "title": "Match",
+      "description": "Cached AI matching result.",
+      "type": "object",
+      "properties": {
+        "eventId": { "type": "string" },
+        "talentId": { "type": "string" },
+        "matchPercentage": { "type": "number" },
+        "reasoning": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      }
+    },
+    "Notification": {
+      "title": "Notification",
+      "description": "In-app user notification.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "type": { "type": "string" },
+        "message": { "type": "string" },
+        "read": { "type": "boolean" },
+        "link": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      }
     }
   },
   "auth": {
@@ -83,17 +132,33 @@
       "schema": "#/entities/UserProfile",
       "description": "Unified platform user profiles."
     },
-    "/events/{eventId}": {
-      "schema": "#/entities/Event",
-      "description": "Collection of public events and experiences."
+    "/organizer_profiles/{uid}": {
+      "schema": "#/entities/OrganizerProfile",
+      "description": "Specific metadata for organizers."
     },
     "/talent_profiles/{uid}": {
       "schema": "#/entities/Talent",
       "description": "Extended profiles for talent users."
     },
+    "/events/{eventId}": {
+      "schema": "#/entities/Event",
+      "description": "Collection of public events and experiences."
+    },
     "/bookings/{bookingId}": {
       "schema": "#/entities/Booking",
       "description": "Transaction log for bookings."
+    },
+    "/ratings/{ratingId}": {
+      "schema": "#/entities/Rating",
+      "description": "Collection of post-event ratings."
+    },
+    "/matches/{matchId}": {
+      "schema": "#/entities/Match",
+      "description": "Cached AI-generated matches."
+    },
+    "/notifications/{notificationId}": {
+      "schema": "#/entities/Notification",
+      "description": "User notification stream."
     }
   }
 }

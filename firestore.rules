@@ -1,4 +1,3 @@
-
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -13,77 +12,28 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == uid;
     }
 
-    // Identify the specific developer account
-    function isDevEmail() {
-      return isSignedIn() && request.auth.token.email == 'junioraquils143@gmail.com';
-    }
-
-    function userExists() {
-      return exists(/databases/$(database)/documents/user_roles/$(request.auth.uid));
-    }
-
-    function getUserRole() {
-      return isDevEmail() ? 'SUPER_ADMIN' : (userExists() ? get(/databases/$(database)/documents/user_roles/$(request.auth.uid)).data.role : 'VIEWER');
-    }
-
-    function isActive() {
-      return isDevEmail() || (userExists() && get(/databases/$(database)/documents/user_roles/$(request.auth.uid)).data.active == true);
-    }
-
     function isSuperAdmin() {
-      return isSignedIn() 
-        && isActive()
-        && getUserRole() == 'SUPER_ADMIN';
+      return isSignedIn() && 
+        (request.auth.token.email == 'junioraquils143@gmail.com' || 
+         exists(/databases/$(database)/documents/user_roles/$(request.auth.uid)) && 
+         get(/databases/$(database)/documents/user_roles/$(request.auth.uid)).data.role == 'SUPER_ADMIN');
     }
 
-    function isEditor() {
-      return isSignedIn()
-        && isActive()
-        && (
-          getUserRole() == 'SUPER_ADMIN' ||
-          getUserRole() == 'EDITOR'
-        );
-    }
-
-    function canWrite() {
-      return isSignedIn()
-        && isActive()
-        && getUserRole() != 'VIEWER';
-    }
-
-    function isDeveloper() {
-      return isSignedIn()
-        && isActive()
-        && (
-          getUserRole() == 'SUPER_ADMIN' ||
-          getUserRole() == 'DEVELOPER'
-        );
-    }
-
-    // ─── USER ROLES ─────────────────
+    // ─── USERS & ROLES ──────────────
     match /user_roles/{uid} {
-      allow read: if isSignedIn() 
-        && (request.auth.uid == uid 
-            || isSuperAdmin());
+      allow read: if isOwner(uid) || isSuperAdmin();
       allow write: if isSuperAdmin();
     }
 
-    // ─── USERS ──────────────────────
     match /users/{uid} {
       allow read: if isSignedIn();
       allow write: if isOwner(uid) || isSuperAdmin();
     }
 
-    // ─── EVENTS ─────────────────────
-    match /events/{id} {
-      allow read: if true;
-      allow write: if isSignedIn();
-    }
-
-    // ─── TALENT ─────────────────────
-    match /talent/{id} {
-      allow read: if true;
-      allow write: if isSuperAdmin();
+    // ─── PROFILES ───────────────────
+    match /organizer_profiles/{uid} {
+      allow read: if isSignedIn();
+      allow write: if isOwner(uid) || isSuperAdmin();
     }
 
     match /talent_profiles/{uid} {
@@ -91,77 +41,80 @@ service cloud.firestore {
       allow write: if isOwner(uid) || isSuperAdmin();
     }
 
+    // ─── EVENTS ─────────────────────
+    match /events/{id} {
+      allow read: if true;
+      allow create: if isSignedIn();
+      allow update: if isSuperAdmin() || (isSignedIn() && resource.data.organizerId == request.auth.uid);
+      allow delete: if isSuperAdmin();
+    }
+
     // ─── BOOKINGS ───────────────────
     match /bookings/{id} {
       allow read: if isSignedIn() && (
-        resource.data.organizerId == request.auth.uid ||
-        resource.data.talentId == request.auth.uid ||
+        request.auth.uid == resource.data.organizerId || 
+        request.auth.uid == resource.data.talentId || 
         isSuperAdmin()
       );
       allow create: if isSignedIn();
       allow update: if isSignedIn() && (
-        resource.data.organizerId == request.auth.uid ||
-        resource.data.talentId == request.auth.uid ||
+        request.auth.uid == resource.data.organizerId || 
+        request.auth.uid == resource.data.talentId || 
         isSuperAdmin()
       );
       allow delete: if isSuperAdmin();
     }
 
-    // ─── GALLERY ────────────────────
+    // ─── RATINGS ────────────────────
+    match /ratings/{id} {
+      allow read: if true;
+      allow create: if isSignedIn();
+      allow update, delete: if isSuperAdmin();
+    }
+
+    // ─── MATCHES ────────────────────
+    match /matches/{id} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn();
+    }
+
+    // ─── NOTIFICATIONS ──────────────
+    match /notifications/{id} {
+      allow read: if isSignedIn() && (request.auth.uid == resource.data.userId || isSuperAdmin());
+      allow create: if isSignedIn();
+      allow update: if isSignedIn() && request.auth.uid == resource.data.userId;
+      allow delete: if isSignedIn() && request.auth.uid == resource.data.userId;
+    }
+
+    // ─── MARKETING COLLECTIONS ──────
+    match /contacts/{id} {
+      allow create: if true;
+      allow read: if isSuperAdmin();
+    }
+
+    match /waitlist/{id} {
+      allow create: if true;
+      allow read: if isSuperAdmin();
+    }
+
     match /gallery/{id} {
       allow read: if true;
       allow write: if isSuperAdmin();
     }
 
-    // ─── UPLOADS ────────────────────
     match /uploads/{id} {
       allow read: if isSignedIn();
-      allow write: if canWrite() 
-        && getUserRole() != 'EDITOR';
+      allow write: if isSuperAdmin();
     }
 
-    // ─── CMS (Editor + above) ───────
     match /cms_content/{id} {
       allow read: if true;
-      allow write: if isEditor();
+      allow write: if isSuperAdmin();
     }
 
     match /cms_settings/{id} {
       allow read: if true;
-      allow write: if isEditor();
-    }
-
-    match /cms_sections/{id} {
-      allow read: if true;
-      allow write: if isEditor();
-    }
-
-    match /cms_seo/{id} {
-      allow read: if true;
-      allow write: if isEditor();
-    }
-
-    // ─── CONTACTS ───────────────────
-    match /contacts/{id} {
-      allow create: if true;
-      allow read: if isSignedIn();
-      allow update, delete: if canWrite()
-        && getUserRole() != 'EDITOR';
-    }
-
-    // ─── WAITLIST ───────────────────
-    match /waitlist/{id} {
-      allow create: if true;
-      allow read: if isSignedIn();
-      allow update, delete: if isSuperAdmin();
-    }
-
-    // ─── TALENT INQUIRIES ───────────
-    match /talent_inquiries/{id} {
-      allow create: if true;
-      allow read: if isSignedIn();
-      allow update, delete: if canWrite()
-        && getUserRole() != 'EDITOR';
+      allow write: if isSuperAdmin();
     }
   }
 }
