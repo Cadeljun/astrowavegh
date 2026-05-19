@@ -1,135 +1,135 @@
 
 {
   "entities": {
-    "Event": {
-      "title": "Event",
-      "description": "AstroWave events, parties, and concerts.",
-      "type": "object",
-      "properties": {
-        "name": { "type": "string" },
-        "date": { "type": "string", "format": "date-time" },
-        "venue": { "type": "string" },
-        "category": { "type": "string", "enum": ["Parties", "Concerts", "Networking", "Nightlife", "Festivals"] },
-        "description": { "type": "string" },
-        "imageUrl": { "type": "string" },
-        "ticketLink": { "type": "string" },
-        "organizerId": { "type": "string" },
-        "active": { "type": "boolean" },
-        "createdAt": { "type": "string", "format": "date-time" }
-      },
-      "required": ["name", "date", "venue", "category", "active"]
-    },
-    "UserProfile": {
-      "title": "User Profile",
-      "description": "Base user data for the AstroWave platform.",
+    "User": {
+      "title": "User",
+      "description": "Core authentication and role state for all platform users.",
       "type": "object",
       "properties": {
         "uid": { "type": "string" },
         "email": { "type": "string" },
-        "name": { "type": "string" },
-        "role": { "type": "string", "enum": ["ORGANIZER", "TALENT", "ADMIN", "PENDING"] },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "role": { "type": "string", "enum": ["organizer", "talent", "both", null] },
         "onboarded": { "type": "boolean" },
-        "profileImageUrl": { "type": "string" },
+        "provider": { "type": "string", "enum": ["email", "google"] },
+        "active": { "type": "boolean" },
         "createdAt": { "type": "string", "format": "date-time" },
-        "updatedAt": { "type": "string", "format": "date-time" }
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "lastLogin": { "type": "string", "format": "date-time" }
       },
       "required": ["uid", "email", "role"]
     },
     "OrganizerProfile": {
       "title": "Organizer Profile",
-      "description": "Extended metadata for event organizers.",
+      "description": "Professional metadata for event hosts and organizers.",
       "type": "object",
       "properties": {
         "uid": { "type": "string" },
-        "companyName": { "type": "string" },
+        "displayName": { "type": "string" },
+        "email": { "type": "string" },
+        "phone": { "type": "string" },
+        "photoURL": { "type": "string" },
         "bio": { "type": "string" },
+        "company": { "type": "string" },
+        "city": { "type": "string" },
+        "region": { "type": "string" },
+        "country": { "type": "string" },
         "website": { "type": "string" },
-        "location": { "type": "string" },
-        "updatedAt": { "type": "string", "format": "date-time" }
+        "instagram": { "type": "string" },
+        "twitter": { "type": "string" },
+        "eventCount": { "type": "number" },
+        "totalSpent": { "type": "number" },
+        "verified": { "type": "boolean" },
+        "rating": { "type": "number" }
       }
     },
-    "Talent": {
-      "title": "Talent",
-      "description": "DJs and artists managed by or registered on AstroWave.",
+    "TalentProfile": {
+      "title": "Talent Profile",
+      "description": "Artist/DJ professional profile and Wave Score metrics.",
       "type": "object",
       "properties": {
-        "userId": { "type": "string" },
-        "name": { "type": "string" },
+        "uid": { "type": "string" },
+        "displayName": { "type": "string" },
         "stageName": { "type": "string" },
-        "role": { "type": "string" },
+        "email": { "type": "string" },
+        "phone": { "type": "string" },
+        "photoURL": { "type": "string" },
         "bio": { "type": "string" },
-        "imageUrl": { "type": "string" },
-        "instagram": { "type": "string" },
-        "soundcloud": { "type": "string" },
-        "spotify": { "type": "string" },
+        "category": { "type": "string", "enum": ["DJ", "MC", "Hypeman", "Singer", "Dancer", "Comedian", "Band", "Other"] },
+        "subcategory": { "type": "string" },
+        "skills": { "type": "array", "items": { "type": "string" } },
+        "city": { "type": "string" },
+        "region": { "type": "string" },
+        "country": { "type": "string" },
+        "basePrice": { "type": "number" },
+        "currency": { "type": "string", "enum": ["GHS", "USD"] },
+        "priceNegotiable": { "type": "boolean" },
+        "available": { "type": "boolean" },
         "waveScore": { "type": "number" },
         "averageRating": { "type": "number" },
-        "eventCount": { "type": "number" },
         "ratingCount": { "type": "number" },
-        "recencyFactor": { "type": "number" },
+        "eventCount": { "type": "number" },
         "lastEventDate": { "type": "string", "format": "date-time" },
-        "active": { "type": "boolean" },
-        "createdAt": { "type": "string", "format": "date-time" }
-      },
-      "required": ["name", "role", "active"]
+        "recencyFactor": { "type": "number" },
+        "totalBookings": { "type": "number" },
+        "completedBookings": { "type": "number" },
+        "cancelledBookings": { "type": "number" },
+        "verified": { "type": "boolean" },
+        "featured": { "type": "boolean" },
+        "active": { "type": "boolean" }
+      }
+    },
+    "PlatformEvent": {
+      "title": "Platform Event",
+      "description": "Event briefs posted on the platform for talent matching.",
+      "type": "object",
+      "properties": {
+        "organizerId": { "type": "string" },
+        "title": { "type": "string" },
+        "category": { "type": "string", "enum": ["Party", "Concert", "Corporate", "Wedding", "Festival", "Conference", "Birthday", "Other"] },
+        "date": { "type": "string", "format": "date-time" },
+        "venue": { "type": "string" },
+        "talentCategory": { "type": "string" },
+        "talentBudget": { "type": "number" },
+        "status": { "type": "string", "enum": ["open", "matched", "booked", "completed", "cancelled"] }
+      }
     },
     "Booking": {
       "title": "Booking",
-      "description": "A talent booking record.",
+      "description": "A transactional record between an organizer and talent.",
       "type": "object",
       "properties": {
         "eventId": { "type": "string" },
-        "eventName": { "type": "string" },
-        "eventDate": { "type": "string" },
-        "talentId": { "type": "string" },
-        "talentName": { "type": "string" },
         "organizerId": { "type": "string" },
-        "organizerName": { "type": "string" },
-        "status": { "type": "string", "enum": ["PENDING", "CONFIRMED", "CANCELLED", "COMPLETED"] },
-        "price": { "type": "number" },
-        "rating": { "type": "number" },
-        "review": { "type": "string" },
-        "timestamp": { "type": "string", "format": "date-time" },
-        "reviewedAt": { "type": "string", "format": "date-time" }
-      },
-      "required": ["eventId", "talentId", "organizerId", "status"]
+        "talentId": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "accepted", "declined", "completed", "cancelled"] },
+        "agreedPrice": { "type": "number" },
+        "ratingSubmitted": { "type": "boolean" }
+      }
     },
     "Rating": {
       "title": "Rating",
-      "description": "Post-event talent review.",
+      "description": "Detailed post-event performance review.",
       "type": "object",
       "properties": {
         "bookingId": { "type": "string" },
         "talentId": { "type": "string" },
-        "organizerId": { "type": "string" },
-        "score": { "type": "number", "minimum": 1, "maximum": 5 },
-        "comment": { "type": "string" },
-        "timestamp": { "type": "string", "format": "date-time" }
-      }
-    },
-    "Match": {
-      "title": "Match",
-      "description": "Cached AI matching result.",
-      "type": "object",
-      "properties": {
-        "eventId": { "type": "string" },
-        "talentId": { "type": "string" },
-        "matchPercentage": { "type": "number" },
-        "reasoning": { "type": "string" },
-        "timestamp": { "type": "string", "format": "date-time" }
+        "overall": { "type": "number" },
+        "performance": { "type": "number" },
+        "professionalism": { "type": "number" },
+        "review": { "type": "string" }
       }
     },
     "Notification": {
       "title": "Notification",
-      "description": "In-app user notification.",
+      "description": "User notification stream.",
       "type": "object",
       "properties": {
         "userId": { "type": "string" },
         "type": { "type": "string" },
-        "message": { "type": "string" },
-        "read": { "type": "boolean" },
-        "link": { "type": "string" },
-        "timestamp": { "type": "string", "format": "date-time" }
+        "title": { "type": "string" },
+        "read": { "type": "boolean" }
       }
     }
   },
@@ -138,36 +138,36 @@
   },
   "firestore": {
     "/users/{uid}": {
-      "schema": "#/entities/UserProfile",
-      "description": "Unified platform user profiles."
+      "schema": "#/entities/User",
+      "description": "All user platform accounts."
     },
     "/organizer_profiles/{uid}": {
       "schema": "#/entities/OrganizerProfile",
-      "description": "Specific metadata for organizers."
+      "description": "Organizer metadata."
     },
     "/talent_profiles/{uid}": {
-      "schema": "#/entities/Talent",
-      "description": "Extended profiles for talent users."
+      "schema": "#/entities/TalentProfile",
+      "description": "Talent professional profiles."
     },
-    "/events/{eventId}": {
-      "schema": "#/entities/Event",
-      "description": "Collection of public events and experiences."
+    "/platform_events/{id}": {
+      "schema": "#/entities/PlatformEvent",
+      "description": "Active platform event briefs."
     },
-    "/bookings/{bookingId}": {
+    "/bookings/{id}": {
       "schema": "#/entities/Booking",
-      "description": "Transaction log for bookings."
+      "description": "Booking request records."
     },
-    "/ratings/{ratingId}": {
+    "/ratings/{id}": {
       "schema": "#/entities/Rating",
-      "description": "Collection of post-event ratings."
+      "description": "Talent performance reviews."
     },
-    "/matches/{matchId}": {
-      "schema": "#/entities/Match",
-      "description": "Cached AI-generated matches."
+    "/matches/{eventId}": {
+      "schema": { "type": "object" },
+      "description": "Cached AI match results."
     },
-    "/notifications/{notificationId}": {
+    "/notifications/{id}": {
       "schema": "#/entities/Notification",
-      "description": "User notification stream."
+      "description": "User activity alerts."
     }
   }
 }

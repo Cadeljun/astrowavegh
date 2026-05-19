@@ -1,3 +1,4 @@
+
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -19,7 +20,7 @@ service cloud.firestore {
          get(/databases/$(database)/documents/user_roles/$(request.auth.uid)).data.role == 'SUPER_ADMIN');
     }
 
-    // ─── USERS & ROLES ──────────────
+    // ─── CORE USERS ──────────────────
     match /user_roles/{uid} {
       allow read: if isOwner(uid) || isSuperAdmin();
       allow write: if isSuperAdmin();
@@ -27,63 +28,62 @@ service cloud.firestore {
 
     match /users/{uid} {
       allow read: if isSignedIn();
-      allow write: if isOwner(uid) || isSuperAdmin();
+      allow create: if request.auth.uid == uid;
+      allow update: if request.auth.uid == uid || isSuperAdmin();
+      allow delete: if isSuperAdmin();
     }
 
-    // ─── PROFILES ───────────────────
+    // ─── PLATFORM PROFILES ───────────
     match /organizer_profiles/{uid} {
       allow read: if isSignedIn();
-      allow write: if isOwner(uid) || isSuperAdmin();
+      allow create: if request.auth.uid == uid;
+      allow update: if request.auth.uid == uid || isSuperAdmin();
+      allow delete: if isSuperAdmin();
     }
 
     match /talent_profiles/{uid} {
       allow read: if true;
-      allow write: if isOwner(uid) || isSuperAdmin();
+      allow create: if request.auth.uid == uid;
+      allow update: if request.auth.uid == uid || isSuperAdmin();
+      allow delete: if isSuperAdmin();
     }
 
-    // ─── EVENTS ─────────────────────
-    match /events/{id} {
+    // ─── PLATFORM EVENTS ─────────────
+    match /platform_events/{id} {
       allow read: if true;
       allow create: if isSignedIn();
-      allow update: if isSuperAdmin() || (isSignedIn() && resource.data.organizerId == request.auth.uid);
+      allow update: if isSignedIn() && (resource.data.organizerId == request.auth.uid || isSuperAdmin());
       allow delete: if isSuperAdmin();
     }
 
-    // ─── BOOKINGS ───────────────────
+    // ─── BOOKINGS ────────────────────
     match /bookings/{id} {
-      allow read: if isSignedIn() && (
-        request.auth.uid == resource.data.organizerId || 
-        request.auth.uid == resource.data.talentId || 
-        isSuperAdmin()
-      );
+      allow read: if isSignedIn() && (resource.data.organizerId == request.auth.uid || resource.data.talentId == request.auth.uid || isSuperAdmin());
       allow create: if isSignedIn();
-      allow update: if isSignedIn() && (
-        request.auth.uid == resource.data.organizerId || 
-        request.auth.uid == resource.data.talentId || 
-        isSuperAdmin()
-      );
+      allow update: if isSignedIn() && (resource.data.organizerId == request.auth.uid || resource.data.talentId == request.auth.uid || isSuperAdmin());
       allow delete: if isSuperAdmin();
     }
 
-    // ─── RATINGS ────────────────────
+    // ─── RATINGS ─────────────────────
     match /ratings/{id} {
       allow read: if true;
       allow create: if isSignedIn();
-      allow update, delete: if isSuperAdmin();
+      allow update: if isSuperAdmin();
+      allow delete: if isSuperAdmin();
     }
 
-    // ─── MATCHES ────────────────────
-    match /matches/{id} {
+    // ─── MATCHES ─────────────────────
+    match /matches/{eventId} {
       allow read: if isSignedIn();
       allow write: if isSignedIn();
     }
 
-    // ─── NOTIFICATIONS ──────────────
+    // ─── NOTIFICATIONS ───────────────
     match /notifications/{id} {
-      allow read: if isSignedIn() && (request.auth.uid == resource.data.userId || isSuperAdmin());
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
       allow create: if isSignedIn();
-      allow update: if isSignedIn() && request.auth.uid == resource.data.userId;
-      allow delete: if isSignedIn() && request.auth.uid == resource.data.userId;
+      allow update: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
     }
 
     // ─── MARKETING COLLECTIONS ──────
@@ -91,27 +91,22 @@ service cloud.firestore {
       allow create: if true;
       allow read: if isSuperAdmin();
     }
-
     match /waitlist/{id} {
       allow create: if true;
       allow read: if isSuperAdmin();
     }
-
     match /gallery/{id} {
       allow read: if true;
       allow write: if isSuperAdmin();
     }
-
     match /uploads/{id} {
       allow read: if isSignedIn();
       allow write: if isSuperAdmin();
     }
-
     match /cms_content/{id} {
       allow read: if true;
       allow write: if isSuperAdmin();
     }
-
     match /cms_settings/{id} {
       allow read: if true;
       allow write: if isSuperAdmin();

@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState } from 'react';
@@ -15,15 +16,13 @@ import {
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { SectionHeading } from '@/components/ui/SectionHeading';
-import { AlertTriangle, Terminal, Database, Loader2, CheckCircle, RefreshCw, Trash2, Zap } from 'lucide-react';
+import { AlertTriangle, Terminal, Database, Loader2, RefreshCw, Trash2, Zap } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/context/AuthContext';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
 import { CMS_PAGES } from '@/lib/cms/definitions';
 
 export default function DevSeedPage() {
-  const { user, isAdmin } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [logs, setLogs] = useState<string[]>([]);
@@ -31,18 +30,12 @@ export default function DevSeedPage() {
 
   const addLog = (msg: string) => setLogs(prev => [`[${new Date().toLocaleTimeString()}] ${msg}`, ...prev].slice(0, 50));
 
-  const handlePermissionError = (path: string, operation: any) => {
-    const error = new FirestorePermissionError({ path, operation } satisfies SecurityRuleContext);
-    errorEmitter.emit('permission-error', error);
-  };
-
   const seedCMS = async () => {
     setLoading(true);
     addLog('🚀 INITIATING CMS SEED...');
     try {
       const batch = writeBatch(db);
       
-      // Seed Global Settings
       const settingsRef = doc(db, 'cms_settings', 'global');
       batch.set(settingsRef, {
         siteName: 'AstroWave',
@@ -61,9 +54,7 @@ export default function DevSeedPage() {
         defaultGalleryPhoto: 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?q=80&w=800',
         updatedAt: serverTimestamp()
       });
-      addLog('✓ Queued Global Settings');
 
-      // Seed all defined pages and sections from definitions
       CMS_PAGES.forEach(page => {
         page.sections.forEach(section => {
           const docId = `${page.slug}_${section.key}`;
@@ -79,7 +70,6 @@ export default function DevSeedPage() {
             updatedAt: serverTimestamp()
           });
         });
-        addLog(`✓ Queued all sections for page: ${page.label}`);
       });
 
       await batch.commit();
@@ -92,32 +82,45 @@ export default function DevSeedPage() {
     }
   };
 
-  const seedEcosystem = async () => {
+  const seedPlatform = async () => {
     setLoading(true);
-    addLog('🚀 INITIATING ECOSYSTEM SEED...');
+    addLog('🚀 INITIATING PLATFORM SEED...');
     try {
-      // Seed Talent
-      const talent = [
-        { name: 'Calvin Mensah', stageName: 'Uzy', role: 'Artist', bio: 'Founder and lead creative of AstroWave.', active: true, instagram: 'https://instagram.com/uzy' },
-        { name: 'Elias Koranteng', stageName: 'DJ Horizon', role: 'DJ', bio: 'Master of Amapiano and Afrobeats.', active: true, instagram: 'https://instagram.com/djhorizon' }
-      ];
-      for (const t of talent) {
-        await addDoc(collection(db, 'talent'), { ...t, createdAt: serverTimestamp() });
-        addLog(`✓ Added talent: ${t.stageName}`);
-      }
+      const talentRef = collection(db, 'talent_profiles');
+      const testTalent = {
+        uid: 'test-talent-1',
+        displayName: 'Elias Koranteng',
+        stageName: 'DJ Horizon',
+        email: 'horizon@astrowave.dev',
+        category: 'DJ',
+        city: 'Accra',
+        waveScore: 4.8,
+        averageRating: 4.9,
+        ratingCount: 15,
+        eventCount: 42,
+        active: true,
+        available: true,
+        createdAt: serverTimestamp()
+      };
+      await setDoc(doc(talentRef, testTalent.uid), testTalent);
+      addLog(`✓ Seeded Talent: ${testTalent.stageName}`);
 
-      // Seed Events
-      const events = [
-        { name: 'Mask Mirage', category: 'Nightlife', date: '2025-05-20T22:00', venue: 'The Labadi Beach', active: true, description: 'Identity. Music. Mystery.' },
-        { name: 'Splash & Seduction', category: 'Parties', date: '2025-08-10T12:00', venue: 'Aqua Safari', active: true, description: 'The ultimate day party.' }
-      ];
-      for (const e of events) {
-        await addDoc(collection(db, 'events'), { ...e, createdAt: serverTimestamp() });
-        addLog(`✓ Added event: ${e.name}`);
-      }
+      const eventRef = collection(db, 'platform_events');
+      const testEvent = {
+        organizerId: 'test-org-1',
+        title: 'Midnight Mirage 2025',
+        category: 'Nightlife',
+        venue: 'The Labadi Beach',
+        status: 'open',
+        talentCategory: 'DJ',
+        date: serverTimestamp(),
+        createdAt: serverTimestamp()
+      };
+      await addDoc(eventRef, testEvent);
+      addLog(`✓ Seeded Platform Event: ${testEvent.title}`);
 
-      addLog('✨ ECOSYSTEM SEED COMPLETE');
-      toast({ title: 'Ecosystem Data Seeded' });
+      addLog('✨ PLATFORM SEED COMPLETE');
+      toast({ title: 'Platform Data Seeded' });
     } catch (e: any) {
       addLog(`❌ ERR: ${e.message}`);
     } finally {
@@ -128,9 +131,13 @@ export default function DevSeedPage() {
   const clearAll = async () => {
     if (confirmDelete !== 'DELETE') return;
     setLoading(true);
-    addLog('⚠️ WIPING DATABASE...');
+    addLog('⚠️ WIPING ALL COLLECTIONS...');
     try {
-      const collections = ['events', 'talent', 'contacts', 'waitlist', 'talent_inquiries', 'gallery', 'uploads', 'cms_content', 'cms_sections', 'cms_seo', 'cms_settings'];
+      const collections = [
+        'users', 'organizer_profiles', 'talent_profiles', 
+        'platform_events', 'bookings', 'ratings', 
+        'matches', 'notifications', 'cms_content', 'cms_settings'
+      ];
       for (const c of collections) {
         const snap = await getDocs(collection(db, c));
         for (const d of snap.docs) {
@@ -152,7 +159,7 @@ export default function DevSeedPage() {
     <div className="space-y-12">
       <SectionHeading 
         title="SYSTEM SEEDER" 
-        subtitle="Manage the initial state of your production environment."
+        subtitle="Manage the professional platform environment."
         label="DATABASE UTILITY"
       />
 
@@ -164,109 +171,44 @@ export default function DevSeedPage() {
                 <Database size={24} />
               </div>
               <div>
-                <h3 className="font-display text-2xl text-white uppercase leading-none">Bootstrap Ecosystem</h3>
+                <h3 className="font-display text-2xl text-white uppercase leading-none">Bootstrap Platform</h3>
                 <p className="text-[0.65rem] text-muted font-mono mt-1 uppercase tracking-widest">Rapid Prototyping Tool</p>
               </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Button 
-                variant="secondary" 
-                className="h-16 justify-start px-6 border-white/5 group" 
-                onClick={seedCMS} 
-                disabled={loading}
-              >
-                <div className="flex flex-col items-start gap-1">
-                  <span className="flex items-center gap-2 group-hover:text-gold transition-colors">
-                    <Zap size={14} /> SEED CMS CONTENT
-                  </span>
-                  <span className="text-[0.6rem] text-muted normal-case font-normal">Defaults for all site pages</span>
-                </div>
+              <Button variant="secondary" className="h-16 justify-start px-6 group" onClick={seedCMS} disabled={loading}>
+                <Zap size={14} className="mr-2 group-hover:text-gold" /> SEED CMS & SETTINGS
               </Button>
-
-              <Button 
-                variant="secondary" 
-                className="h-16 justify-start px-6 border-white/5 group" 
-                onClick={seedEcosystem} 
-                disabled={loading}
-              >
-                <div className="flex flex-col items-start gap-1">
-                  <span className="flex items-center gap-2 group-hover:text-purple transition-colors">
-                    <Zap size={14} /> SEED ECOSYSTEM
-                  </span>
-                  <span className="text-[0.6rem] text-muted normal-case font-normal">Dummy Events, Talent & Media</span>
-                </div>
+              <Button variant="secondary" className="h-16 justify-start px-6 group" onClick={seedPlatform} disabled={loading}>
+                <Zap size={14} className="mr-2 group-hover:text-purple" /> SEED ROSTER & EVENTS
               </Button>
-            </div>
-
-            <div className="mt-8 p-4 rounded-sm bg-blue-500/5 border border-blue-500/10 flex gap-4 text-blue-400">
-               <RefreshCw size={18} className="shrink-0 mt-0.5" />
-               <p className="text-[0.7rem] leading-relaxed">
-                 Seeding operations are additive. They will create new documents every time they are run. 
-                 Use the <strong>Wipe Database</strong> tool if you want a clean start.
-               </p>
             </div>
           </Card>
 
           <Card className="p-8 border-t-2 border-red-500/40" glowColor="muted">
-            <div className="flex items-center gap-4 mb-8">
-              <div className="p-3 rounded-sm bg-red-500/10 text-red-500 border border-red-500/20">
-                <AlertTriangle size={24} />
-              </div>
-              <div>
-                <h3 className="font-display text-2xl text-white uppercase leading-none">Danger Zone</h3>
-                <p className="text-[0.65rem] text-red-400/60 font-mono mt-1 uppercase tracking-widest italic">Destructive Operations</p>
-              </div>
+            <div className="flex items-center gap-4 mb-6 text-red-500">
+              <AlertTriangle size={24} />
+              <h3 className="font-display text-2xl uppercase">Danger Zone</h3>
             </div>
-
             <div className="space-y-4">
-              <p className="text-[0.7rem] text-muted">To wipe all project data, type <span className="text-red-400 font-bold font-mono">DELETE</span> below and click the button.</p>
+              <p className="text-[0.7rem] text-muted uppercase">Type <span className="text-red-400 font-bold">DELETE</span> to wipe all data.</p>
               <div className="flex gap-4">
-                <input 
-                  type="text" 
-                  className="admin-input h-14 flex-1 font-mono text-red-500 uppercase tracking-widest text-center" 
-                  placeholder="CONFIRMATION..." 
-                  value={confirmDelete}
-                  onChange={e => setConfirmDelete(e.target.value.toUpperCase())}
-                />
-                <Button 
-                  disabled={loading || confirmDelete !== 'DELETE'}
-                  onClick={clearAll}
-                  className="h-14 px-8 bg-red-500/10 border-red-500/20 text-red-500 hover:bg-red-500 hover:text-white transition-all"
-                >
-                  <Trash2 size={18} className="mr-2" /> WIPE ALL
-                </Button>
+                <input className="admin-input h-12 flex-1 text-center font-mono" value={confirmDelete} onChange={e => setConfirmDelete(e.target.value)} />
+                <Button disabled={loading || confirmDelete !== 'DELETE'} onClick={clearAll} className="h-12 px-8 bg-red-500/10 border-red-500/20 text-red-500">WIPE ALL</Button>
               </div>
             </div>
           </Card>
         </div>
 
-        <aside className="space-y-6">
-          <div className="flex flex-col h-[600px] rounded-md bg-black border border-white/5 overflow-hidden">
-            <div className="px-5 py-3 bg-white/5 border-b border-white/5 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Terminal size={14} className="text-cyan-500" />
-                <span className="text-[0.6rem] text-white font-mono uppercase font-bold tracking-widest">Process Log</span>
-              </div>
-              <button 
-                onClick={() => setLogs([])} 
-                className="text-[0.6rem] text-muted hover:text-white uppercase font-bold"
-              >
-                Clear
-              </button>
-            </div>
-            <div className="p-6 font-mono text-[10px] text-cyan-500/80 space-y-2 flex-1 overflow-auto scrollbar-hide">
-              {logs.length === 0 ? (
-                <div className="text-muted/40 italic">// Awaiting developer commands...</div>
-              ) : (
-                logs.map((log, i) => <div key={i} className="leading-relaxed animate-in fade-in slide-in-from-left-2">{log}</div>)
-              )}
-              {loading && (
-                <div className="flex items-center gap-2 animate-pulse text-cyan-400">
-                  <Loader2 size={10} className="animate-spin" /> EXECUTING BATCH...
-                </div>
-              )}
-            </div>
+        <aside className="flex flex-col h-[600px] rounded-md bg-black border border-white/5 overflow-hidden">
+          <div className="px-5 py-3 bg-white/5 border-b border-white/5 flex items-center justify-between">
+            <span className="text-[0.6rem] text-white font-mono uppercase font-bold">Process Log</span>
+            <button onClick={() => setLogs([])} className="text-[0.6rem] text-muted hover:text-white">Clear</button>
+          </div>
+          <div className="p-6 font-mono text-[10px] text-cyan-500/80 space-y-2 flex-1 overflow-auto">
+            {logs.map((log, i) => <div key={i} className="animate-in fade-in slide-in-from-left-2">{log}</div>)}
+            {loading && <div className="flex items-center gap-2 animate-pulse text-cyan-400"><Loader2 size={10} className="animate-spin" /> PROCESSING...</div>}
           </div>
         </aside>
       </div>
