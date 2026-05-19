@@ -1,15 +1,30 @@
 
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Users, Zap, MessageSquare, TrendingUp } from 'lucide-react';
+import { Plus, Users, Zap, MessageSquare, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { SectionLabel } from '@/components/ui/SectionLabel';
 import { fadeUp, staggerContainer, scaleIn } from '@/lib/animations';
+import { doc, getDoc } from 'firebase/firestore';
+import { db, useAuth } from '@/firebase';
+import Link from 'next/link';
 
 export default function OrganizerDashboard() {
+  const { user } = useAuth();
+  const [profile, setProfile] = useState<any>(null);
+
+  useEffect(() => {
+    async function load() {
+      if (!user) return;
+      const snap = await getDoc(doc(db, 'users', user.uid));
+      if (snap.exists()) setProfile(snap.data());
+    }
+    load();
+  }, [user]);
+
   const stats = [
     { label: 'Live Events', value: '0', icon: Zap, color: 'gold' },
     { label: 'Talent Network', value: '12', icon: Users, color: 'cyan' },
@@ -20,10 +35,14 @@ export default function OrganizerDashboard() {
     <div className="space-y-10">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h1 className="display-md text-white">WELCOME, ORGANIZER</h1>
-          <p className="body-md text-muted">Manage your events and scout for fresh talent.</p>
+          <h1 className="display-md text-white uppercase">
+            {profile?.name ? `WELCOME, ${profile.name.split(' ')[0]}` : 'WELCOME, ORGANIZER'}
+          </h1>
+          <p className="body-md text-muted">Manage your events and scout for fresh talent in the ecosystem.</p>
         </div>
-        <Button className="h-14 px-8"><Plus size={18} className="mr-2" /> POST NEW EVENT</Button>
+        <Link href="/organizer/post-event">
+          <Button className="h-14 px-8"><Plus size={18} className="mr-2" /> POST NEW EVENT</Button>
+        </Link>
       </header>
 
       <motion.div 
@@ -54,17 +73,27 @@ export default function OrganizerDashboard() {
           <SectionLabel>ACTIVE EVENTS</SectionLabel>
           <div className="flex flex-col items-center justify-center py-20 text-center space-y-4 opacity-30">
             <Zap size={48} />
-            <p className="text-sm font-bold uppercase tracking-widest">No active events</p>
-            <Button variant="ghost" size="sm">START POSTING</Button>
+            <div className="space-y-1">
+              <p className="text-sm font-bold uppercase tracking-widest">No active events found</p>
+              <p className="text-xs">Post an event to start matching with talent.</p>
+            </div>
+            <Link href="/organizer/post-event">
+              <Button variant="ghost" size="sm">START POSTING</Button>
+            </Link>
           </div>
         </Card>
 
         <Card className="p-8 space-y-6" glowColor="muted">
-          <SectionLabel>TALENT RECOMMENDATIONS</SectionLabel>
+          <SectionLabel>RECOMMENDED TALENT</SectionLabel>
           <div className="flex flex-col items-center justify-center py-20 text-center space-y-4 opacity-30">
             <Users size={48} />
-            <p className="text-sm font-bold uppercase tracking-widest">Matches will appear here</p>
-            <Button variant="ghost" size="sm">SEARCH ROSTER</Button>
+            <div className="space-y-1">
+              <p className="text-sm font-bold uppercase tracking-widest">Matches will appear here</p>
+              <p className="text-xs">Our AI engine suggests talent based on your event vibe.</p>
+            </div>
+            <Link href="/organizer/search-talent">
+              <Button variant="ghost" size="sm">SEARCH ROSTER</Button>
+            </Link>
           </div>
         </Card>
       </div>
