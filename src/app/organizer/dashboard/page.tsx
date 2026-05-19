@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Users, Zap, MessageSquare, ArrowRight, Calendar, MapPin, Award, Loader2 } from 'lucide-react';
+import { Plus, Users, Zap, MessageSquare, ArrowRight, Calendar, MapPin, Award, Loader2, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
@@ -12,6 +12,7 @@ import { collection, query, where, orderBy, limit, onSnapshot } from 'firebase/f
 import { db, useAuth } from '@/firebase';
 import Link from 'next/link';
 import PlatformGuard from '@/components/platform/PlatformGuard';
+import { formatDistanceToNow } from 'date-fns';
 
 export default function OrganizerDashboard() {
   const { user, platformUser } = useAuth();
@@ -24,6 +25,7 @@ export default function OrganizerDashboard() {
   useEffect(() => {
     if (!user) return;
 
+    // Load Stats & Active Events
     const eventsQuery = query(collection(db, 'platform_events'), where('organizerId', '==', user.uid));
     const unsubEvents = onSnapshot(eventsQuery, (snap) => {
       const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -33,9 +35,11 @@ export default function OrganizerDashboard() {
         booked: docs.filter((e: any) => e.status === 'booked').length,
         completed: docs.filter((e: any) => e.status === 'completed').length
       });
+      // Sort and pick top active ones
       setActiveEvents(docs.filter((e: any) => e.status === 'open' || e.status === 'booked').slice(0, 4));
     });
 
+    // Load Pending Bookings
     const bookingsQuery = query(
       collection(db, 'bookings'),
       where('organizerId', '==', user.uid),
@@ -48,6 +52,7 @@ export default function OrganizerDashboard() {
       setLoading(false);
     });
 
+    // Load Recent Matches (Cached Results)
     const matchesQuery = query(collection(db, 'matches'), where('organizerId', '==', user.uid), orderBy('generatedAt', 'desc'), limit(3));
     const unsubMatches = onSnapshot(matchesQuery, (snap) => {
       setRecentMatches(snap.docs.map(d => ({ id: d.id, ...d.data() })));
@@ -58,8 +63,8 @@ export default function OrganizerDashboard() {
 
   const statItems = [
     { label: 'My Events', value: stats.total, icon: Zap, color: 'gold' as const },
-    { label: 'Open Briefs', value: stats.open, icon: Award, color: 'cyan' as const },
-    { label: 'Booked', value: stats.booked, icon: Users, color: 'purple' as const },
+    { label: 'Open Events', value: stats.open, icon: Award, color: 'cyan' as const },
+    { label: 'Booked Events', value: stats.booked, icon: Users, color: 'purple' as const },
     { label: 'Completed', value: stats.completed, icon: MessageSquare, color: 'muted' as const },
   ];
 
@@ -84,6 +89,7 @@ export default function OrganizerDashboard() {
           </Link>
         </header>
 
+        {/* Stats Row */}
         <motion.div variants={staggerContainer} initial="hidden" animate="show" className="grid grid-cols-2 md:grid-cols-4 gap-4 lg:gap-6">
           {statItems.map((s, i) => (
             <motion.div key={i} variants={scaleIn}>
@@ -94,7 +100,7 @@ export default function OrganizerDashboard() {
                   </div>
                   <div>
                     <p className="font-display text-3xl text-white leading-none mb-1">{s.value}</p>
-                    <p className="text-[0.6rem] label m-0 font-bold opacity-60">{s.label}</p>
+                    <p className="text-[0.6rem] label m-0 font-bold opacity-60 uppercase">{s.label}</p>
                   </div>
                 </div>
               </Card>
@@ -103,6 +109,7 @@ export default function OrganizerDashboard() {
         </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          {/* Main Column */}
           <div className="lg:col-span-8 space-y-8">
             <div className="flex items-center justify-between">
               <SectionLabel className="mb-0">ACTIVE EVENTS</SectionLabel>
@@ -117,7 +124,7 @@ export default function OrganizerDashboard() {
                       <div className="flex justify-between items-start">
                         <Badge variant="active" className="bg-white/5 border-white/10 text-muted">{event.category}</Badge>
                         <Badge variant={event.status === 'open' ? 'live' : 'active'}>
-                          {event.status === 'open' ? 'MATCHING' : 'BOOKED'}
+                          {event.status === 'open' ? 'OPEN' : 'BOOKED'}
                         </Badge>
                       </div>
                       <div className="space-y-2">
@@ -127,6 +134,10 @@ export default function OrganizerDashboard() {
                            <span className="flex items-center gap-2"><MapPin size={12} className="text-gold" /> {event.venue}</span>
                         </div>
                       </div>
+                      <div className="pt-2">
+                        <p className="text-[0.6rem] label mb-2">Talent Needed</p>
+                        <Badge variant="active" className="bg-purple-dim text-purple border-purple">{event.talentCategory}</Badge>
+                      </div>
                     </div>
                     <div className="mt-8 pt-6 border-t border-white/5">
                       {event.status === 'open' ? (
@@ -134,7 +145,17 @@ export default function OrganizerDashboard() {
                           <Button variant="primary" className="w-full h-11 text-[0.65rem] font-bold">FIND TALENT <ArrowRight size={14} className="ml-2" /></Button>
                         </Link>
                       ) : (
-                        <Button variant="ghost" className="w-full h-11 text-[0.65rem] border border-white/5" asChild><Link href="/organizer/bookings">VIEW BOOKING</Link></Button>
+                        <div className="flex items-center justify-between">
+                           <div className="flex items-center gap-2">
+                              <div className="w-8 h-8 rounded-full bg-surface border border-white/10 overflow-hidden">
+                                 <img src={event.bookedTalentPhoto || 'https://picsum.photos/seed/talent/50/50'} alt="" className="w-full h-full object-cover" />
+                              </div>
+                              <span className="text-[0.65rem] font-bold text-white uppercase">{event.bookedTalentName || 'Talent Booked'}</span>
+                           </div>
+                           <Link href="/organizer/bookings">
+                              <Button variant="ghost" className="h-9 px-4 text-[0.6rem] border border-white/5">VIEW BOOKING</Button>
+                           </Link>
+                        </div>
                       )}
                     </div>
                   </Card>
@@ -149,7 +170,7 @@ export default function OrganizerDashboard() {
             </div>
 
             <div className="space-y-6">
-              <SectionLabel>PENDING RESPONSES</SectionLabel>
+              <SectionLabel>PENDING BOOKINGS</SectionLabel>
               {pendingBookings.length > 0 ? (
                 <div className="space-y-4">
                   {pendingBookings.map((b) => (
@@ -160,13 +181,14 @@ export default function OrganizerDashboard() {
                             <img src={b.talentPhoto || 'https://picsum.photos/seed/talent/100/100'} className="w-full h-full object-cover" alt="" />
                           </div>
                           <div className="space-y-1">
-                            <h4 className="font-bold text-white uppercase text-sm">{b.talentName}</h4>
-                            <p className="text-xs text-muted uppercase tracking-widest">{b.eventTitle} • GHS {b.agreedPrice}</p>
+                            <h4 className="font-bold text-white uppercase text-sm">{b.talentStageName}</h4>
+                            <p className="text-xs text-muted uppercase tracking-widest">{b.eventTitle} • GHS {b.agreedPrice.toLocaleString()}</p>
                           </div>
                         </div>
-                        <div className="text-right">
-                           <div className="flex items-center gap-2 text-gold animate-pulse text-[0.6rem] font-bold uppercase tracking-widest mb-1">
-                              <span className="w-1.5 h-1.5 rounded-full bg-gold" /> Awaiting Response
+                        <div className="text-right hidden sm:block">
+                           <p className="text-[0.6rem] text-muted uppercase font-bold mb-1">Requested {formatDistanceToNow(b.requestedAt?.toDate())} ago</p>
+                           <div className="flex items-center gap-2 text-gold animate-pulse text-[0.6rem] font-bold uppercase tracking-widest justify-end">
+                              <span className="w-1.5 h-1.5 rounded-full bg-gold" /> Awaiting response...
                            </div>
                         </div>
                       </div>
@@ -174,24 +196,27 @@ export default function OrganizerDashboard() {
                   ))}
                 </div>
               ) : (
-                <div className="p-10 text-center opacity-20"><p className="text-xs uppercase font-bold tracking-[0.3em]">No pending requests</p></div>
+                <div className="p-10 text-center opacity-20 border border-dashed border-white/5 rounded-xl">
+                  <p className="text-xs uppercase font-bold tracking-[0.3em]">No pending requests</p>
+                </div>
               )}
             </div>
           </div>
 
+          {/* Sidebar Column */}
           <aside className="lg:col-span-4 space-y-8">
             <Card className="p-8 space-y-6 bg-[#16161F]/60" glowColor="purple">
               <SectionLabel>QUICK ACTIONS</SectionLabel>
               <div className="grid grid-cols-1 gap-3">
                  {[
                    { label: 'Post New Event', href: '/organizer/post-event', icon: Plus, color: 'gold' },
-                   { label: 'Scout Talent', href: '/organizer/search', icon: Users, color: 'cyan' },
-                   { label: 'My Bookings', href: '/organizer/bookings', icon: MessageSquare, color: 'purple' },
-                   { label: 'My Events', href: '/organizer/events', icon: Calendar, color: 'muted' },
+                   { label: 'Search Talent', href: '/organizer/search', icon: Users, color: 'cyan' },
+                   { label: 'Manage Bookings', href: '/organizer/bookings', icon: MessageSquare, color: 'purple' },
+                   { label: 'Event History', href: '/organizer/events', icon: Calendar, color: 'muted' },
                  ].map((action) => (
                    <Link key={action.label} href={action.href} className="flex items-center justify-between p-4 rounded-lg bg-white/5 border border-white/5 hover:border-white/20 hover:bg-white/10 transition-all group">
                      <div className="flex items-center gap-3">
-                       <action.icon size={16} className={`text-${action.color}`} />
+                       <div className={`p-2 rounded-md bg-black/40 text-${action.color}`}><action.icon size={16} /></div>
                        <span className="text-[0.65rem] font-bold text-white uppercase tracking-widest">{action.label}</span>
                      </div>
                      <ArrowRight size={14} className="text-muted group-hover:translate-x-1 transition-transform" />
@@ -201,21 +226,32 @@ export default function OrganizerDashboard() {
             </Card>
 
             <Card className="p-8 space-y-6 bg-[#16161F]/60" glowColor="muted">
-              <SectionLabel>RECENT AI MATCHES</SectionLabel>
+              <SectionLabel>RECENT MATCHES</SectionLabel>
               {recentMatches.length > 0 ? (
                 <div className="space-y-6">
                   {recentMatches.map((m) => (
                     <div key={m.id} className="space-y-3">
-                      <p className="text-[0.65rem] font-bold text-white uppercase truncate">{m.eventId}</p>
-                      <div className="p-4 rounded-lg bg-black/40 border border-white/5 space-y-2">
-                         <p className="text-[0.6rem] text-cyan-400 font-bold uppercase tracking-widest">{m.results?.length || 0} Matches found</p>
-                         <Link href={`/match/${m.eventId}`} className="flex items-center justify-between text-[0.6rem] font-bold text-gold hover:underline uppercase">View Results <ArrowRight size={12} /></Link>
+                      <p className="text-[0.65rem] font-bold text-white uppercase truncate">{m.eventTitle}</p>
+                      <div className="p-4 rounded-lg bg-black/40 border border-white/5 space-y-3">
+                         <p className="text-[0.6rem] text-cyan-400 font-bold uppercase tracking-widest">{m.results?.length || 0} Talents matched</p>
+                         {m.results?.[0] && (
+                           <div className="flex items-center justify-between">
+                              <p className="text-[0.6rem] text-muted uppercase">Top: <span className="text-white font-bold">{m.results[0].stageName}</span></p>
+                              <p className="text-[0.6rem] font-display text-gold">{m.results[0].matchPercentage}%</p>
+                           </div>
+                         )}
+                         <Link href={`/match/${m.id}`} className="flex items-center justify-between text-[0.6rem] font-bold text-gold hover:underline uppercase pt-2 border-t border-white/5">
+                            View Matches <ArrowRight size={12} />
+                         </Link>
                       </div>
                     </div>
                   ))}
                 </div>
               ) : (
-                <div className="py-10 text-center flex flex-col items-center gap-3 opacity-20"><Award size={32} /><p className="text-[0.6rem] font-bold uppercase tracking-widest">No match history</p></div>
+                <div className="py-10 text-center flex flex-col items-center gap-3 opacity-20">
+                  <Award size={32} />
+                  <p className="text-[0.6rem] font-bold uppercase tracking-widest">No matches generated</p>
+                </div>
               )}
             </Card>
           </aside>

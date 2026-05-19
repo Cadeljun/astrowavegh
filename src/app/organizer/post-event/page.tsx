@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Calendar, MapPin, Zap, Info, Loader2, Save, ArrowRight, ArrowLeft, Users, DollarSign } from 'lucide-react';
+import { Calendar, MapPin, Zap, Info, Loader2, Save, ArrowRight, ArrowLeft, Users, DollarSign, Check } from 'lucide-react';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db, useAuth } from '@/firebase';
 import { Card } from '@/components/ui/Card';
@@ -71,7 +71,11 @@ export default function PostEventPage() {
         updatedAt: serverTimestamp()
       };
       const docRef = await addDoc(collection(db, 'platform_events'), eventData);
-      toast({ title: "Event Posted!", description: "Triggering AI match engine..." });
+      
+      toast({ title: "Event Posted!", description: "Initializing Matching Engine..." });
+      
+      // Note: In a real app, a Cloud Function would trigger here to populate /matches.
+      // For MVP, we redirect and the match page handle logic.
       router.push(`/match/${docRef.id}`);
     } catch (error: any) {
       toast({ variant: "destructive", title: "Post failed", description: error.message });
@@ -87,13 +91,14 @@ export default function PostEventPage() {
           <p className="body-md text-muted uppercase tracking-[0.2em] text-xs font-bold">Connect with the perfect wave for your experience</p>
         </header>
 
+        {/* Step Indicator */}
         <div className="flex items-center justify-center gap-12">
           {[1, 2, 3].map((s) => (
             <div key={s} className="flex flex-col items-center gap-2 group">
               <div className={cn(
                 "w-10 h-10 rounded-full border-2 flex items-center justify-center font-display text-lg transition-all duration-500",
                 step === s ? "border-gold bg-gold text-black shadow-[0_0_20px_rgba(255,209,102,0.4)]" : step > s ? "border-gold text-gold bg-gold/5" : "border-white/10 text-muted"
-              )}>{step > s ? '✓' : s}</div>
+              )}>{step > s ? <Check size={18} /> : s}</div>
               <span className={cn("text-[0.6rem] font-bold uppercase tracking-widest", step >= s ? "text-white" : "text-muted")}>
                 {s === 1 ? 'Details' : s === 2 ? 'Talent' : 'Review'}
               </span>
@@ -144,18 +149,18 @@ export default function PostEventPage() {
                           </select>
                        </div>
                        <div className="space-y-2">
-                          <label className="admin-label">GUESTS *</label>
+                          <label className="admin-label">EXPECTED GUESTS *</label>
                           <input type="number" className="admin-input h-14" value={formData.guestCount} onChange={e => setFormData({...formData, guestCount: Number(e.target.value)})} />
                        </div>
                     </div>
                  </div>
                  <div className="space-y-2">
                     <label className="admin-label">EVENT DESCRIPTION & VIBE</label>
-                    <textarea rows={5} className="admin-input resize-none py-4" placeholder="Describe the energy, audience, and music style..." value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} />
+                    <textarea rows={5} className="admin-input resize-none py-4" placeholder="Tell talent about the audience and desired energy..." value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} />
                  </div>
               </Card>
               <div className="flex justify-end">
-                <Button size="lg" className="px-12 h-16" onClick={handleNext} disabled={!formData.title || !formData.date || !formData.venue}>NEXT: REQUIREMENTS <ArrowRight size={18} className="ml-2" /></Button>
+                <Button size="lg" className="px-12 h-16" onClick={handleNext} disabled={!formData.title || !formData.date || !formData.venue}>NEXT: TALENT SPECS <ArrowRight size={18} className="ml-2" /></Button>
               </div>
             </motion.div>
           )}
@@ -164,10 +169,19 @@ export default function PostEventPage() {
             <motion.div key="step2" variants={fadeUp} initial="hidden" animate="show" exit={{ opacity: 0, x: -20 }} className="space-y-8">
               <Card className="p-10 space-y-10" glowColor="muted">
                  <div className="space-y-4">
-                    <SectionLabel>WHO ARE YOU LOOKING FOR?</SectionLabel>
+                    <SectionLabel>WHICH TALENT DO YOU NEED?</SectionLabel>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                        {TALENT_CATEGORIES.map((cat) => (
-                         <button key={cat.id} onClick={() => setFormData({...formData, talentCategory: cat.id})} className={cn("flex flex-col items-center justify-center gap-3 p-6 rounded-xl border-2 transition-all group", formData.talentCategory === cat.id ? "bg-gold/10 border-gold shadow-[0_0_20px_rgba(255,209,102,0.15)]" : "bg-black/40 border-white/5 hover:border-white/20")}>
+                         <button 
+                           key={cat.id} 
+                           onClick={() => setFormData({...formData, talentCategory: cat.id})}
+                           className={cn(
+                             "flex flex-col items-center justify-center gap-3 p-6 rounded-xl border-2 transition-all group",
+                             formData.talentCategory === cat.id 
+                               ? "bg-gold/10 border-gold shadow-[0_0_20px_rgba(255,209,102,0.15)]" 
+                               : "bg-black/40 border-white/5 hover:border-white/20"
+                           )}
+                         >
                            <cat.icon size={24} className={formData.talentCategory === cat.id ? "text-gold" : "text-muted group-hover:text-white"} />
                            <span className={cn("text-[0.65rem] font-bold uppercase tracking-widest", formData.talentCategory === cat.id ? "text-white" : "text-muted group-hover:text-white")}>{cat.label}</span>
                          </button>
@@ -187,16 +201,20 @@ export default function PostEventPage() {
                             <option value="USD">USD</option>
                          </select>
                       </div>
+                      <div className="flex items-center gap-3">
+                         <input type="checkbox" id="neg" checked={formData.negotiable} onChange={e => setFormData({...formData, negotiable: e.target.checked})} className="w-4 h-4 accent-gold" />
+                         <label htmlFor="neg" className="text-xs text-muted uppercase font-bold cursor-pointer">Price is negotiable</label>
+                      </div>
                     </div>
                     <div className="space-y-4">
                        <label className="admin-label">SPECIFIC REQUIREMENTS</label>
-                       <textarea rows={4} className="admin-input resize-none py-4" placeholder="e.g. Own equipment needed, sound check 1hr prior..." value={formData.requirements} onChange={e => setFormData({...formData, requirements: e.target.value})} />
+                       <textarea rows={4} className="admin-input resize-none py-4" placeholder="e.g. Own DJ equipment needed, arrival 1hr prior..." value={formData.requirements} onChange={e => setFormData({...formData, requirements: e.target.value})} />
                     </div>
                  </div>
               </Card>
               <div className="flex justify-between">
                  <Button variant="ghost" size="lg" className="h-16" onClick={handleBack}><ArrowLeft size={18} className="mr-2" /> BACK</Button>
-                 <Button size="lg" className="px-12 h-16" onClick={handleNext}>NEXT: REVIEW <ArrowRight size={18} className="ml-2" /></Button>
+                 <Button size="lg" className="px-12 h-16" onClick={handleNext}>NEXT: FINAL REVIEW <ArrowRight size={18} className="ml-2" /></Button>
               </div>
             </motion.div>
           )}
@@ -209,33 +227,41 @@ export default function PostEventPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
                        <div className="space-y-6">
                           <div className="space-y-1">
-                             <p className="text-[0.6rem] label m-0">TITLE & CATEGORY</p>
+                             <p className="text-[0.6rem] label m-0">TITLE & TYPE</p>
                              <h3 className="text-3xl font-display text-white tracking-widest uppercase">{formData.title}</h3>
-                             <Badge variant="active">{formData.category}</Badge>
+                             <Badge variant="active" className="mt-1">{formData.category}</Badge>
                           </div>
                           <div className="space-y-1">
-                             <p className="text-[0.6rem] label m-0">DATE & VENUE</p>
-                             <p className="text-lg font-bold text-white uppercase">{new Date(formData.date).toLocaleDateString()} @ {formData.startTime}</p>
-                             <p className="text-sm text-muted">{formData.venue}, {formData.city}</p>
+                             <p className="text-[0.6rem] label m-0">LOCATION</p>
+                             <p className="text-lg font-bold text-white uppercase">{formData.venue}, {formData.city}</p>
+                             <p className="text-xs text-muted font-bold uppercase tracking-widest">{formData.date} @ {formData.startTime}</p>
                           </div>
                        </div>
                        <div className="space-y-6">
                           <div className="space-y-1">
-                             <p className="text-[0.6rem] label m-0">TALENT NEEDS</p>
+                             <p className="text-[0.6rem] label m-0">TALENT REQUIREMENT</p>
                              <p className="text-xl font-bold text-gold uppercase">{formData.talentCategory}</p>
-                             <p className="text-sm text-muted">Budget: {formData.currency} {formData.talentBudget.toLocaleString()}</p>
+                             <p className="text-sm text-muted">Budget: {formData.currency} {formData.talentBudget.toLocaleString()} {formData.negotiable && '(Negotiable)'}</p>
+                          </div>
+                          <div className="space-y-1">
+                             <p className="text-[0.6rem] label m-0">GUESTS</p>
+                             <p className="text-lg font-bold text-white">{formData.guestCount} Guests expected</p>
                           </div>
                        </div>
                     </div>
                  </div>
                  <div className="p-6 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex gap-4 text-cyan-400">
                     <Info className="shrink-0" />
-                    <p className="text-[0.65rem] font-bold uppercase tracking-widest leading-relaxed">Once published, the Matching Engine will scan the roster to find the best performers.</p>
+                    <p className="text-[0.65rem] font-bold uppercase tracking-widest leading-relaxed">
+                      IMPORTANT: After posting, our matching engine will scan the roster to find the best talents based on category, location, and Wave Score.
+                    </p>
                  </div>
               </Card>
               <div className="flex justify-between gap-6">
-                 <Button variant="ghost" size="lg" className="h-16" onClick={handleBack} disabled={loading}><ArrowLeft size={18} className="mr-2" /> EDIT</Button>
-                 <Button size="lg" className="flex-1 h-16 text-lg font-bold tracking-[0.3em]" onClick={handleSubmit} disabled={loading}>{loading ? <Loader2 className="animate-spin" /> : <><Save size={20} className="mr-3" /> PUBLISH EVENT</>}</Button>
+                 <Button variant="ghost" size="lg" className="h-16" onClick={handleBack} disabled={loading}><ArrowLeft size={18} className="mr-2" /> EDIT DETAILS</Button>
+                 <Button size="lg" className="flex-1 h-16 text-lg font-bold tracking-[0.3em]" onClick={handleSubmit} disabled={loading}>
+                   {loading ? <Loader2 className="animate-spin" /> : <><Zap size={20} className="mr-3" /> PUBLISH & MATCH</>}
+                 </Button>
               </div>
             </motion.div>
           )}
