@@ -2,100 +2,118 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { motion } from 'framer-motion';
-import { Users, Music, ChevronRight, Loader2, Sparkles } from 'lucide-react';
-import { doc, updateDoc, serverTimestamp, setDoc, getDoc } from 'firebase/firestore';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Users, Music, ChevronRight, Loader2, Sparkles, Phone, MapPin, Briefcase, Mic, CheckCircle, ArrowLeft } from 'lucide-react';
+import { doc, updateDoc, serverTimestamp, setDoc } from 'firebase/firestore';
 import { db, useAuth } from '@/firebase';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
+import { Badge } from '@/components/ui/Badge';
 import { useToast } from '@/hooks/use-toast';
-import LoadingScreen from '@/components/ui/LoadingScreen';
+import { GHANA_CITIES } from '@/lib/constants/ghana';
+import { UserRole } from '@/types/platform';
+
+const TALENT_CATEGORIES = ['DJ', 'MC', 'Hypeman', 'Singer', 'Dancer', 'Comedian', 'Band', 'Other'];
 
 export default function OnboardingPage() {
   const router = useRouter();
-  const { user, loading: authLoading } = useAuth();
+  const { user, platformUser, loading: authLoading, refreshPlatformUser } = useAuth();
   const { toast } = useToast();
-  const [selectedRole, setSelectedRole] = useState<'ORGANIZER' | 'TALENT' | null>(null);
+  
+  const [step, setStep] = useState(1);
+  const [role, setRole] = useState<UserRole>(null);
   const [loading, setLoading] = useState(false);
-  const [checking, setChecking] = useState(true);
+  
+  const [profileData, setProfileData] = useState({
+    phone: '',
+    city: 'Accra',
+    company: '',
+    bio: '',
+    stageName: '',
+    category: 'DJ',
+    basePrice: '',
+    currency: 'GHS' as 'GHS' | 'USD'
+  });
 
   useEffect(() => {
-    async function checkExistingProfile() {
-      if (!user) {
-        if (!authLoading) router.replace('/auth/login');
-        return;
-      }
-
-      try {
-        const userRef = doc(db, 'users', user.uid);
-        const userSnap = await getDoc(userRef);
-
-        if (userSnap.exists()) {
-          const data = userSnap.data();
-          if (data.onboarded) {
-            // Already onboarded, send to correct dashboard
-            const dest = data.role === 'ORGANIZER' ? '/organizer/dashboard' : '/talent/dashboard';
-            router.replace(dest);
-            return;
-          }
-          if (data.role && data.role !== 'PENDING') {
-            setSelectedRole(data.role as any);
-          }
-        } else {
-          // Initialize user doc if missing (e.g. first Google sign in)
-          await setDoc(userRef, {
-            uid: user.uid,
-            email: user.email,
-            name: user.displayName || '',
-            role: 'PENDING',
-            onboarded: false,
-            createdAt: serverTimestamp(),
-            updatedAt: serverTimestamp()
-          });
-        }
-      } catch (err) {
-        console.error('Onboarding check failed:', err);
-      } finally {
-        setChecking(false);
-      }
+    if (!authLoading && !user) {
+      router.replace('/auth/login');
+    } else if (!authLoading && platformUser?.onboarded) {
+      router.replace(platformUser.role === 'talent' ? '/talent/dashboard' : '/organizer/dashboard');
     }
+  }, [user, platformUser, authLoading, router]);
 
-    checkExistingProfile();
-  }, [user, authLoading, router]);
+  const handleRoleSelect = async (selectedRole: UserRole) => {
+    setRole(selectedRole);
+    setStep(2);
+  };
 
-  const handleFinishOnboarding = async () => {
-    if (!selectedRole || !user) return;
+  const handleBasicProfileSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setStep(3);
+  };
+
+  const handleFinalize = async () => {
+    if (!user || !role) return;
     setLoading(true);
 
     try {
       const userRef = doc(db, 'users', user.uid);
       await updateDoc(userRef, {
-        role: selectedRole,
+        role: role,
         onboarded: true,
         updatedAt: serverTimestamp()
       });
 
-      // If Talent, initialize talent profile
-      if (selectedRole === 'TALENT') {
-        const talentRef = doc(db, 'talent_profiles', user.uid);
-        const talentSnap = await getDoc(talentRef);
-        if (!talentSnap.exists()) {
-          await setDoc(talentRef, {
-            userId: user.uid,
-            name: user.displayName || '',
-            stageName: '',
-            role: 'Artist',
-            bio: '',
-            active: true,
-            createdAt: serverTimestamp()
-          });
-        }
+      if (role === 'organizer' || role === 'both') {
+        await setDoc(doc(db, 'organizer_profiles', user.uid), {
+          uid: user.uid,
+          displayName: user.displayName || '',
+          email: user.email || '',
+          phone: profileData.phone,
+          city: profileData.city,
+          company: profileData.company,
+          bio: profileData.bio,
+          eventCount: 0,
+          totalSpent: 0,
+          verified: false,
+          rating: 0,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        });
       }
 
+      if (role === 'talent' || role === 'both') {
+        await setDoc(doc(db, 'talent_profiles', user.uid), {
+          uid: user.uid,
+          displayName: user.displayName || '',
+          stageName: profileData.stageName || user.displayName || '',
+          email: user.email || '',
+          phone: profileData.phone,
+          city: profileData.city,
+          category: profileData.category,
+          basePrice: Number(profileData.basePrice) || 0,
+          currency: profileData.currency,
+          bio: profileData.bio,
+          waveScore: 0,
+          averageRating: 0,
+          ratingCount: 0,
+          eventCount: 0,
+          totalBookings: 0,
+          completedBookings: 0,
+          cancelledBookings: 0,
+          active: true,
+          available: true,
+          verified: false,
+          featured: false,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        });
+      }
+
+      await refreshPlatformUser();
       toast({ title: "Welcome to AstroWave!", description: "Redirecting to your dashboard..." });
-      
-      const destination = selectedRole === 'ORGANIZER' ? '/organizer/dashboard' : '/talent/dashboard';
-      router.replace(destination);
+      router.replace(role === 'talent' ? '/talent/dashboard' : '/organizer/dashboard');
     } catch (err: any) {
       toast({ variant: "destructive", title: "Setup Failed", description: err.message });
     } finally {
@@ -103,75 +121,248 @@ export default function OnboardingPage() {
     }
   };
 
-  if (authLoading || checking) return <LoadingScreen />;
+  if (authLoading) return null;
 
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center p-6 relative overflow-hidden">
-      <div className="absolute inset-0 z-0 opacity-10" style={{ background: 'radial-gradient(circle at 50% 50%, #FFD166, transparent 70%)' }} />
-      
-      <div className="max-w-3xl w-full space-y-12 text-center relative z-10">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="space-y-4"
-        >
-          <div className="inline-flex items-center justify-center p-3 rounded-full bg-gold/10 border border-gold/20 mb-4">
-             <Sparkles className="text-gold" size={24} />
+    <div className="space-y-10">
+      {/* Step Indicator */}
+      <div className="flex items-center justify-between max-w-xs mx-auto mb-8">
+        {[1, 2, 3].map((s) => (
+          <div key={s} className="flex flex-col items-center gap-2">
+            <div className={cn(
+              "w-8 h-8 rounded-full border-2 flex items-center justify-center font-bold text-xs transition-all duration-500",
+              step >= s ? "border-gold bg-gold/10 text-gold shadow-[0_0_15px_rgba(255,209,102,0.3)]" : "border-white/10 text-muted"
+            )}>
+              {s}
+            </div>
+            <span className={cn("text-[10px] font-bold uppercase tracking-widest", step >= s ? "text-gold" : "text-muted")}>
+              {s === 1 ? 'Account' : s === 2 ? 'Role' : 'Profile'}
+            </span>
           </div>
-          <h1 className="display-xl text-white tracking-tighter">CHOOSE YOUR PATH.</h1>
-          <p className="body-lg text-muted max-w-lg mx-auto">Select how you'll engage with the AstroWave creative ecosystem.</p>
-        </motion.div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <Card 
-            className={`p-10 cursor-pointer transition-all duration-500 relative group ${selectedRole === 'ORGANIZER' ? 'border-gold ring-1 ring-gold/40 scale-105 bg-gold/[0.03]' : 'border-white/5 opacity-60 grayscale hover:opacity-100 hover:grayscale-0'}`}
-            onClick={() => setSelectedRole('ORGANIZER')}
-            glowColor="gold"
-          >
-            <div className="flex flex-col items-center gap-6">
-              <div className={`p-6 rounded-full transition-all duration-500 ${selectedRole === 'ORGANIZER' ? 'bg-gold text-black shadow-[0_0_30px_rgba(255,209,102,0.4)]' : 'bg-white/5 text-muted'}`}>
-                <Users size={40} />
-              </div>
-              <div className="space-y-2">
-                <h3 className="font-display text-3xl text-white uppercase tracking-widest">ORGANIZER</h3>
-                <p className="text-[0.7rem] text-muted font-bold uppercase tracking-[0.2em] leading-relaxed">I host events and seek world-class talent to elevate my vision.</p>
-              </div>
-            </div>
-            {selectedRole === 'ORGANIZER' && <div className="absolute -top-3 -right-3 bg-gold text-black p-1 rounded-full"><ChevronRight size={16} /></div>}
-          </Card>
-
-          <Card 
-            className={`p-10 cursor-pointer transition-all duration-500 relative group ${selectedRole === 'TALENT' ? 'border-purple ring-1 ring-purple/40 scale-105 bg-purple/[0.03]' : 'border-white/5 opacity-60 grayscale hover:opacity-100 hover:grayscale-0'}`}
-            onClick={() => setSelectedRole('TALENT')}
-            glowColor="purple"
-          >
-            <div className="flex flex-col items-center gap-6">
-              <div className={`p-6 rounded-full transition-all duration-500 ${selectedRole === 'TALENT' ? 'bg-purple text-white shadow-[0_0_30_rgba(168,85,247,0.4)]' : 'bg-white/5 text-muted'}`}>
-                <Music size={40} />
-              </div>
-              <div className="space-y-2">
-                <h3 className="font-display text-3xl text-white uppercase tracking-widest">TALENT</h3>
-                <p className="text-[0.7rem] text-muted font-bold uppercase tracking-[0.2em] leading-relaxed">I am an artist or DJ looking to grow my bookings and legacy.</p>
-              </div>
-            </div>
-            {selectedRole === 'TALENT' && <div className="absolute -top-3 -right-3 bg-purple text-white p-1 rounded-full"><ChevronRight size={16} /></div>}
-          </Card>
-        </div>
-
-        <motion.div 
-          animate={{ opacity: selectedRole ? 1 : 0, y: selectedRole ? 0 : 20 }}
-          className="pt-8"
-        >
-          <Button 
-            disabled={!selectedRole || loading} 
-            size="lg" 
-            className="px-20 h-16 text-lg font-bold tracking-[0.3em]"
-            onClick={handleFinishOnboarding}
-          >
-            {loading ? <Loader2 className="animate-spin" /> : <>INITIALIZE HUB <ChevronRight className="ml-2" size={20} /></>}
-          </Button>
-        </motion.div>
+        ))}
       </div>
+
+      <AnimatePresence mode="wait">
+        {step === 1 && (
+          <motion.div
+            key="step1"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            className="space-y-8"
+          >
+            <div className="text-center space-y-2">
+              <h1 className="display-md text-white">How will you use AstroWave?</h1>
+              <p className="body-md text-muted">Choose your role to get started</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Card 
+                className="p-8 cursor-pointer group hover:border-gold transition-all duration-500 bg-white/[0.02]"
+                onClick={() => handleRoleSelect('organizer')}
+              >
+                <div className="flex flex-col items-center text-center space-y-6">
+                  <div className="p-6 rounded-2xl bg-gold/10 text-gold group-hover:scale-110 transition-transform">
+                    <Users size={40} />
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="font-display text-2xl text-white uppercase tracking-widest">I'm an Organizer</h3>
+                    <p className="text-xs text-muted leading-relaxed">I plan events and need to find the right talent for my events.</p>
+                  </div>
+                  <ul className="space-y-3 text-left w-full max-w-[200px] mx-auto">
+                    {['Post events', 'Find matched talent', 'Manage bookings', 'Rate performers'].map(f => (
+                      <li key={f} className="flex items-center gap-3 text-[10px] font-bold text-white uppercase tracking-wider">
+                        <CheckCircle size={14} className="text-gold" /> {f}
+                      </li>
+                    ))}
+                  </ul>
+                  <Button variant="primary" className="w-full h-12">SELECT ORGANIZER</Button>
+                </div>
+              </Card>
+
+              <Card 
+                className="p-8 cursor-pointer group hover:border-purple transition-all duration-500 bg-white/[0.02]"
+                onClick={() => handleRoleSelect('talent')}
+              >
+                <div className="flex flex-col items-center text-center space-y-6">
+                  <div className="p-6 rounded-2xl bg-purple/10 text-purple group-hover:scale-110 transition-transform">
+                    <Mic size={40} />
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="font-display text-2xl text-white uppercase tracking-widest">I'm a Talent</h3>
+                    <p className="text-xs text-muted leading-relaxed">I perform at events and want to get discovered by organizers.</p>
+                  </div>
+                  <ul className="space-y-3 text-left w-full max-w-[200px] mx-auto">
+                    {['Create talent profile', 'Get matched to events', 'Manage bookings', 'Build Wave Score'].map(f => (
+                      <li key={f} className="flex items-center gap-3 text-[10px] font-bold text-white uppercase tracking-wider">
+                        <CheckCircle size={14} className="text-purple" /> {f}
+                      </li>
+                    ))}
+                  </ul>
+                  <Button variant="secondary" className="w-full h-12 border-purple text-purple hover:bg-purple">SELECT TALENT</Button>
+                </div>
+              </Card>
+            </div>
+
+            <div className="text-center">
+              <button 
+                onClick={() => handleRoleSelect('both')}
+                className="text-[10px] text-muted hover:text-gold font-bold uppercase tracking-[0.2em] underline underline-offset-4"
+              >
+                I'm both an organizer and talent
+              </button>
+            </div>
+          </motion.div>
+        )}
+
+        {step === 2 && (
+          <motion.div
+            key="step2"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            className="space-y-8"
+          >
+            <div className="flex items-center gap-4">
+              <button onClick={() => setStep(1)} className="p-2 hover:bg-white/5 rounded-full text-muted hover:text-white transition-colors">
+                <ArrowLeft size={20} />
+              </button>
+              <div className="flex-1">
+                <h2 className="display-md text-white">SET UP YOUR PROFILE</h2>
+                <p className="text-xs text-muted uppercase tracking-widest">Entering details for: <span className="text-gold">{role?.toUpperCase()}</span></p>
+              </div>
+            </div>
+
+            <Card className="p-8">
+              <form onSubmit={handleBasicProfileSubmit} className="space-y-6">
+                {role === 'organizer' ? (
+                  <>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <label className="admin-label">PHONE NUMBER *</label>
+                        <div className="relative">
+                          <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-muted" size={18} />
+                          <input required type="tel" className="admin-input pl-12" placeholder="+233..." value={profileData.phone} onChange={e => setProfileData({...profileData, phone: e.target.value})} />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="admin-label">CITY *</label>
+                        <select className="admin-input h-11" value={profileData.city} onChange={e => setProfileData({...profileData, city: e.target.value})}>
+                          {GHANA_CITIES.map(c => <option key={c} value={c}>{c}</option>)}
+                        </select>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="admin-label">COMPANY NAME (OPTIONAL)</label>
+                      <div className="relative">
+                        <Briefcase className="absolute left-4 top-1/2 -translate-y-1/2 text-muted" size={18} />
+                        <input className="admin-input pl-12" placeholder="e.g. Wave Productions" value={profileData.company} onChange={e => setProfileData({...profileData, company: e.target.value})} />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="admin-label">BRIEF BIO</label>
+                      <textarea rows={4} className="admin-input resize-none" placeholder="Tell us about your event style..." value={profileData.bio} onChange={e => setProfileData({...profileData, bio: e.target.value})} />
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <label className="admin-label">STAGE NAME *</label>
+                        <input required className="admin-input" placeholder="e.g. DJ Horizon" value={profileData.stageName} onChange={e => setProfileData({...profileData, stageName: e.target.value})} />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="admin-label">CATEGORY *</label>
+                        <select className="admin-input h-11" value={profileData.category} onChange={e => setProfileData({...profileData, category: e.target.value})}>
+                          {TALENT_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                        </select>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <label className="admin-label">PHONE NUMBER *</label>
+                        <input required type="tel" className="admin-input" placeholder="+233..." value={profileData.phone} onChange={e => setProfileData({...profileData, phone: e.target.value})} />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="admin-label">CITY *</label>
+                        <select className="admin-input h-11" value={profileData.city} onChange={e => setProfileData({...profileData, city: e.target.value})}>
+                          {GHANA_CITIES.map(c => <option key={c} value={c}>{c}</option>)}
+                        </select>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="admin-label">BASE PRICE *</label>
+                      <div className="flex gap-2">
+                        <input required type="number" className="admin-input flex-1" placeholder="0.00" value={profileData.basePrice} onChange={e => setProfileData({...profileData, basePrice: e.target.value})} />
+                        <select className="admin-input w-32 h-11" value={profileData.currency} onChange={e => setProfileData({...profileData, currency: e.target.value as any})}>
+                          <option value="GHS">GHS</option>
+                          <option value="USD">USD</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="admin-label">PROFESSIONAL BIO *</label>
+                      <textarea required rows={4} className="admin-input resize-none" placeholder="Describe your sound, experience, and energy..." value={profileData.bio} onChange={e => setProfileData({...profileData, bio: e.target.value})} />
+                    </div>
+                  </>
+                )}
+
+                <Button type="submit" className="w-full h-14 mt-4">CONTINUE <ChevronRight size={20} className="ml-2" /></Button>
+              </form>
+            </Card>
+          </motion.div>
+        )}
+
+        {step === 3 && (
+          <motion.div
+            key="step3"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="space-y-8"
+          >
+            <div className="text-center space-y-4">
+              <div className="w-20 h-20 rounded-full bg-gold/10 border border-gold/20 flex items-center justify-center mx-auto shadow-[0_0_30px_rgba(255,209,102,0.2)]">
+                <Sparkles size={40} className="text-gold" />
+              </div>
+              <h2 className="display-md text-white">PROFILE READY</h2>
+              <p className="body-md text-muted">Review your information before launching.</p>
+            </div>
+
+            <Card className="p-8 space-y-6">
+              <div className="flex justify-between items-center pb-4 border-b border-white/5">
+                <p className="admin-label m-0">Platform Role</p>
+                <Badge variant="active" className={role === 'talent' ? 'bg-purple-dim text-purple border-purple' : 'bg-gold-dim text-gold border-gold'}>
+                  {role === 'both' ? 'Hybrid Operator' : role?.toUpperCase()}
+                </Badge>
+              </div>
+              <div className="space-y-4">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted">Identity</span>
+                  <span className="text-white font-bold">{profileData.stageName || user?.displayName}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted">Location</span>
+                  <span className="text-white font-bold">{profileData.city}, Ghana</span>
+                </div>
+                {role !== 'organizer' && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted">Specialty</span>
+                    <span className="text-white font-bold">{profileData.category}</span>
+                  </div>
+                )}
+              </div>
+            </Card>
+
+            <Button disabled={loading} onClick={handleFinalize} className="w-full h-16 text-lg font-bold tracking-widest">
+              {loading ? <Loader2 className="animate-spin" /> : 'GO TO MY DASHBOARD'}
+            </Button>
+
+            <button onClick={() => setStep(2)} className="w-full text-[10px] text-muted hover:text-white uppercase font-bold tracking-widest">
+              Edit information
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
