@@ -109,7 +109,7 @@ export default function LoginPage() {
                   className="admin-input pl-12 h-13 pr-12" 
                   placeholder="••••••••" 
                   value={formData.password} 
-                  onChange={e => {setFormData({...formData, password: e.target.value}); clearError();}} 
+                  onChange={e => {setFormData({...formData, password: e.target.value}); if(formErrors.password) setFormErrors({...formErrors, password: ''}); }} 
                 />
                 <button 
                   type="button" 

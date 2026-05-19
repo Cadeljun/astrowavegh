@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Users, Music, ChevronRight, Loader2, Sparkles, Phone, MapPin, Briefcase, Mic, CheckCircle, ArrowLeft } from 'lucide-react';
+import { Users, Mic, ChevronRight, Loader2, Sparkles, Phone, Briefcase, CheckCircle, ArrowLeft } from 'lucide-react';
 import { doc, updateDoc, serverTimestamp, setDoc } from 'firebase/firestore';
 import { db, useAuth } from '@/firebase';
 import { Card } from '@/components/ui/Card';
@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/Badge';
 import { useToast } from '@/hooks/use-toast';
 import { GHANA_CITIES } from '@/lib/constants/ghana';
 import { UserRole } from '@/types/platform';
+import { cn } from '@/lib/utils';
 
 const TALENT_CATEGORIES = ['DJ', 'MC', 'Hypeman', 'Singer', 'Dancer', 'Comedian', 'Band', 'Other'];
 
@@ -240,10 +241,7 @@ export default function OnboardingPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-2">
                         <label className="admin-label">PHONE NUMBER *</label>
-                        <div className="relative">
-                          <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-muted" size={18} />
-                          <input required type="tel" className="admin-input pl-12" placeholder="+233..." value={profileData.phone} onChange={e => setProfileData({...profileData, phone: e.target.value})} />
-                        </div>
+                        <input required type="tel" className="admin-input" placeholder="+233..." value={profileData.phone} onChange={e => setProfileData({...profileData, phone: e.target.value})} />
                       </div>
                       <div className="space-y-2">
                         <label className="admin-label">CITY *</label>
@@ -254,10 +252,7 @@ export default function OnboardingPage() {
                     </div>
                     <div className="space-y-2">
                       <label className="admin-label">COMPANY NAME (OPTIONAL)</label>
-                      <div className="relative">
-                        <Briefcase className="absolute left-4 top-1/2 -translate-y-1/2 text-muted" size={18} />
-                        <input className="admin-input pl-12" placeholder="e.g. Wave Productions" value={profileData.company} onChange={e => setProfileData({...profileData, company: e.target.value})} />
-                      </div>
+                      <input className="admin-input" placeholder="e.g. Wave Productions" value={profileData.company} onChange={e => setProfileData({...profileData, company: e.target.value})} />
                     </div>
                     <div className="space-y-2">
                       <label className="admin-label">BRIEF BIO</label>

@@ -7,7 +7,6 @@ import { Mail, Lock, User, Eye, EyeOff, Loader2, ArrowRight, Chrome, AlertCircle
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
-import { Divider } from '@/components/ui/Divider';
 import { cn } from '@/lib/utils';
 
 export default function RegisterPage() {
