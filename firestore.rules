@@ -1,3 +1,4 @@
+
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -6,6 +7,10 @@ service cloud.firestore {
 
     function isSignedIn() {
       return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
     }
 
     // Identify the specific developer account
@@ -63,31 +68,55 @@ service cloud.firestore {
       allow write: if isSuperAdmin();
     }
 
+    // ─── USERS ──────────────────────
+    match /users/{uid} {
+      allow read: if isSignedIn();
+      allow write: if isOwner(uid) || isSuperAdmin();
+    }
+
     // ─── EVENTS ─────────────────────
     match /events/{id} {
       allow read: if true;
-      allow write: if canWrite() 
-        && getUserRole() != 'EDITOR';
+      allow write: if isSignedIn();
     }
 
     // ─── TALENT ─────────────────────
     match /talent/{id} {
       allow read: if true;
-      allow write: if canWrite()
-        && getUserRole() != 'EDITOR';
+      allow write: if isSuperAdmin();
+    }
+
+    match /talent_profiles/{uid} {
+      allow read: if true;
+      allow write: if isOwner(uid) || isSuperAdmin();
+    }
+
+    // ─── BOOKINGS ───────────────────
+    match /bookings/{id} {
+      allow read: if isSignedIn() && (
+        resource.data.organizerId == request.auth.uid ||
+        resource.data.talentId == request.auth.uid ||
+        isSuperAdmin()
+      );
+      allow create: if isSignedIn();
+      allow update: if isSignedIn() && (
+        resource.data.organizerId == request.auth.uid ||
+        resource.data.talentId == request.auth.uid ||
+        isSuperAdmin()
+      );
+      allow delete: if isSuperAdmin();
     }
 
     // ─── GALLERY ────────────────────
     match /gallery/{id} {
       allow read: if true;
-      allow write: if canWrite()
-        && getUserRole() != 'EDITOR';
+      allow write: if isSuperAdmin();
     }
 
     // ─── UPLOADS ────────────────────
     match /uploads/{id} {
       allow read: if isSignedIn();
-      allow write: if canWrite()
+      allow write: if canWrite() 
         && getUserRole() != 'EDITOR';
     }
 

@@ -1,12 +1,13 @@
+
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, ArrowLeft, Zap, Users, ShieldCheck, Star, Music, Award, Loader2 } from 'lucide-react';
+import { Sparkles, ArrowLeft, Zap, Users, ShieldCheck, Star, Music, Award, Loader2, Check } from 'lucide-react';
 import Link from 'next/link';
-import { doc, getDoc, collection, getDocs } from 'firebase/firestore';
-import { db } from '@/firebase';
+import { doc, getDoc, collection, getDocs, addDoc, serverTimestamp, query, where } from 'firebase/firestore';
+import { db, useAuth } from '@/firebase';
 import { calculateTalentMatch, type TalentMatchOutput } from '@/ai/flows/talent-match-flow';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -18,13 +19,15 @@ import { useToast } from '@/hooks/use-toast';
 export default function MatchingPage() {
   const params = useParams();
   const router = useRouter();
+  const { user } = useAuth();
   const { toast } = useToast();
   const eventId = params.eventId as string;
 
   const [event, setEvent] = useState<any>(null);
   const [results, setResults] = useState<TalentMatchOutput | null>(null);
   const [loading, setLoading] = useState(true);
-  const [processing, setProcessing] = useState(false);
+  const [bookingLoading, setBookingLoading] = useState<string | null>(null);
+  const [existingBookings, setExistingBookings] = useState<string[]>([]);
   const [talentMap, setTalentMap] = useState<Record<string, any>>({});
 
   useEffect(() => {
@@ -48,8 +51,12 @@ export default function MatchingPage() {
         roster.forEach(t => tMap[t.id] = t);
         setTalentMap(tMap);
 
-        // 3. Run Matching
-        setProcessing(true);
+        // 3. Fetch existing bookings for this event
+        const bookingsSnap = await getDocs(query(collection(db, 'bookings'), where('eventId', '==', eventId)));
+        const bookingTalentIds = bookingsSnap.docs.map(d => d.data().talentId);
+        setExistingBookings(bookingTalentIds);
+
+        // 4. Run Matching
         const matchResults = await calculateTalentMatch({
           event: {
             name: eventData.name,
@@ -72,12 +79,39 @@ export default function MatchingPage() {
         toast({ variant: 'destructive', title: "Matching Error", description: error.message });
       } finally {
         setLoading(false);
-        setProcessing(false);
       }
     }
 
     if (eventId) initMatching();
   }, [eventId, router, toast]);
+
+  const handleBookTalent = async (match: any) => {
+    if (!user || !event) return;
+    setBookingLoading(match.talentId);
+
+    const talent = talentMap[match.talentId];
+    
+    try {
+      await addDoc(collection(db, 'bookings'), {
+        eventId,
+        eventName: event.name,
+        eventDate: event.date,
+        talentId: match.talentId,
+        talentName: talent.stageName || talent.name,
+        organizerId: user.uid,
+        organizerName: user.displayName || 'Organizer',
+        status: 'PENDING',
+        timestamp: serverTimestamp()
+      });
+
+      setExistingBookings(prev => [...prev, match.talentId]);
+      toast({ title: "Request Sent!", description: `Inquiry sent to ${talent.stageName}` });
+    } catch (err: any) {
+      toast({ variant: "destructive", title: "Booking Failed", description: err.message });
+    } finally {
+      setBookingLoading(null);
+    }
+  };
 
   if (loading) {
     return (
@@ -127,6 +161,7 @@ export default function MatchingPage() {
           {results?.matches.map((match, i) => {
             const talent = talentMap[match.talentId];
             if (!talent) return null;
+            const isBooked = existingBookings.includes(match.talentId);
 
             return (
               <motion.div key={match.talentId} variants={scaleIn}>
@@ -168,8 +203,12 @@ export default function MatchingPage() {
                     <Button variant="ghost" className="text-[0.65rem] border-white/10" onClick={() => router.push(`/talent/${match.talentId}`)}>
                        VIEW PROFILE
                     </Button>
-                    <Button className="text-[0.65rem] h-11">
-                       BOOK NOW
+                    <Button 
+                      disabled={isBooked || bookingLoading === match.talentId}
+                      onClick={() => handleBookTalent(match)}
+                      className={`text-[0.65rem] h-11 ${isBooked ? 'bg-green-500/10 text-green-500 border-green-500/30' : ''}`}
+                    >
+                       {bookingLoading === match.talentId ? <Loader2 className="animate-spin" size={14} /> : isBooked ? <><Check size={14} className="mr-2" /> REQUESTED</> : 'BOOK NOW'}
                     </Button>
                   </div>
                 </Card>

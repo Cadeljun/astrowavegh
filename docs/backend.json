@@ -60,10 +60,16 @@
       "type": "object",
       "properties": {
         "eventId": { "type": "string" },
+        "eventName": { "type": "string" },
+        "eventDate": { "type": "string" },
         "talentId": { "type": "string" },
+        "talentName": { "type": "string" },
         "organizerId": { "type": "string" },
+        "organizerName": { "type": "string" },
         "status": { "type": "string", "enum": ["PENDING", "CONFIRMED", "CANCELLED", "COMPLETED"] },
         "price": { "type": "number" },
+        "rating": { "type": "number", "minimum": 1, "maximum": 5 },
+        "review": { "type": "string" },
         "timestamp": { "type": "string", "format": "date-time" }
       },
       "required": ["eventId", "talentId", "organizerId", "status"]
