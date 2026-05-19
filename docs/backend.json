@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "Event": {
@@ -62,6 +63,11 @@
         "soundcloud": { "type": "string" },
         "spotify": { "type": "string" },
         "waveScore": { "type": "number" },
+        "averageRating": { "type": "number" },
+        "eventCount": { "type": "number" },
+        "ratingCount": { "type": "number" },
+        "recencyFactor": { "type": "number" },
+        "lastEventDate": { "type": "string", "format": "date-time" },
         "active": { "type": "boolean" },
         "createdAt": { "type": "string", "format": "date-time" }
       },
@@ -81,7 +87,10 @@
         "organizerName": { "type": "string" },
         "status": { "type": "string", "enum": ["PENDING", "CONFIRMED", "CANCELLED", "COMPLETED"] },
         "price": { "type": "number" },
-        "timestamp": { "type": "string", "format": "date-time" }
+        "rating": { "type": "number" },
+        "review": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "reviewedAt": { "type": "string", "format": "date-time" }
       },
       "required": ["eventId", "talentId", "organizerId", "status"]
     },

@@ -4,11 +4,13 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Star, Loader2, Save } from 'lucide-react';
-import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, updateDoc, getDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
 
 interface ReviewModalProps {
   isOpen: boolean;
@@ -28,15 +30,63 @@ export default function ReviewModal({ isOpen, onClose, booking }: ReviewModalPro
     setLoading(true);
 
     try {
-      await updateDoc(doc(db, 'bookings', booking.id), {
+      const bookingRef = doc(db, 'bookings', booking.id);
+      const bookingUpdate = {
         rating,
         review,
         reviewedAt: serverTimestamp()
-      });
-      toast({ title: "Review Submitted", description: "Thank you for your feedback!" });
+      };
+
+      // 1. Update the booking document
+      await updateDoc(bookingRef, bookingUpdate);
+
+      // 2. Recalculate Talent Wave Score metrics
+      const talentRef = doc(db, 'talent_profiles', booking.talentId);
+      const talentSnap = await getDoc(talentRef);
+
+      if (talentSnap.exists()) {
+        const talentData = talentSnap.data();
+        
+        const prevRatingCount = talentData.ratingCount || 0;
+        const prevAvgRating = talentData.averageRating || 0;
+        const prevEventCount = talentData.eventCount || 0;
+
+        const newRatingCount = prevRatingCount + 1;
+        const newAvgRating = ((prevAvgRating * prevRatingCount) + rating) / newRatingCount;
+        const newEventCount = prevEventCount + 1;
+        
+        // Recency factor calculation (simplified for MVP: 1.0 if done recently)
+        const recencyFactor = 1.0;
+        
+        // Wave Score formula: 70% average rating + 30% activity volume/recency
+        // Normalizing event count (log scale or cap at 50 for scoring purposes)
+        const activityScore = Math.min(newEventCount / 10, 5); // 0.5 points per event, max 5
+        const waveScore = (newAvgRating * 0.8) + (activityScore * 0.2);
+
+        const talentUpdate = {
+          averageRating: Number(newAvgRating.toFixed(2)),
+          ratingCount: newRatingCount,
+          eventCount: newEventCount,
+          lastEventDate: booking.eventDate,
+          recencyFactor,
+          waveScore: Number(waveScore.toFixed(2)),
+          updatedAt: serverTimestamp()
+        };
+
+        updateDoc(talentRef, talentUpdate).catch(err => {
+          console.error("Talent profile update failed:", err);
+        });
+      }
+
+      toast({ title: "Review Submitted", description: "Wave Score has been updated." });
       onClose();
     } catch (error: any) {
-      toast({ variant: "destructive", title: "Submission Failed", description: error.message });
+      const permissionError = new FirestorePermissionError({
+        path: `bookings/${booking.id}`,
+        operation: 'update',
+        requestResourceData: { rating, review },
+      } satisfies SecurityRuleContext);
+      errorEmitter.emit('permission-error', permissionError);
     } finally {
       setLoading(false);
     }
