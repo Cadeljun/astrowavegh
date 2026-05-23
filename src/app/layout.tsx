@@ -42,6 +42,18 @@ export const metadata: Metadata = {
   authors: [{ name: 'Calvin Mensah Delali' }],
   creator: 'AstroWave',
   publisher: 'AstroWave',
+  icons: {
+    icon: [
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+      { url: '/favicon-32.png', sizes: '32x32', type: 'image/png' },
+    ],
+    apple: [
+      { url: '/apple-touch-icon.png', sizes: '180x180' }
+    ],
+    other: [
+      { rel: 'mask-icon', url: '/favicon.svg', color: '#00FF87' }
+    ]
+  }
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -50,6 +62,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+        <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#020B18" />
         
         <SchemaOrg
