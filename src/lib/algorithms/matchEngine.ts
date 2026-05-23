@@ -29,10 +29,10 @@ export function calculateLocationScore(
   eventCity: string,
   eventRegion: string
 ): { score: number; reason: string } {
-  const tCity = talentCity.toLowerCase().trim();
-  const eCity = eventCity.toLowerCase().trim();
-  const tRegion = talentRegion.toLowerCase().trim();
-  const eRegion = eventRegion.toLowerCase().trim();
+  const tCity = (talentCity || '').toLowerCase().trim();
+  const eCity = (eventCity || '').toLowerCase().trim();
+  const tRegion = (talentRegion || '').toLowerCase().trim();
+  const eRegion = (eventRegion || '').toLowerCase().trim();
 
   if (tCity === eCity && tCity !== '') {
     return { 
@@ -61,7 +61,7 @@ export function calculateCategoryScore(
   talentCategory: string,
   requiredCategory: string
 ): { score: number; reason: string } {
-  const match = talentCategory.toLowerCase() === requiredCategory.toLowerCase();
+  const match = (talentCategory || '').toLowerCase() === (requiredCategory || '').toLowerCase();
 
   return {
     score: match ? 40 : 0,
