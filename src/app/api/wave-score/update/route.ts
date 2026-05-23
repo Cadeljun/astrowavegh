@@ -9,12 +9,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'talentId is required' }, { status: 400 });
     }
 
-    const newScore = await updateTalentWaveScore(talentId);
+    await updateTalentWaveScore(talentId);
     
     return NextResponse.json({ 
       success: true, 
-      score: newScore,
-      message: `Wave Score updated to ${newScore}`
+      message: `Wave Score updated for ${talentId}`
     });
   } catch (error: any) {
     console.error('Wave Score Update Error:', error);

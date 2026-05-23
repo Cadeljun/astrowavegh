@@ -11,51 +11,51 @@ import {
   increment,
   Timestamp
 } from 'firebase/firestore';
-import { calculateWaveScore } from './waveScore';
+import { calculateWaveScore, calculateRecencyFactor } from './waveScore';
 
 /**
  * Recalculates a talent's Wave Score based on their current ratings and activity.
  */
-export async function updateTalentWaveScore(talentId: string): Promise<number> {
+export async function updateTalentWaveScore(talentId: string): Promise<void> {
   // 1. Get all ratings for this talent
   const ratingsQuery = query(
-    collection(db, 'bookings'),
-    where('talentId', '==', talentId),
-    where('rating', '>', 0)
+    collection(db, 'ratings'),
+    where('talentId', '==', talentId)
   );
   
   const ratingsSnap = await getDocs(ratingsQuery);
   const ratings = ratingsSnap.docs.map(d => d.data());
   
-  // 2. Calculate average rating
+  // 2. Calculate new average rating
   const ratingCount = ratings.length;
   const averageRating = ratingCount > 0
-    ? ratings.reduce((sum, r) => sum + (r.rating || 0), 0) / ratingCount
+    ? parseFloat((ratings.reduce((sum, r) => sum + (r.averageScore || r.overall || 0), 0) / ratingCount).toFixed(2))
     : 0;
 
-  // 3. Get profile for event count and recency
-  const profileSnap = await getDoc(doc(db, 'talent_profiles', talentId));
-  if (!profileSnap.exists()) return 0;
+  // 3. Get talent profile for event count and last event date
+  const talentRef = doc(db, 'talent_profiles', talentId);
+  const talentSnap = await getDoc(talentRef);
   
-  const profile = profileSnap.data();
+  if (!talentSnap.exists()) return;
+  const talent = talentSnap.data();
   
-  // 4. Run calculation
+  // 4. Calculate new Wave Score
   const breakdown = calculateWaveScore(
     averageRating,
-    profile.eventCount || 0,
-    profile.lastEventDate || null
+    talent.eventCount || 0,
+    talent.lastEventDate || null
   );
 
-  // 5. Update profile
-  await updateDoc(doc(db, 'talent_profiles', talentId), {
+  // 5. Update talent profile
+  await updateDoc(talentRef, {
     waveScore: breakdown.waveScore,
-    averageRating: parseFloat(averageRating.toFixed(2)),
+    averageRating: breakdown.averageRating,
     ratingCount: ratingCount,
     recencyFactor: breakdown.recencyFactor,
     updatedAt: serverTimestamp()
   });
 
-  return breakdown.waveScore;
+  console.log(`Wave Score updated for ${talentId}:`, breakdown.waveScore);
 }
 
 /**

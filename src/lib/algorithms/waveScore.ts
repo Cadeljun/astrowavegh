@@ -37,7 +37,7 @@ export function calculateWaveScore(
 ): WaveScoreBreakdown {
   const recencyFactor = calculateRecencyFactor(lastEventDate);
 
-  // Component weights (scaled to a 5.0 max score)
+  // Component calculations (scaled to a 5.0 max score)
   // Rating: 60% weight (max 3.0 pts)
   const ratingComponent = (averageRating / 5) * 0.6;
   
@@ -52,10 +52,10 @@ export function calculateWaveScore(
   const waveScore = parseFloat(rawScore.toFixed(2));
 
   const recencyLabel = 
-    recencyFactor === 1.0 ? 'Active < 30d' :
-    recencyFactor === 0.8 ? 'Active 31-60d' :
-    recencyFactor === 0.5 ? 'Active 61-90d' :
-    'Inactive 90d+';
+    recencyFactor === 1.0 ? 'Active in last 30 days' :
+    recencyFactor === 0.8 ? 'Active in last 31-60 days' :
+    recencyFactor === 0.5 ? 'Active in last 61-90 days' :
+    'Inactive 90+ days';
 
   const formula = `[(${averageRating}÷5)×0.6] + [Min(${eventCount}÷20,1)×0.2] + (${recencyFactor}×0.2) × 5`;
 
