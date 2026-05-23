@@ -19,7 +19,8 @@ import {
   ChevronRight,
   Map,
   TableProperties,
-  Waves
+  Waves,
+  Shuffle
 } from 'lucide-react'
 import DevGuard from '@/components/dev/DevGuard'
 import { useRole, ROLE_LABELS, ROLE_COLORS } from '@/context/RoleContext'
@@ -35,6 +36,7 @@ const navItems = [
   { label: 'Cloudinary Browser', href: '/dev/cloudinary', icon: Cloud, group: 'SYSTEM' },
   { label: 'Media Map', href: '/dev/media-map', icon: Map, group: 'CONTENT' },
   { label: 'Wave Score', href: '/dev/wave-score', icon: Waves, group: 'SYSTEM' },
+  { label: 'Match Engine', href: '/dev/match-engine', icon: Shuffle, group: 'SYSTEM' },
   { label: 'CMS Editor', href: '/dev/cms', icon: Edit3, group: 'CONTENT' },
   { label: 'Seed Database', href: '/dev/seed', icon: Database, group: 'DATA' },
   { label: 'Page Previews', href: '/dev/previews', icon: Layout, group: 'PREVIEW' },
@@ -72,7 +74,7 @@ export default function DevLayout({ children }: { children: React.ReactNode }) {
   const isActive = (href: string) => pathname === href || pathname.startsWith(href + '/')
   const filteredNavItems = navItems.filter(item => {
     if (item.label === 'CMS Editor') return canEditCMS;
-    if (item.label === 'Seed Database' || item.label === 'Firestore Manager' || item.label === 'Wave Score') return isSuperAdmin;
+    if (item.label === 'Seed Database' || item.label === 'Firestore Manager' || item.label === 'Wave Score' || item.label === 'Match Engine') return isSuperAdmin;
     return true;
   });
 
