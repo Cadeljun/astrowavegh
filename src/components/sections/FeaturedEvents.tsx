@@ -66,7 +66,7 @@ export default function FeaturedEvents() {
 
         <div className="flex justify-center">
           <Link href="/events">
-            <Button variant="ghost">VIEW ALL EVENTS &rarr;</Button>
+            <Button variant="ghost" className="hover:text-green">VIEW ALL EVENTS &rarr;</Button>
           </Link>
         </div>
       </div>

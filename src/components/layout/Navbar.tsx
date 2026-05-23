@@ -4,11 +4,12 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, Instagram, Twitter, Youtube, Music, LayoutDashboard } from 'lucide-react';
+import { Menu, X, Instagram, Twitter, Music, LayoutDashboard } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/utils';
 import { useCMSSettings } from '@/lib/cms/useCMS';
 import { useAuth } from '@/firebase';
+import Logo from '@/components/ui/Logo';
 
 const navLinks = [
   { name: 'Home', href: '/' },
@@ -25,7 +26,6 @@ export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();
-  const { settings } = useCMSSettings();
   const { user, platformUser } = useAuth();
 
   useEffect(() => {
@@ -40,8 +40,6 @@ export default function Navbar() {
     setIsMobileMenuOpen(false);
   }, [pathname]);
 
-  const siteName = settings?.siteName || 'ASTROWAVE';
-
   const getDashboardUrl = () => {
     if (!platformUser) return '/auth/login';
     if (platformUser.role === 'talent') return '/talent/dashboard';
@@ -54,17 +52,12 @@ export default function Navbar() {
         'fixed top-0 left-0 w-full z-[1000] transition-all duration-300 flex items-center',
         'h-[64px] lg:h-[72px] px-6 lg:px-12',
         isScrolled 
-          ? 'bg-black/85 backdrop-blur-lg border-b border-[var(--color-border)]' 
+          ? 'bg-black/90 backdrop-blur-lg border-b border-blue/20 shadow-2xl' 
           : 'bg-transparent'
       )}
     >
       <div className="max-w-screen-2xl mx-auto w-full flex items-center justify-between">
-        {/* Logo */}
-        <Link href="/" className="group flex items-center gap-3" aria-label="AstroWave Home">
-          <span className="font-display text-2xl text-[var(--color-gold)] text-glow-gold transition-all group-hover:brightness-125 uppercase tracking-widest">
-            {siteName}
-          </span>
-        </Link>
+        <Logo height={36} />
 
         {/* Desktop Links */}
         <nav className="hidden lg:flex items-center gap-8" aria-label="Main Navigation">
@@ -73,8 +66,6 @@ export default function Navbar() {
               const isPlatform = link.name === 'Platform';
               const href = (isPlatform && user) ? getDashboardUrl() : link.href;
               const isActive = pathname === href;
-              
-              // If user is logged in, show Dashboard instead of Platform
               const displayName = (isPlatform && user) ? 'Dashboard' : link.name;
 
               return (
@@ -83,20 +74,20 @@ export default function Navbar() {
                   href={href}
                   className={cn(
                     'font-body text-[0.85rem] font-medium tracking-[0.1em] uppercase transition-colors relative flex items-center gap-1.5',
-                    isActive ? 'text-[var(--color-gold)]' : 'text-[var(--color-muted)] hover:text-[var(--color-white)]'
+                    isActive ? 'text-[var(--color-green)]' : 'text-[var(--color-muted)] hover:text-[var(--color-white)]'
                   )}
                 >
-                  {isPlatform && user && <LayoutDashboard size={14} className="text-gold" />}
+                  {isPlatform && user && <LayoutDashboard size={14} className="text-green" />}
                   {displayName}
                   {link.badge && (
-                    <span className="text-[0.6rem] bg-[var(--color-gold-dim)] text-[var(--color-gold)] rounded-full px-1.5 py-0.5 leading-none font-bold">
+                    <span className="text-[0.6rem] bg-[var(--color-green-dim)] text-[var(--color-green)] rounded-full px-1.5 py-0.5 leading-none font-bold">
                       {link.badge}
                     </span>
                   )}
                   {isActive && (
                     <motion.span
                       layoutId="nav-underline"
-                      className="absolute -bottom-1.5 left-0 w-full h-[2px] bg-[var(--color-gold)]"
+                      className="absolute -bottom-1.5 left-0 w-full h-[2px] bg-[var(--color-green)]"
                       initial={{ scaleX: 0 }}
                       animate={{ scaleX: 1 }}
                       transition={{ duration: 0.3 }}
@@ -116,7 +107,7 @@ export default function Navbar() {
 
         {/* Mobile Toggle */}
         <button
-          className="lg:hidden text-[var(--color-white)] p-2 transition-colors hover:text-[var(--color-gold)]"
+          className="lg:hidden text-[var(--color-white)] p-2 transition-colors hover:text-[var(--color-green)]"
           onClick={() => setIsMobileMenuOpen(true)}
           aria-label="Open Menu"
         >
@@ -135,14 +126,10 @@ export default function Navbar() {
             className="fixed inset-0 z-[2000] bg-[var(--color-dark)] flex flex-col p-8 lg:hidden"
           >
             <div className="flex justify-between items-center mb-12">
-              <Link href="/" className="group" aria-label="AstroWave Home">
-                <span className="font-display text-[2rem] text-[var(--color-gold)] text-glow-gold uppercase tracking-widest">
-                  {siteName}
-                </span>
-              </Link>
+              <Logo height={40} />
               <button 
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="text-[var(--color-white)] p-2 hover:text-[var(--color-gold)] transition-colors"
+                className="text-[var(--color-white)] p-2 hover:text-[var(--color-green)] transition-colors"
                 aria-label="Close Menu"
               >
                 <X size={32} />
@@ -167,12 +154,12 @@ export default function Navbar() {
                       href={href}
                       className={cn(
                         'font-display text-[2.5rem] tracking-widest uppercase transition-colors flex items-center gap-3',
-                        isActive ? 'text-[var(--color-gold)]' : 'text-[var(--color-white)] hover:text-[var(--color-gold)]'
+                        isActive ? 'text-[var(--color-green)]' : 'text-[var(--color-white)] hover:text-[var(--color-green)]'
                       )}
                     >
                       {displayName}
                       {link.badge && (
-                         <span className="text-[0.7rem] bg-[var(--color-gold-dim)] text-[var(--color-gold)] rounded-full px-2 py-1 leading-none font-bold">
+                         <span className="text-[0.7rem] bg-[var(--color-green-dim)] text-[var(--color-green)] rounded-full px-2 py-1 leading-none font-bold">
                            {link.badge}
                          </span>
                       )}
@@ -200,7 +187,7 @@ export default function Navbar() {
                 <Link 
                   key={i} 
                   href="#" 
-                  className="text-[var(--color-muted)] hover:text-[var(--color-gold)] transition-colors"
+                  className="text-[var(--color-muted)] hover:text-[var(--color-green)] transition-colors"
                   aria-label={`Follow us on ${Icon.name}`}
                 >
                   <Icon size={24} />

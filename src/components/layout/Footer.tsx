@@ -2,13 +2,13 @@
 
 import React from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { Instagram, Twitter, Youtube, Music, Facebook, Mail, MapPin } from 'lucide-react';
 import { Divider } from '@/components/ui/Divider';
 import { SectionLabel } from '@/components/ui/SectionLabel';
 import { staggerContainer, fadeUp } from '@/lib/animations';
 import { useCMSSettings } from '@/lib/cms/useCMS';
+import Logo from '@/components/ui/Logo';
 
 export default function Footer() {
   const { settings } = useCMSSettings();
@@ -26,22 +26,7 @@ export default function Footer() {
         >
           {/* Column 1 — Brand */}
           <motion.div variants={fadeUp} className="space-y-6">
-            <Link href="/" className="group block">
-              {settings?.logoUrl ? (
-                <div className="relative h-12 w-40 mb-2">
-                  <Image 
-                    src={settings.logoUrl} 
-                    alt={settings?.siteName || "AstroWave"} 
-                    fill 
-                    className="object-contain object-left transition-all group-hover:brightness-125"
-                  />
-                </div>
-              ) : (
-                <span className="font-display text-[2rem] text-[var(--color-gold)] text-glow-gold transition-all group-hover:brightness-125">
-                  {settings?.siteName?.toUpperCase() || 'ASTROWAVE'}
-                </span>
-              )}
-            </Link>
+            <Logo height={32} />
             <p className="font-body italic text-[0.9rem] text-[var(--color-muted)]">
               &quot;{settings?.tagline || 'Vibes Beyond the Horizon.'}&quot;
             </p>
@@ -53,7 +38,7 @@ export default function Footer() {
                 <Link 
                   key={i} 
                   href="#" 
-                  className="text-[var(--color-muted)] hover:text-[var(--color-gold)] transition-all duration-300"
+                  className="text-[var(--color-muted)] hover:text-[var(--color-green)] transition-all duration-300"
                   aria-label={`Visit AstroWave on ${Icon.name}`}
                 >
                   <Icon size={18} />
@@ -95,12 +80,12 @@ export default function Footer() {
               </li>
               <li>
                 <Link href="/records" className="font-body text-[0.9rem] text-[var(--color-muted)] hover:text-[var(--color-white)] transition-colors flex items-center gap-2">
-                  AstroWave Records <span className="text-[0.7rem] text-[var(--color-muted)]/50 italic">(Coming Soon)</span>
+                  AstroWave Records <span className="text-[0.7rem] text-[var(--color-muted)]/50 italic">(Soon)</span>
                 </Link>
               </li>
               <li>
                 <Link href="/cares" className="font-body text-[0.9rem] text-[var(--color-muted)] hover:text-[var(--color-white)] transition-colors flex items-center gap-2">
-                  AstroWave Cares <span className="text-[0.7rem] text-[var(--color-muted)]/50 italic">(Coming Soon)</span>
+                  AstroWave Cares <span className="text-[0.7rem] text-[var(--color-muted)]/50 italic">(Soon)</span>
                 </Link>
               </li>
             </ul>
@@ -111,17 +96,17 @@ export default function Footer() {
             <SectionLabel className="mb-0">Connect</SectionLabel>
             <ul className="flex flex-col gap-6">
               <li className="flex items-center gap-3 font-body text-[0.9rem] text-[var(--color-muted)]">
-                <Mail size={14} className="text-[var(--color-gold)]" />
+                <Mail size={14} className="text-[var(--color-green)]" />
                 {settings?.email || 'info@astrowave.com'}
               </li>
               <li className="flex items-center gap-3 font-body text-[0.9rem] text-[var(--color-muted)]">
-                <MapPin size={14} className="text-[var(--color-gold)]" />
+                <MapPin size={14} className="text-[var(--color-green)]" />
                 {settings?.location || 'Accra, Ghana'}
               </li>
               <li>
                 <Link 
                   href="/contact" 
-                  className="font-body text-[0.9rem] font-medium text-[var(--color-gold)] hover:underline flex items-center gap-2"
+                  className="font-body text-[0.9rem] font-medium text-[var(--color-green)] hover:underline flex items-center gap-2"
                 >
                   Book an Event &rarr;
                 </Link>

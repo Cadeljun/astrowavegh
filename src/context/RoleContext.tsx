@@ -51,7 +51,6 @@ export function RoleProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (authLoading) return;
     
-    // Developer Email Bypass - ensure full access even if Firestore doc is missing
     if (user?.email === 'junioraquils143@gmail.com') {
       setRole('SUPER_ADMIN');
       setRoleLoading(false);
@@ -65,7 +64,6 @@ export function RoleProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    // Listen to user role document in Firestore
     const ref = doc(db, 'user_roles', user.uid);
     const unsub = onSnapshot(
       ref,
@@ -95,7 +93,6 @@ export function RoleProvider({ children }: { children: ReactNode }) {
     return () => unsub();
   }, [user, authLoading, db]);
 
-  // Permission flags
   const isSuperAdmin = role === 'SUPER_ADMIN' || user?.email === 'junioraquils143@gmail.com';
   const isEditor = isSuperAdmin || role === 'EDITOR';
   const isDeveloper = isSuperAdmin || role === 'DEVELOPER';
@@ -135,8 +132,8 @@ export const ROLE_LABELS: Record<string, string> = {
 };
 
 export const ROLE_COLORS: Record<string, string> = {
-  SUPER_ADMIN: '#FFD166',
-  EDITOR: '#A855F7',
-  VIEWER: '#7B7B9A',
-  DEVELOPER: '#06B6D4'
+  SUPER_ADMIN: '#00FF87',
+  EDITOR:      '#0EA5E9',
+  VIEWER:      '#6B8CAE',
+  DEVELOPER:   '#38BDF8'
 };

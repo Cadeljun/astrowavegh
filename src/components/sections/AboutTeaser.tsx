@@ -25,7 +25,7 @@ export default function AboutTeaser() {
   ];
 
   return (
-    <section className="bg-[var(--color-black)] py-[var(--space-2xl)] px-6 lg:px-12 overflow-hidden">
+    <section className="bg-[var(--color-surface)] py-[var(--space-2xl)] px-6 lg:px-12 overflow-hidden">
       <div className="max-w-screen-2xl mx-auto flex flex-col lg:flex-row gap-20 items-center">
         <motion.div 
           className="w-full lg:w-[60%] space-y-8 relative"
@@ -34,7 +34,7 @@ export default function AboutTeaser() {
           viewport={{ once: true, amount: 0.3 }}
           variants={fadeUp}
         >
-          <NeonLine orientation="vertical" length="80px" className="absolute -left-8 top-0 opacity-50 hidden lg:block" />
+          <NeonLine orientation="vertical" length="80px" color="green" className="absolute -left-8 top-0 opacity-50 hidden lg:block" />
           
           <div className="space-y-4">
             <SectionLabel>{content.label}</SectionLabel>
@@ -46,7 +46,7 @@ export default function AboutTeaser() {
           </p>
 
           <Link href="/about">
-            <Button variant="ghost" className="group flex items-center gap-2">
+            <Button variant="ghost" className="group flex items-center gap-2 hover:text-green">
               {content.cta}
             </Button>
           </Link>
@@ -60,7 +60,7 @@ export default function AboutTeaser() {
           variants={fadeIn}
         >
           <div className="hidden lg:block absolute -top-20 right-0 z-0 pointer-events-none">
-            <span className="font-display text-[8rem] leading-[0.9] text-transparent" style={{ WebkitTextStroke: '1px rgba(255,209,102,0.2)' }}>
+            <span className="font-display text-[8rem] leading-[0.9] text-transparent" style={{ WebkitTextStroke: '1px rgba(0, 255, 135, 0.15)' }}>
               EST.<br />2024
             </span>
           </div>
@@ -71,8 +71,8 @@ export default function AboutTeaser() {
           >
             {stats.map((stat, i) => (
               <motion.div key={i} variants={scaleIn} className="snap-center min-w-[180px]">
-                <Card className="p-6 border-t-2 border-t-[var(--color-gold)]">
-                  <div className="font-display text-[2.5rem] text-[var(--color-gold)] leading-none mb-1">
+                <Card className="p-6 border-t-2 border-t-[var(--color-green)]" glowColor="green">
+                  <div className="font-display text-[2.5rem] text-[var(--color-green)] leading-none mb-1">
                     {stat.value}
                   </div>
                   <div className="font-body text-[0.75rem] uppercase tracking-widest text-[var(--color-muted)] font-semibold">

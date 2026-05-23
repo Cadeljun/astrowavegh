@@ -1,4 +1,3 @@
-
 import type { Config } from 'tailwindcss';
 
 const config: Config = {
@@ -11,39 +10,41 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        display: ['var(--font-bebas-neue)', 'cursive'],
+        display: ['var(--font-display)', 'cursive'],
         body: ['var(--font-outfit)', 'sans-serif'],
       },
       colors: {
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
-        black: '#050505',
-        dark: '#0A0A0F',
-        surface: '#111118',
+        black: '#020B18',
+        dark: '#041020',
+        surface: '#071428',
+        light: '#0D2244',
+        'light-card': '#112952',
         card: {
-          DEFAULT: '#16161F',
+          DEFAULT: '#0A1A32',
           foreground: 'hsl(var(--card-foreground))',
         },
-        'border-dark': '#1E1E2E',
-        gold: '#FFD166',
-        purple: '#A855F7',
-        cyan: '#06B6D4',
-        white: '#F8F8FF',
+        'border-dark': '#0F2040',
+        green: '#00FF87',
+        blue: '#0EA5E9',
+        sky: '#38BDF8',
+        white: '#F0F8FF',
         muted: {
-          DEFAULT: '#7B7B9A',
+          DEFAULT: '#6B8CAE',
           foreground: 'hsl(var(--muted-foreground))',
         },
         primary: {
-          DEFAULT: '#FFD166',
-          foreground: '#050505',
+          DEFAULT: '#00FF87',
+          foreground: '#020B18',
         },
         secondary: {
-          DEFAULT: '#A855F7',
-          foreground: '#F8F8FF',
+          DEFAULT: '#0EA5E9',
+          foreground: '#F0F8FF',
         },
         accent: {
-          DEFAULT: '#06B6D4',
-          foreground: '#F8F8FF',
+          DEFAULT: '#38BDF8',
+          foreground: '#F0F8FF',
         },
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',

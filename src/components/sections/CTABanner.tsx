@@ -24,17 +24,19 @@ export default function CTABanner({ overrideHeading, overrideSubtext }: CTABanne
   const subtext = overrideSubtext || content.subtext;
 
   return (
-    <section className="relative w-full py-[var(--space-2xl)] px-6 lg:px-12 overflow-hidden bg-[var(--color-black)] border-y border-[var(--color-border)]">
-      <div className="absolute inset-0 z-0 pointer-events-none" style={{ background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.12) 0%, rgba(5, 5, 5, 0.95) 40%, rgba(255, 209, 102, 0.08) 100%)' }} />
-      <div className="absolute top-1/2 left-0 -translate-y-1/2 w-[300px] h-[300px] bg-[var(--color-purple)] opacity-[0.15] blur-[120px] rounded-full z-0" />
-      <div className="absolute top-1/2 right-0 -translate-y-1/2 w-[300px] h-[300px] bg-[var(--color-gold)] opacity-[0.15] blur-[120px] rounded-full z-0" />
+    <section className="relative w-full py-[var(--space-2xl)] px-6 lg:px-12 overflow-hidden bg-[var(--color-light)] border-y border-[var(--color-border)]">
+      <div className="absolute inset-0 z-0 pointer-events-none" style={{ 
+        background: 'linear-gradient(135deg, rgba(14, 165, 233, 0.1) 0%, rgba(2, 11, 24, 0.95) 40%, rgba(0, 255, 135, 0.07) 100%)' 
+      }} />
+      <div className="absolute top-1/2 left-0 -translate-y-1/2 w-[300px] h-[300px] bg-[var(--color-blue)] opacity-[0.15] blur-[120px] rounded-full z-0" />
+      <div className="absolute top-1/2 right-0 -translate-y-1/2 w-[300px] h-[300px] bg-[var(--color-green)] opacity-[0.15] blur-[120px] rounded-full z-0" />
 
       <div className="absolute inset-0 flex items-center justify-center z-0 pointer-events-none select-none">
-        <span className="font-display text-[12vw] lg:text-[18rem] text-white opacity-[0.03] leading-none tracking-tighter">ASTROWAVE</span>
+        <span className="font-display text-[12vw] lg:text-[18rem] text-white opacity-[0.02] leading-none tracking-tighter">ASTROWAVE</span>
       </div>
 
       <div className="relative z-10 max-w-4xl mx-auto text-center space-y-8">
-        <motion.h2 className="display-xl text-glow-gold" variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }}>
+        <motion.h2 className="display-xl text-green text-glow-green" variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }}>
           {heading}
         </motion.h2>
         <motion.p className="body-lg text-[var(--color-muted)] max-w-[560px] mx-auto" variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }} transition={{ delay: 0.2 }}>

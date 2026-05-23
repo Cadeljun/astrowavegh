@@ -1,0 +1,5 @@
+<svg width="180" height="48" viewBox="0 0 180 48" xmlns="http://www.w3.org/2000/svg">
+  <path d="M8 32 C14 20, 20 20, 26 28 C32 36, 38 36, 44 24 C50 12, 56 12, 62 24" stroke="#00FF87" stroke-width="3" fill="none" stroke-linecap="round" />
+  <path d="M8 38 C14 26, 20 26, 26 34 C32 42, 38 42, 44 30 C50 18, 56 18, 62 30" stroke="#0EA5E9" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.6" />
+  <text x="72" y="34" font-family="var(--font-display)" font-size="28" fill="#020B18" letter-spacing="2">ASTROWAVE</text>
+</svg>

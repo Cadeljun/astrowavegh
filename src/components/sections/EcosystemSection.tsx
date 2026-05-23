@@ -12,16 +12,16 @@ import { cn } from '@/lib/utils';
 import { useCMSContent } from '@/lib/cms/useCMS';
 
 const divisions = [
-  { icon: Zap, title: 'ASTROWAVE EVENTS', desc: 'Immersive parties, concerts, festivals, and nightlife experiences that feel like cultural moments.', badge: 'active', color: 'gold' as const, link: '/events', cta: 'Explore Events →' },
-  { icon: Users, title: 'ASTROWAVE MANAGEMENT', desc: 'Representing DJs, artists, and creatives — building careers, securing deals, and shaping identities.', badge: 'active', color: 'purple' as const, link: '/management', cta: 'Meet The Talent →' },
+  { icon: Zap, title: 'ASTROWAVE EVENTS', desc: 'Immersive parties, concerts, festivals, and nightlife experiences that feel like cultural moments.', badge: 'active', color: 'green' as const, link: '/events', cta: 'Explore Events →' },
+  { icon: Users, title: 'ASTROWAVE MANAGEMENT', desc: 'Representing DJs, artists, and creatives — building careers, securing deals, and shaping identities.', badge: 'active', color: 'blue' as const, link: '/management', cta: 'Meet The Talent →' },
   { icon: Music, title: 'ASTROWAVE RECORDS', desc: 'A future home for African music — artist development, production, and distribution.', badge: 'coming-soon', color: 'muted' as const, link: null, cta: 'Coming Soon' },
   { icon: Heart, title: 'ASTROWAVE CARES', desc: 'Youth empowerment, creative education, and community impact initiatives across Africa.', badge: 'coming-soon', color: 'muted' as const, link: null, cta: 'Coming Soon' }
 ];
 
 const colorStyles = {
-  gold: { iconBg: 'bg-gold-dim', iconColor: 'text-gold', ctaColor: 'text-gold' },
-  purple: { iconBg: 'bg-purple-dim', iconColor: 'text-purple', ctaColor: 'text-purple' },
-  muted: { iconBg: 'bg-surface', iconColor: 'text-muted', ctaColor: 'text-muted' }
+  green: { iconBg: 'bg-green-dim', iconColor: 'text-green', ctaColor: 'text-green' },
+  blue: { iconBg: 'bg-blue-dim', iconColor: 'text-blue', ctaColor: 'text-blue' },
+  muted: { iconBg: 'bg-dark', iconColor: 'text-muted', ctaColor: 'text-muted' }
 };
 
 export default function EcosystemSection() {
@@ -33,7 +33,7 @@ export default function EcosystemSection() {
 
   return (
     <section 
-      className="bg-surface py-32 px-6 lg:px-12 relative"
+      className="bg-[var(--color-light)] py-32 px-6 lg:px-12 relative"
       style={{ clipPath: 'polygon(0 40px, 100% 0, 100% 100%, 0 100%)' }}
     >
       <div className="max-w-screen-2xl mx-auto">
@@ -55,11 +55,11 @@ export default function EcosystemSection() {
           {divisions.map((div, i) => {
             const Icon = div.icon;
             const isComingSoon = div.badge === 'coming-soon';
-            const styles = colorStyles[div.color];
+            const styles = colorStyles[div.color as keyof typeof colorStyles];
             
             return (
               <motion.div key={i} variants={scaleIn}>
-                <Card className={isComingSoon ? 'opacity-60' : ''} glowColor={div.color}>
+                <Card className={cn(isComingSoon ? 'opacity-60' : '')} glowColor={div.color as any}>
                   <div className={isComingSoon ? '' : 'hover:-translate-y-1 transition-transform duration-300'}>
                     <div className="p-10 space-y-6">
                       <div className="flex justify-between items-start">

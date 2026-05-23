@@ -57,7 +57,7 @@ export default function TalentTeaser() {
 
         <div className="flex justify-center">
           <Link href="/management">
-            <Button variant="ghost">MEET THE FULL ROSTER &rarr;</Button>
+            <Button variant="ghost" className="hover:text-green">MEET THE FULL ROSTER &rarr;</Button>
           </Link>
         </div>
       </div>

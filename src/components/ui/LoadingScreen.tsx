@@ -3,6 +3,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { heroTextReveal, fadeIn } from '@/lib/animations';
+import Logo from './Logo';
 
 export default function LoadingScreen() {
   return (
@@ -20,11 +21,9 @@ export default function LoadingScreen() {
           variants={heroTextReveal}
           initial="hidden"
           animate="show"
-          className="mb-4"
+          className="mb-8"
         >
-          <span className="font-display text-[3rem] md:text-[5rem] text-[var(--color-gold)] text-glow-gold tracking-widest uppercase">
-            ASTROWAVE
-          </span>
+          <Logo height={56} linkTo="" />
         </motion.div>
         
         <motion.p
@@ -44,7 +43,7 @@ export default function LoadingScreen() {
           initial={{ width: 0 }}
           animate={{ width: '100%' }}
           transition={{ duration: 2.5, ease: 'linear' }}
-          className="h-full bg-[var(--color-gold)] shadow-[0_0_15px_var(--color-gold)]"
+          className="h-full bg-[var(--color-green)] shadow-[0_0_15px_var(--color-green)]"
         />
       </div>
     </motion.div>

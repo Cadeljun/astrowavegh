@@ -6,9 +6,8 @@ import { useAuth } from '@/context/AuthContext'
 import { useRole } from '@/context/RoleContext'
 import {
   LayoutDashboard,
-  Zap,
   Users,
-  Image,
+  Image as ImageIcon,
   Upload,
   Mail,
   Bell,
@@ -17,13 +16,13 @@ import {
   ExternalLink,
   Edit3,
   Terminal,
-  BarChart3,
-  Mic,
   Calendar,
   BookOpen,
   Star,
-  BarChart2
+  BarChart2,
+  Mic
 } from 'lucide-react'
+import Logo from '@/components/ui/Logo'
 
 const navItems = [
   {
@@ -41,7 +40,7 @@ const navItems = [
   {
     label: 'Gallery',
     href: '/admin/gallery',
-    icon: Image,
+    icon: ImageIcon,
     group: 'MEDIA'
   },
   {
@@ -81,7 +80,7 @@ const platformItems = [
 
 export default function AdminSidebar() {
   const pathname = usePathname()
-  const { logout, user } = useAuth()
+  const { logout } = useAuth()
   const { isSuperAdmin, isDeveloper } = useRole()
 
   const isActive = (href: string) =>
@@ -89,26 +88,23 @@ export default function AdminSidebar() {
     pathname.startsWith(href + '/')
 
   return (
-    <aside className="w-[260px] min-h-screen flex flex-col bg-[#0A0A0F] border-r border-[#1E1E2E] sticky top-0">
-      <div className="px-6 py-6 border-b border-[#1E1E2E]">
-        <h1 className="font-display text-2xl text-[#FFD166]" style={{ textShadow: '0 0 20px rgba(255,209,102,0.4)' }}>
-          ASTROWAVE
-        </h1>
-        <p className="font-body text-xs tracking-[0.2em] uppercase text-[#7B7B9A] mt-1">
+    <aside className="w-[260px] min-h-screen flex flex-col bg-[#041020] border-r border-[#0F2040] sticky top-0">
+      <div className="px-6 py-6 border-b border-[#0F2040]">
+        <Logo height={32} />
+        <p className="font-body text-[0.65rem] tracking-[0.2em] uppercase text-[#6B8CAE] mt-2 font-bold">
           Admin Panel
         </p>
       </div>
 
       <nav className="flex-1 px-3 py-4 flex flex-col gap-6 overflow-y-auto scrollbar-hide">
-        {/* Core Group */}
         <div>
-          <p className="px-3 mb-2 font-mono text-[0.6rem] text-[#7B7B9A] uppercase tracking-[0.2em]">Core Management</p>
+          <p className="px-3 mb-2 font-mono text-[0.6rem] text-[#6B8CAE] uppercase tracking-[0.2em]">Core Management</p>
           <div className="flex flex-col gap-1">
             {navItems.filter(i => i.group === 'CORE' || i.group === 'MEDIA').map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-md font-body text-sm font-medium transition-all duration-200 ${isActive(item.href) ? 'bg-[rgba(255,209,102,0.1)] text-[#FFD166] border-l-[3px] border-[#FFD166] pl-[9px]' : 'text-[#7B7B9A] hover:text-[#F8F8FF] hover:bg-[rgba(255,255,255,0.04)] border-l-[3px] border-transparent'}`}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-md font-body text-sm font-medium transition-all duration-200 ${isActive(item.href) ? 'bg-[#00FF871a] text-[#00FF87] border-l-[3px] border-[#00FF87] pl-[9px]' : 'text-[#6B8CAE] hover:text-[#F0F8FF] hover:bg-[rgba(255,255,255,0.04)] border-l-[3px] border-transparent'}`}
               >
                 <item.icon size={18} />
                 {item.label}
@@ -117,16 +113,15 @@ export default function AdminSidebar() {
           </div>
         </div>
 
-        {/* Platform Group (Super Admin Only) */}
         {isSuperAdmin && (
           <div>
-            <p className="px-3 mb-2 font-mono text-[0.6rem] text-cyan-400 uppercase tracking-[0.2em]">Platform Control</p>
+            <p className="px-3 mb-2 font-mono text-[0.6rem] text-green uppercase tracking-[0.2em]">Platform Control</p>
             <div className="flex flex-col gap-1">
               {platformItems.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-md font-body text-sm font-medium transition-all duration-200 ${isActive(item.href) ? 'bg-cyan-500/10 text-cyan-400 border-l-[3px] border-cyan-400 pl-[9px]' : 'text-[#7B7B9A] hover:text-cyan-400 hover:bg-cyan-500/5 border-l-[3px] border-transparent'}`}
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-md font-body text-sm font-medium transition-all duration-200 ${isActive(item.href) ? 'bg-green/10 text-green border-l-[3px] border-green pl-[9px]' : 'text-[#6B8CAE] hover:text-green hover:bg-green/5 border-l-[3px] border-transparent'}`}
                 >
                   <item.icon size={18} />
                   {item.label}
@@ -136,15 +131,14 @@ export default function AdminSidebar() {
           </div>
         )}
 
-        {/* Community Group */}
         <div>
-          <p className="px-3 mb-2 font-mono text-[0.6rem] text-purple-400 uppercase tracking-[0.2em]">Community</p>
+          <p className="px-3 mb-2 font-mono text-[0.6rem] text-blue uppercase tracking-[0.2em]">Community</p>
           <div className="flex flex-col gap-1">
             {navItems.filter(i => i.group === 'COMMUNITY').map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-md font-body text-sm font-medium transition-all duration-200 ${isActive(item.href) ? 'bg-purple-500/10 text-purple-400 border-l-[3px] border-purple-400 pl-[9px]' : 'text-[#7B7B9A] hover:text-[#F8F8FF] hover:bg-[rgba(255,255,255,0.04)] border-l-[3px] border-transparent'}`}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-md font-body text-sm font-medium transition-all duration-200 ${isActive(item.href) ? 'bg-blue/10 text-blue border-l-[3px] border-blue pl-[9px]' : 'text-[#6B8CAE] hover:text-[#F0F8FF] hover:bg-[rgba(255,255,255,0.04)] border-l-[3px] border-transparent'}`}
               >
                 <item.icon size={18} />
                 {item.label}
@@ -156,7 +150,7 @@ export default function AdminSidebar() {
         {isDeveloper && (
           <Link
             href="/dev"
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-md font-body text-sm font-medium text-cyan-400/70 hover:text-cyan-400 hover:bg-cyan-400/5 transition-all duration-200 mt-2`}
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-md font-body text-sm font-medium text-sky/70 hover:text-sky hover:bg-sky/5 transition-all duration-200 mt-2`}
           >
             <Terminal size={18} />
             Dev Panel
@@ -164,11 +158,11 @@ export default function AdminSidebar() {
         )}
       </nav>
 
-      <div className="px-3 py-4 border-t border-[#1E1E2E] flex flex-col gap-2">
+      <div className="px-3 py-4 border-t border-[#0F2040] flex flex-col gap-2">
         <Link
           href="/"
           target="_blank"
-          className="flex items-center gap-3 px-3 py-2.5 rounded-md font-body text-sm font-medium text-[#7B7B9A] hover:text-[#F8F8FF] hover:bg-[rgba(255,255,255,0.04)] transition-all duration-200"
+          className="flex items-center gap-3 px-3 py-2.5 rounded-md font-body text-sm font-medium text-[#6B8CAE] hover:text-[#F0F8FF] hover:bg-[rgba(255,255,255,0.04)] transition-all duration-200"
         >
           <ExternalLink size={18} />
           View Site

@@ -22,13 +22,13 @@ const baseStyles = [
 
 const variants = {
   primary: [
-    'border-[var(--color-gold)]',
-    'text-[var(--color-gold)]',
+    'border-[var(--color-green)]',
+    'text-[var(--color-green)]',
     'bg-transparent',
-    'hover:bg-[var(--color-gold)]',
-    'hover:text-black',
-    'focus:ring-[var(--color-gold)]',
-    'hover:shadow-[var(--glow-gold)]',
+    'hover:bg-[var(--color-green)]',
+    'hover:text-[var(--color-black)]',
+    'focus:ring-[var(--color-green)]',
+    'hover:shadow-[var(--glow-green)]',
   ].join(' '),
 
   secondary: [
@@ -36,7 +36,7 @@ const variants = {
     'text-[var(--color-white)]',
     'bg-transparent',
     'hover:bg-[var(--color-white)]',
-    'hover:text-black',
+    'hover:text-[var(--color-black)]',
     'focus:ring-[var(--color-white)]',
   ].join(' '),
 
@@ -44,8 +44,8 @@ const variants = {
     'border-transparent',
     'text-[var(--color-muted)]',
     'bg-transparent',
-    'hover:text-[var(--color-gold)]',
-    'focus:ring-[var(--color-gold)]',
+    'hover:text-[var(--color-green)]',
+    'focus:ring-[var(--color-green)]',
   ].join(' '),
 };
 
@@ -79,11 +79,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         {loading ? (
           <>
             <span
-              className="animate-spin 
-            inline-block w-4 h-4 
-            border-2 border-current 
-            border-t-transparent 
-            rounded-full"
+              className="animate-spin inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full"
             />
             <span>Loading...</span>
           </>
