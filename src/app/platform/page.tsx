@@ -243,7 +243,7 @@ export default function PlatformLandingPage() {
           >
             {[
               { num: '01', icon: Calendar, color: 'gold', title: 'Post Your Event', desc: 'Tell us about your event — the type, date, location, and what kind of talent you need to make it unforgettable.' },
-              { num: '02', icon: Zap, color: 'purple', title: 'Get Matched Instantly', desc: "Our Wave Score algorithm analyzes every talent's rating, experience, and location to find your perfect professional match." },
+              { num: '02', icon: Zap, color: 'purple', title: 'Get Matched Instantly', desc: "Our Wave Score algorithm analyzes every talent's rating, experience, and location to find your perfect match." },
               { num: '03', icon: Star, color: 'cyan', title: 'Book & Enjoy', desc: 'Review ranked matches, send a secure booking request, and experience world-class entertainment at your experience.' },
             ].map((step, i) => (
               <motion.div key={i} variants={scaleIn} className="relative group">
@@ -437,7 +437,7 @@ export default function PlatformLandingPage() {
 
       {/* ─── SECTION 6: FOR TALENTS ─── */}
       <section className="py-32 px-6 lg:px-12 bg-black">
-        <div className="max-w-screen-2xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
+        <div className="max-w-screen-2xl mx-auto grid grid-cols-1 lg:grid-2 gap-20 items-center">
           <motion.div 
             variants={fadeUp} 
             initial="hidden" 

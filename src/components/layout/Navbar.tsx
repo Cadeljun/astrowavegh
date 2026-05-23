@@ -70,12 +70,12 @@ export default function Navbar() {
         <nav className="hidden lg:flex items-center gap-8" aria-label="Main Navigation">
           <div className="flex items-center gap-8 mr-4">
             {navLinks.map((link) => {
-              const isActive = pathname === link.href;
               const isPlatform = link.name === 'Platform';
+              const href = (isPlatform && user) ? getDashboardUrl() : link.href;
+              const isActive = pathname === href;
               
               // If user is logged in, show Dashboard instead of Platform
               const displayName = (isPlatform && user) ? 'Dashboard' : link.name;
-              const href = (isPlatform && user) ? getDashboardUrl() : link.href;
 
               return (
                 <Link
