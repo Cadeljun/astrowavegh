@@ -56,7 +56,7 @@ export default function PublicTalentProfile() {
           collection(db, 'ratings'),
           where('talentId', '==', id),
           orderBy('submittedAt', 'desc'),
-          limit(5)
+          limit(10)
         );
         const rSnap = await getDocs(rQuery);
         setReviews(rSnap.docs.map(d => ({ id: d.id, ...d.data() })));
@@ -75,18 +75,33 @@ export default function PublicTalentProfile() {
     if (id) load();
   }, [id, user, router, toast]);
 
-  const ratingDistribution = useMemo(() => {
-    if (!talent) return [];
+  const stats = useMemo(() => {
+    if (!reviews.length) return null;
+    const totals = reviews.reduce((acc, r) => ({
+      performance: acc.performance + r.performance,
+      professionalism: acc.professionalism + r.professionalism,
+      communication: acc.communication + r.communication,
+      value: acc.value + r.valueForMoney
+    }), { performance: 0, professionalism: 0, communication: 0, value: 0 });
+
     const dist = [0, 0, 0, 0, 0];
     reviews.forEach(r => {
-      if (r.overall >= 1 && r.overall <= 5) dist[r.overall - 1]++;
+      const score = Math.round(r.overall);
+      if (score >= 1 && score <= 5) dist[score - 1]++;
     });
-    return dist.reverse().map((count, i) => ({
-      stars: 5 - i,
-      count,
-      percent: reviews.length > 0 ? (count / reviews.length) * 100 : 0
-    }));
-  }, [reviews, talent]);
+
+    return {
+      performance: (totals.performance / reviews.length).toFixed(1),
+      professionalism: (totals.professionalism / reviews.length).toFixed(1),
+      communication: (totals.communication / reviews.length).toFixed(1),
+      value: (totals.value / reviews.length).toFixed(1),
+      distribution: dist.reverse().map((count, i) => ({
+        stars: 5 - i,
+        count,
+        percent: (count / reviews.length) * 100
+      }))
+    };
+  }, [reviews]);
 
   const handleBookingRequest = async () => {
     if (!user || !selectedEvent || !talent) return;
@@ -116,19 +131,7 @@ export default function PublicTalentProfile() {
       };
 
       await addDoc(collection(db, 'bookings'), bookingData);
-
-      await addDoc(collection(db, 'notifications'), {
-        userId: id,
-        type: 'booking_request',
-        title: 'New Booking Request! 🌊',
-        message: `${user.displayName || 'An organizer'} wants to book you for ${selectedEvent.title}.`,
-        read: false,
-        actionUrl: '/talent/bookings',
-        relatedId: selectedEvent.id,
-        createdAt: serverTimestamp()
-      });
-
-      toast({ title: "Booking Request Sent!", description: `${talent.stageName} will be notified immediately.` });
+      toast({ title: "Booking Request Sent!", description: `${talent.stageName} will be notified.` });
       setBookingModal(false);
       router.push('/organizer/bookings');
     } catch (error: any) {
@@ -142,7 +145,7 @@ export default function PublicTalentProfile() {
 
   return (
     <PlatformGuard requiredRole="organizer">
-      <div className="min-h-screen bg-black -m-8">
+      <div className="min-h-screen bg-black -m-8 pb-24">
         {/* Banner Section */}
         <section className="relative h-[60vh] w-full overflow-hidden">
           <img 
@@ -178,7 +181,7 @@ export default function PublicTalentProfile() {
           <div className="lg:col-span-8 space-y-20">
              <div className="space-y-8">
                 <SectionLabel>THE STORY</SectionLabel>
-                <p className="body-lg text-white/90 leading-relaxed font-light whitespace-pre-wrap">{talent.bio}</p>
+                <p className="body-lg text-white/90 leading-relaxed font-light whitespace-pre-wrap">{talent.bio || "Biography details coming soon."}</p>
                 {talent.skills && (
                   <div className="flex flex-wrap gap-3 pt-4">
                      {talent.skills.map((s: string) => <Badge key={s} variant="active" className="bg-white/5 border-white/10 text-white/60">{s}</Badge>)}
@@ -186,59 +189,66 @@ export default function PublicTalentProfile() {
                 )}
              </div>
 
-             {/* Rating Summary */}
-             <div className="space-y-10">
+             {/* RATING SUMMARY SECTION */}
+             <div className="space-y-12">
                 <SectionLabel>REVIEWS & PERFORMANCE</SectionLabel>
-                <div className="grid grid-cols-1 md:grid-cols-12 gap-12">
-                   <div className="md:col-span-4 space-y-6 text-center md:text-left">
-                      <div className="space-y-1">
-                        <p className="text-6xl font-display text-white">{(talent.averageRating || 0).toFixed(1)}</p>
-                        <div className="flex justify-center md:justify-start gap-1 text-gold">
-                           {[1,2,3,4,5].map(s => <Star key={s} size={18} fill={s <= Math.round(talent.averageRating || 0) ? 'currentColor' : 'none'} />)}
-                        </div>
-                        <p className="text-xs text-muted font-bold uppercase tracking-widest pt-2">{talent.ratingCount || 0} Professional Reviews</p>
-                      </div>
-                      
-                      <div className="pt-6 space-y-4 border-t border-white/5">
-                         {[
-                           { label: 'Performance', val: 4.8 },
-                           { label: 'Professionalism', val: 4.9 },
-                           { label: 'Communication', val: 4.7 }
-                         ].map(stat => (
-                           <div key={stat.label} className="space-y-1.5">
-                              <div className="flex justify-between text-[0.6rem] font-bold uppercase text-white/40">
-                                 <span>{stat.label}</span>
-                                 <span>{stat.val} ★</span>
-                              </div>
-                              <Progress value={stat.val * 20} className="h-1 bg-white/5" />
-                           </div>
-                         ))}
-                      </div>
-                   </div>
+                
+                {reviews.length > 0 && stats ? (
+                  <>
+                    <div className="grid grid-cols-1 md:grid-cols-12 gap-12">
+                       {/* Left: Overall */}
+                       <div className="md:col-span-4 space-y-6 text-center md:text-left">
+                          <div className="space-y-1">
+                            <p className="text-6xl font-display text-white">{(talent.averageRating || 0).toFixed(1)}</p>
+                            <div className="flex justify-center md:justify-start gap-1 text-gold">
+                               {[1,2,3,4,5].map(s => <Star key={s} size={18} fill={s <= Math.round(talent.averageRating || 0) ? 'currentColor' : 'none'} />)}
+                            </div>
+                            <p className="text-xs text-muted font-bold uppercase tracking-widest pt-2">{talent.ratingCount || 0} Professional Reviews</p>
+                          </div>
+                          
+                          <div className="pt-6 space-y-4 border-t border-white/5">
+                             {[
+                               { label: 'Performance', val: stats.performance },
+                               { label: 'Professionalism', val: stats.professionalism },
+                               { label: 'Communication', val: stats.communication },
+                               { label: 'Value', val: stats.value }
+                             ].map(stat => (
+                               <div key={stat.label} className="space-y-1.5">
+                                  <div className="flex justify-between text-[0.6rem] font-bold uppercase text-white/40">
+                                     <span>{stat.label}</span>
+                                     <span>{stat.val} ★</span>
+                                  </div>
+                                  <Progress value={parseFloat(stat.val) * 20} className="h-1 bg-white/5" />
+                               </div>
+                             ))}
+                          </div>
+                       </div>
 
-                   <div className="md:col-span-8 space-y-4">
-                      {ratingDistribution.map((d) => (
-                        <div key={d.stars} className="flex items-center gap-4">
-                           <span className="text-[0.65rem] font-bold text-muted w-10">{d.stars} Stars</span>
-                           <div className="flex-1 h-2 bg-white/5 rounded-full overflow-hidden">
-                              <motion.div initial={{ width: 0 }} animate={{ width: `${d.percent}%` }} transition={{ duration: 1 }} className="h-full bg-gold" />
-                           </div>
-                           <span className="text-[0.65rem] font-bold text-white w-10 text-right">{d.count}</span>
-                        </div>
-                      ))}
-                   </div>
-                </div>
+                       {/* Right: Distribution */}
+                       <div className="md:col-span-8 space-y-4">
+                          {stats.distribution.map((d) => (
+                            <div key={d.stars} className="flex items-center gap-4">
+                               <span className="text-[0.65rem] font-bold text-muted w-10">{d.stars} Stars</span>
+                               <div className="flex-1 h-2 bg-white/5 rounded-full overflow-hidden">
+                                  <motion.div initial={{ width: 0 }} animate={{ width: `${d.percent}%` }} transition={{ duration: 1 }} className="h-full bg-gold shadow-[0_0_10px_rgba(255,209,102,0.3)]" />
+                               </div>
+                               <span className="text-[0.65rem] font-bold text-white w-10 text-right">{d.count}</span>
+                            </div>
+                          ))}
+                       </div>
+                    </div>
 
-                <div className="grid grid-cols-1 gap-6 pt-10">
-                   {reviews.length > 0 ? (
-                     reviews.map((r) => <ReviewCard key={r.id} review={r} />)
-                   ) : (
-                     <div className="py-20 text-center border-2 border-dashed border-white/5 rounded-2xl opacity-20">
-                        <MessageSquare size={48} className="mx-auto mb-4" />
-                        <p className="text-sm font-bold uppercase tracking-widest">No detailed reviews yet</p>
-                     </div>
-                   )}
-                </div>
+                    {/* Review Feed */}
+                    <div className="grid grid-cols-1 gap-6 pt-10 border-t border-white/5">
+                       {reviews.map((r) => <ReviewCard key={r.id} review={r} />)}
+                    </div>
+                  </>
+                ) : (
+                  <div className="py-24 text-center border-2 border-dashed border-white/5 rounded-3xl opacity-20">
+                     <Star size={48} className="mx-auto mb-4" />
+                     <p className="text-sm font-bold uppercase tracking-widest">No detailed reviews yet</p>
+                  </div>
+                )}
              </div>
 
              {talent.portfolio && talent.portfolio.length > 0 && (
@@ -281,7 +291,7 @@ export default function PublicTalentProfile() {
                 <div className="pt-8 border-t border-white/5 flex flex-col gap-6">
                    <div className="flex justify-between items-center text-xs">
                       <span className="text-muted font-bold uppercase">Wave Score Rank</span>
-                      <span className="text-gold font-display text-xl uppercase tracking-widest">Master</span>
+                      <span className="text-gold font-display text-xl uppercase tracking-widest">PRO MASTER</span>
                    </div>
                    <div className="flex justify-center gap-6 text-muted">
                       {[Instagram, Music, Globe, Twitter].map((Icon, i) => <Icon key={i} size={22} className="hover:text-gold cursor-pointer transition-colors" />)}
@@ -291,7 +301,7 @@ export default function PublicTalentProfile() {
           </aside>
         </section>
 
-        {/* Booking Modal (Omitted for brevity, logic exists in original file) */}
+        {/* Booking Modal */}
         <AnimatePresence>
            {bookingModal && (
               <div className="fixed inset-0 z-[6000] flex items-center justify-center p-6">

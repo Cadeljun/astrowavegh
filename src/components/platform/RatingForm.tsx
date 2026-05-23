@@ -23,15 +23,8 @@ function StarInput({ label, value, onChange, error }: StarInputProps) {
   const labels = ['', 'Poor', 'Fair', 'Good', 'Great', 'Excellent'];
 
   return (
-    <div className="space-y-3">
-      <div className="flex justify-between items-center">
-        <label className="text-[0.65rem] font-bold text-white/70 uppercase tracking-widest">{label}</label>
-        {value > 0 && (
-          <motion.span initial={{ opacity: 0, x: 5 }} animate={{ opacity: 1, x: 0 }} className="text-[0.6rem] text-gold font-bold uppercase tracking-widest">
-            {labels[hovered || value]}
-          </motion.span>
-        )}
-      </div>
+    <div className="flex flex-col gap-2">
+      <label className="font-body text-sm text-white/70">{label}</label>
       <div className="flex items-center gap-1.5">
         {[1, 2, 3, 4, 5].map((star) => (
           <button
@@ -50,6 +43,15 @@ function StarInput({ label, value, onChange, error }: StarInputProps) {
             />
           </button>
         ))}
+        {(hovered || value) > 0 && (
+          <motion.span 
+            initial={{ opacity: 0, x: 5 }} 
+            animate={{ opacity: 1, x: 0 }} 
+            className="text-[0.65rem] text-gold font-bold uppercase tracking-widest ml-3"
+          >
+            {labels[hovered || value]}
+          </motion.span>
+        )}
       </div>
       {error && <p className="text-[0.6rem] text-red-400 font-bold uppercase tracking-widest mt-1">{error}</p>}
     </div>
@@ -58,7 +60,7 @@ function StarInput({ label, value, onChange, error }: StarInputProps) {
 
 interface RatingFormProps {
   booking: any;
-  onSuccess: () => void;
+  onSuccess: (updatedBooking: any) => void;
 }
 
 export default function RatingForm({ booking, onSuccess }: RatingFormProps) {
@@ -103,7 +105,7 @@ export default function RatingForm({ booking, onSuccess }: RatingFormProps) {
         formData
       );
       toast({ title: "Review Submitted", description: "The wave has been updated." });
-      onSuccess();
+      onSuccess(booking);
     } catch (error: any) {
       toast({ variant: 'destructive', title: "Submission Failed", description: error.message });
     } finally {
@@ -118,15 +120,19 @@ export default function RatingForm({ booking, onSuccess }: RatingFormProps) {
       <form onSubmit={handleSubmit} className="space-y-12 relative z-10">
         <div className="text-center space-y-3">
           <SectionLabel className="justify-center">EXPERIENCE FEEDBACK</SectionLabel>
-          <h2 className="display-sm text-white tracking-widest uppercase">RATE {booking.talentStageName}</h2>
-          <p className="text-xs text-muted uppercase tracking-[0.2em] font-bold">{booking.eventTitle} • {booking.eventCity}</p>
+          <h2 className="display-sm text-white tracking-widest uppercase">RATE YOUR EXPERIENCE</h2>
+          <div className="flex items-center justify-center gap-4 text-xs text-muted font-bold uppercase tracking-widest">
+            <span className="text-white">{booking.talentStageName}</span>
+            <span className="opacity-20">•</span>
+            <span>{booking.eventTitle}</span>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
           {/* Star Categories */}
           <div className="space-y-8">
             <StarInput label="Overall Experience" value={formData.overall} onChange={val => update('overall', val)} error={errors.overall} />
-            <div className="grid grid-cols-1 gap-6 pt-4 border-t border-white/5">
+            <div className="grid grid-cols-1 gap-6 pt-6 border-t border-white/5">
               <StarInput label="Performance Quality" value={formData.performance} onChange={val => update('performance', val)} error={errors.performance} />
               <StarInput label="Professionalism" value={formData.professionalism} onChange={val => update('professionalism', val)} error={errors.professionalism} />
               <StarInput label="Communication" value={formData.communication} onChange={val => update('communication', val)} error={errors.communication} />
@@ -158,7 +164,7 @@ export default function RatingForm({ booking, onSuccess }: RatingFormProps) {
                <Info className="shrink-0" size={20} />
                <div className="space-y-1">
                   <p className="text-[0.7rem] font-bold uppercase tracking-widest">Impact Notice</p>
-                  <p className="text-[0.6rem] leading-relaxed opacity-80 uppercase font-medium">Your rating directly affects the talent's global Wave Score. High performance ratings increase their visibility and matching priority.</p>
+                  <p className="text-[0.6rem] leading-relaxed opacity-80">Your rating directly affects the talent's global Wave Score. High performance ratings increase their visibility and matching priority.</p>
                </div>
             </div>
           </div>
@@ -166,10 +172,10 @@ export default function RatingForm({ booking, onSuccess }: RatingFormProps) {
 
         <div className="pt-8 border-t border-white/5 flex flex-col sm:flex-row gap-6">
           <Link href="/organizer/bookings" className="flex-1">
-            <Button variant="ghost" type="button" className="w-full h-16 border border-white/5">CANCEL REVIEW</Button>
+            <Button variant="ghost" type="button" className="w-full h-16 border border-white/5">CANCEL</Button>
           </Link>
           <Button disabled={loading} type="submit" className="flex-[2] h-16 text-lg font-bold tracking-[0.3em] shadow-[0_0_50px_rgba(255,209,102,0.2)]">
-            {loading ? <Loader2 className="animate-spin" /> : <><Save size={20} className="mr-3" /> COMMIT REVIEW</>}
+            {loading ? <Loader2 className="animate-spin" /> : <><Save size={20} className="mr-3" /> SUBMIT REVIEW</>}
           </Button>
         </div>
       </form>

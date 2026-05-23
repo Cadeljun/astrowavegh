@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Loader2, CheckCircle, Waves, Star, Search } from 'lucide-react';
-import { doc, getDoc, onSnapshot } from 'firebase/firestore';
+import { doc, getDoc } from 'firebase/firestore';
 import { db, useAuth } from '@/firebase';
 import RatingForm from '@/components/platform/RatingForm';
 import { Button } from '@/components/ui/Button';
@@ -27,23 +27,27 @@ export default function RateTalentPage() {
     if (!bookingId || !user) return;
 
     const fetchBooking = async () => {
-      const snap = await getDoc(doc(db, 'bookings', bookingId));
-      if (!snap.exists()) {
-        router.push('/organizer/bookings');
-        return;
-      }
-      const data = snap.data();
-      if (data.organizerId !== user.uid) {
-        router.push('/organizer/bookings');
-        return;
-      }
-      setBooking({ id: snap.id, ...data });
+      try {
+        const snap = await getDoc(doc(db, 'bookings', bookingId));
+        if (!snap.exists()) {
+          router.push('/organizer/bookings');
+          return;
+        }
+        const data = snap.data();
+        if (data.organizerId !== user.uid) {
+          router.push('/organizer/bookings');
+          return;
+        }
+        setBooking({ id: snap.id, ...data });
 
-      // Fetch talent current score for final display
-      const tSnap = await getDoc(doc(db, 'talent_profiles', data.talentId));
-      if (tSnap.exists()) setTalent(tSnap.data());
-      
-      setLoading(false);
+        // Fetch talent current score for comparison/success display
+        const tSnap = await getDoc(doc(db, 'talent_profiles', data.talentId));
+        if (tSnap.exists()) setTalent(tSnap.data());
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoading(false);
+      }
     };
 
     fetchBooking();
@@ -101,7 +105,7 @@ export default function RateTalentPage() {
 
                <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                   <div className="space-y-6">
-                     <SectionLabel>UPDATED ROSTER DATA</SectionLabel>
+                     <SectionLabel>LATEST ROSTER STATS</SectionLabel>
                      {talent && (
                        <WaveScoreCard 
                          waveScore={talent.waveScore}
@@ -114,8 +118,8 @@ export default function RateTalentPage() {
                      )}
                   </div>
                   <div className="flex flex-col justify-center space-y-6 text-center md:text-left">
-                     <h3 className="font-display text-4xl text-white tracking-widest">WHAT'S NEXT?</h3>
-                     <p className="text-muted body-md">Engagements like these help build a high-trust creative economy in Ghana. Keep hosting, keep rating.</p>
+                     <h3 className="font-display text-4xl text-white tracking-widest uppercase">THE VIBE CONTINUES</h3>
+                     <p className="text-muted body-md leading-relaxed">Engagements like these help build a high-trust creative economy in Ghana. Keep hosting, keep rating, and help us surface the best talent.</p>
                      <div className="flex flex-col sm:flex-row gap-4">
                         <Button className="h-14 flex-1 font-bold" onClick={() => router.push('/organizer/dashboard')}>GO TO DASHBOARD</Button>
                         <Button variant="secondary" className="h-14 flex-1 border-purple text-purple hover:bg-purple" onClick={() => router.push('/organizer/search')}>SCOUT NEW TALENT</Button>

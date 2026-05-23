@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
   BarChart3, 
@@ -11,7 +11,8 @@ import {
   Activity, 
   PieChart, 
   CheckCircle,
-  Zap
+  Zap,
+  Loader2
 } from 'lucide-react';
 import { collection, query, getDocs, limit, orderBy } from 'firebase/firestore';
 import { db } from '@/firebase';
@@ -31,35 +32,47 @@ export default function DevAnalyticsPage() {
 
   useEffect(() => {
     const fetchStats = async () => {
-      // Fetch all ratings for global stats
-      const rSnap = await getDocs(collection(db, 'ratings'));
-      const ratings = rSnap.docs.map(d => d.data());
-      
-      const total = ratings.length;
-      const avg = total > 0 ? ratings.reduce((acc, r) => acc + (r.averageScore || 0), 0) / total : 0;
-      
-      const dist = [0, 0, 0, 0, 0];
-      ratings.forEach(r => {
-        const score = Math.round(r.overall || 0);
-        if (score >= 1 && score <= 5) dist[score - 1]++;
-      });
+      try {
+        // Fetch all ratings for global stats
+        const rSnap = await getDocs(collection(db, 'ratings'));
+        const ratings = rSnap.docs.map(d => d.data());
+        
+        const total = ratings.length;
+        const avg = total > 0 ? ratings.reduce((acc, r) => acc + (r.averageScore || 0), 0) / total : 0;
+        
+        const dist = [0, 0, 0, 0, 0];
+        ratings.forEach(r => {
+          const score = Math.round(r.overall || 0);
+          if (score >= 1 && score <= 5) dist[score - 1]++;
+        });
 
-      // Fetch Top Talents by Wave Score
-      const tQuery = query(collection(db, 'talent_profiles'), orderBy('waveScore', 'desc'), limit(5));
-      const tSnap = await getDocs(tQuery);
-      const talents = tSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+        // Fetch Top Talents by Wave Score
+        const tQuery = query(collection(db, 'talent_profiles'), orderBy('waveScore', 'desc'), limit(10));
+        const tSnap = await getDocs(tQuery);
+        const talents = tSnap.docs.map(d => ({ id: d.id, ...d.data() }));
 
-      setStats({
-        avgPlatformRating: avg.toFixed(2),
-        totalRatings: total,
-        distribution: dist.reverse(),
-        topTalents: talents
-      });
-      setLoading(false);
+        setStats({
+          avgPlatformRating: avg.toFixed(2),
+          totalRatings: total,
+          distribution: dist.reverse(),
+          topTalents: talents
+        });
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoading(false);
+      }
     };
 
     fetchStats();
   }, []);
+
+  if (loading) return (
+    <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4">
+      <Loader2 className="animate-spin text-cyan-500" size={32} />
+      <p className="font-mono text-[0.6rem] text-muted uppercase tracking-widest">Aggregating Global Metrics...</p>
+    </div>
+  );
 
   return (
     <div className="space-y-12">
@@ -92,8 +105,8 @@ export default function DevAnalyticsPage() {
            <div className="flex items-center gap-4">
               <div className="p-3 rounded bg-cyan/10 text-cyan"><Activity size={24} /></div>
               <div>
-                 <p className="text-4xl font-display text-white">4.2</p>
-                 <p className="text-[0.6rem] label m-0">AVG WAVE SCORE</p>
+                 <p className="text-4xl font-display text-white">{(parseFloat(stats.avgPlatformRating) * 0.9).toFixed(1)}</p>
+                 <p className="text-[0.6rem] label m-0">PLATFORM VIBE INDEX</p>
               </div>
            </div>
         </Card>
@@ -141,7 +154,7 @@ export default function DevAnalyticsPage() {
                   </thead>
                   <tbody>
                      {stats.topTalents.map((t: any, i: number) => (
-                       <tr key={t.id} className="group">
+                       <tr key={t.id} className="group hover:bg-white/5 transition-colors">
                           <td className="font-display text-xl text-white/20">#{i + 1}</td>
                           <td>
                              <div className="flex flex-col">
@@ -149,8 +162,8 @@ export default function DevAnalyticsPage() {
                                 <span className="text-[0.6rem] text-muted">{t.category}</span>
                              </div>
                           </td>
-                          <td><span className="text-gold font-bold">{t.waveScore.toFixed(1)}</span></td>
-                          <td>{t.averageRating.toFixed(1)} ★</td>
+                          <td><span className="text-gold font-bold">{(t.waveScore || 0).toFixed(2)}</span></td>
+                          <td>{(t.averageRating || 0).toFixed(1)} ★</td>
                        </tr>
                      ))}
                   </tbody>

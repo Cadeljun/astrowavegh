@@ -108,13 +108,14 @@ export async function submitRating(
     submittedAt: serverTimestamp()
   });
   
-  // 4. Update the booking and event
+  // 4. Update the booking
   await updateDoc(bookingRef, {
     rated: true,
     ratingSubmitted: true,
     updatedAt: serverTimestamp()
   });
 
+  // Also update event status if needed
   const eventRef = doc(db, 'platform_events', eventId);
   await updateDoc(eventRef, {
     rated: true,
