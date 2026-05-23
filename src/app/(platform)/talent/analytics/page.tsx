@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useMemo } from 'react';
@@ -16,7 +15,6 @@ import { useFirestore, useCollection, useAuth, useMemoFirebase } from '@/firebas
 import { Card } from '@/components/ui/Card';
 import { SectionHeading } from '@/components/ui/SectionHeading';
 import { SectionLabel } from '@/components/ui/SectionLabel';
-import { Progress } from '@/components/ui/progress';
 import { format } from 'date-fns';
 import PlatformGuard from '@/components/platform/PlatformGuard';
 
@@ -49,14 +47,33 @@ export default function TalentAnalyticsPage() {
     };
   }, [bookings, platformUser]);
 
-  // Radar data for strengths
-  const radarData = [
-    { subject: 'Performance', A: 95, fullMark: 100 },
-    { subject: 'Professionalism', A: 90, fullMark: 100 },
-    { subject: 'Communication', A: 85, fullMark: 100 },
-    { subject: 'Value', A: 92, fullMark: 100 },
-    { subject: 'Overall', A: 94, fullMark: 100 },
-  ];
+  // Radar data for strengths (Aggregated from real ratings for MVP)
+  const radarData = useMemo(() => {
+    if (!reviews || reviews.length === 0) return [
+      { subject: 'Performance', A: 80, fullMark: 100 },
+      { subject: 'Professionalism', A: 80, fullMark: 100 },
+      { subject: 'Communication', A: 80, fullMark: 100 },
+      { subject: 'Value', A: 80, fullMark: 100 },
+      { subject: 'Overall', A: 80, fullMark: 100 },
+    ];
+
+    const averages = reviews.reduce((acc, r) => ({
+      perf: acc.perf + (r.performance || 0),
+      prof: acc.prof + (r.professionalism || 0),
+      comm: acc.comm + (r.communication || 0),
+      val: acc.val + (r.valueForMoney || 0),
+      over: acc.over + (r.overall || 0),
+    }), { perf: 0, prof: 0, comm: 0, val: 0, over: 0 });
+
+    const count = reviews.length;
+    return [
+      { subject: 'Performance', A: (averages.perf / count) * 20, fullMark: 100 },
+      { subject: 'Professionalism', A: (averages.prof / count) * 20, fullMark: 100 },
+      { subject: 'Communication', A: (averages.comm / count) * 20, fullMark: 100 },
+      { subject: 'Value', A: (averages.val / count) * 20, fullMark: 100 },
+      { subject: 'Overall', A: (averages.over / count) * 20, fullMark: 100 },
+    ];
+  }, [reviews]);
 
   if (bookingsLoading || reviewsLoading) return (
     <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4">
@@ -99,10 +116,10 @@ export default function TalentAnalyticsPage() {
         {/* Charts Row */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
            <Card className="lg:col-span-8 p-8 h-[400px] flex flex-col" glowColor="muted">
-              <SectionLabel className="mb-6">BOOKING VOLUME TREND</SectionLabel>
+              <SectionLabel className="mb-6">BOOKING REVENUE TREND</SectionLabel>
               <div className="flex-1 w-full">
                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={bookings?.sort((a,b) => a.requestedAt?.toDate() - b.requestedAt?.toDate())}>
+                    <AreaChart data={bookings?.sort((a,b) => (a.requestedAt?.seconds || 0) - (b.requestedAt?.seconds || 0))}>
                        <defs>
                           <linearGradient id="colorBook" x1="0" y1="0" x2="0" y2="1">
                              <stop offset="5%" stopColor="#A855F7" stopOpacity={0.3}/>
@@ -120,7 +137,7 @@ export default function TalentAnalyticsPage() {
            </Card>
 
            <Card className="lg:col-span-4 p-8 h-[400px] flex flex-col" glowColor="muted">
-              <SectionLabel className="mb-6">STRENGTHS ANALYSIS</SectionLabel>
+              <SectionLabel className="mb-6">CLIENT SENTIMENT ANALYSIS</SectionLabel>
               <div className="flex-1 w-full">
                  <ResponsiveContainer width="100%" height="100%">
                     <RadarChart cx="50%" cy="50%" outerRadius="80%" data={radarData}>
@@ -147,7 +164,7 @@ export default function TalentAnalyticsPage() {
                       <span className="text-[0.6rem] text-muted font-mono uppercase">{r.submittedAt ? format(r.submittedAt.toDate(), 'MMM d, yyyy') : 'Recently'}</span>
                    </div>
                    <p className="text-xs text-white/80 leading-relaxed italic line-clamp-2">"{r.review}"</p>
-                   <div className="pt-2 flex justify-between items-center">
+                   <div className="pt-2 flex justify-between items-center border-t border-white/5 pt-4">
                       <p className="text-[0.65rem] font-bold text-white uppercase">{r.organizerName}</p>
                       <Badge variant="active" className="text-[0.5rem]">VERIFIED GIG</Badge>
                    </div>

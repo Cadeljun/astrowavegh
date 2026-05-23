@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useMemo } from 'react';
@@ -11,7 +10,7 @@ import {
   Calendar, Zap, Star, DollarSign, Award, Activity, 
   Loader2, ArrowRight, User
 } from 'lucide-react';
-import { collection, query, where, orderBy } from 'firebase/firestore';
+import { collection, query, where } from 'firebase/firestore';
 import { useFirestore, useCollection, useAuth, useMemoFirebase } from '@/firebase';
 import { Card } from '@/components/ui/Card';
 import { SectionHeading } from '@/components/ui/SectionHeading';
@@ -43,9 +42,10 @@ export default function OrganizerAnalyticsPage() {
     
     const completed = bookings.filter(b => b.status === 'completed');
     const spent = completed.reduce((acc, b) => acc + (b.agreedPrice || 0), 0);
-    const avgMatch = bookings.reduce((acc, b) => acc + (b.matchPercentage || 0), 0) / (bookings.length || 1);
+    const avgMatch = bookings.length > 0 
+      ? bookings.reduce((acc, b) => acc + (b.matchPercentage || 0), 0) / bookings.length 
+      : 0;
     
-    // Find most booked category
     const cats: Record<string, number> = {};
     bookings.forEach(b => {
       if (b.talentCategory) cats[b.talentCategory] = (cats[b.talentCategory] || 0) + 1;
@@ -66,9 +66,10 @@ export default function OrganizerAnalyticsPage() {
     if (!bookings) return [];
     const counts: Record<string, number> = {};
     bookings.forEach(b => {
-      counts[b.status] = (counts[b.status] || 0) + 1;
+      const s = (b.status || 'pending').toUpperCase();
+      counts[s] = (counts[s] || 0) + 1;
     });
-    return Object.entries(counts).map(([name, value]) => ({ name: name.toUpperCase(), value }));
+    return Object.entries(counts).map(([name, value]) => ({ name, value }));
   }, [bookings]);
 
   if (eventsLoading || bookingsLoading) return (
@@ -140,7 +141,7 @@ export default function OrganizerAnalyticsPage() {
               <SectionLabel className="mb-6">SPENDING TREND (GHS)</SectionLabel>
               <div className="flex-1 w-full">
                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={bookings?.filter(b => b.status === 'completed').sort((a,b) => a.requestedAt?.toDate() - b.requestedAt?.toDate())}>
+                    <AreaChart data={bookings?.filter(b => b.status === 'completed')}>
                        <defs>
                           <linearGradient id="colorSpent" x1="0" y1="0" x2="0" y2="1">
                              <stop offset="5%" stopColor="#FFD166" stopOpacity={0.3}/>
@@ -173,7 +174,7 @@ export default function OrganizerAnalyticsPage() {
                           <th>Event</th>
                           <th>Date</th>
                           <th>Price</th>
-                          <th>Sync %</th>
+                          <th>Match %</th>
                           <th>Status</th>
                        </tr>
                     </thead>

@@ -15,7 +15,8 @@ import {
   LogOut,
   ExternalLink,
   Edit3,
-  Terminal
+  Terminal,
+  BarChart3
 } from 'lucide-react'
 
 const navItems = [
@@ -23,6 +24,11 @@ const navItems = [
     label: 'Dashboard',
     href: '/admin/dashboard',
     icon: LayoutDashboard
+  },
+  {
+    label: 'Platform Analytics',
+    href: '/dev/analytics',
+    icon: BarChart3
   },
   {
     label: 'CMS Content',
