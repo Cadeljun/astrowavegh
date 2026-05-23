@@ -352,3 +352,33 @@ export async function markNotificationRead(
       errorEmitter.emit('permission-error', permissionError);
     });
 }
+
+// ─── ACTIVITY LOG ───────────────────
+
+export async function logActivity(
+  collectionName: string,
+  action: string,
+  targetId: string,
+  userName: string,
+  details: string
+): Promise<void> {
+  const colRef = collection(db, 'activity_log');
+  const logData = {
+    collectionName,
+    action,
+    targetId,
+    userName,
+    details,
+    timestamp: serverTimestamp()
+  };
+
+  addDoc(colRef, logData)
+    .catch(async (error) => {
+      const permissionError = new FirestorePermissionError({
+        path: colRef.path,
+        operation: 'create',
+        requestResourceData: logData
+      });
+      errorEmitter.emit('permission-error', permissionError);
+    });
+}

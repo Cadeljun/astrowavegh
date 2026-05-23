@@ -1,3 +1,4 @@
+
 'use client';
 
 import { db } from '@/firebase';
@@ -9,7 +10,7 @@ import {
   increment,
   Timestamp
 } from 'firebase/firestore';
-import { createNotification } from '@/lib/firebase/platform';
+import { createNotification, logActivity } from '@/lib/firebase/platform';
 import { recordCompletedEvent } from '@/lib/algorithms/updateWaveScore';
 
 /**
@@ -63,6 +64,15 @@ export async function acceptBooking(
     `/bookings/${bookingId}`,
     bookingId
   );
+
+  // 4. Log activity
+  await logActivity(
+    'bookings',
+    'updated',
+    bookingId,
+    booking.talentName,
+    'Booking accepted'
+  );
 }
 
 /**
@@ -94,7 +104,7 @@ export async function declineBooking(
     updatedAt: serverTimestamp()
   });
 
-  // 2. Revert event to matched (or open if no other matches)
+  // 2. Revert event to open/matched status
   await updateDoc(doc(db, 'platform_events', booking.eventId), {
     status: 'matched',
     bookedTalentId: null,

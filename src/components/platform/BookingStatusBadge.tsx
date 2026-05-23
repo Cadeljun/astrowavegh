@@ -1,3 +1,4 @@
+
 'use client';
 
 import React from 'react';
@@ -57,7 +58,8 @@ export function BookingStatusBadge({
   status: string;
   className?: string;
 }) {
-  const config = STATUS_CONFIG[status.toLowerCase()] || STATUS_CONFIG.pending;
+  const normalizedStatus = status?.toLowerCase() || 'pending';
+  const config = STATUS_CONFIG[normalizedStatus] || STATUS_CONFIG.pending;
   const Icon = config.icon;
   
   return (
@@ -72,7 +74,7 @@ export function BookingStatusBadge({
         border: `1px solid ${config.border}`
       }}
     >
-      <Icon size={12} className={cn(status === 'pending' && "animate-pulse")} />
+      <Icon size={12} className={cn(normalizedStatus === 'pending' && "animate-pulse")} />
       {config.label}
     </span>
   );

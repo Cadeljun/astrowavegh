@@ -1,9 +1,11 @@
+
 'use client';
 
 import React from 'react';
 import { Send, MessageSquare, Calendar, CheckCircle, Star, LucideIcon, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
+import { SectionLabel } from '@/components/ui/SectionLabel';
 
 interface BookingTimelineProps {
   booking: any;
@@ -36,7 +38,7 @@ export function BookingTimeline({ booking }: BookingTimelineProps) {
     {
       label: 'Event Day',
       date: booking.eventDate,
-      completed: booking.status === 'completed' || booking.status === 'accepted' || booking.status === 'declined', // just a marker
+      completed: booking.status === 'completed' || booking.status === 'accepted' || booking.status === 'declined',
       icon: Calendar,
       color: 'text-cyan'
     },

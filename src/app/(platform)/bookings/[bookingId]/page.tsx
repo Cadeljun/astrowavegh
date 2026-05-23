@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState } from 'react';
@@ -17,7 +18,8 @@ import {
   Zap,
   Star,
   ExternalLink,
-  Info
+  Info,
+  CheckCircle
 } from 'lucide-react';
 import { doc } from 'firebase/firestore';
 import { useFirestore, useDoc, useAuth } from '@/firebase';
@@ -42,7 +44,7 @@ import PlatformGuard from '@/components/platform/PlatformGuard';
 export default function BookingDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const { user, platformUser } = useAuth();
+  const { user } = useAuth();
   const { toast } = useToast();
   const bookingId = params.bookingId as string;
   const db = useFirestore();
@@ -95,7 +97,7 @@ export default function BookingDetailPage() {
             <ArrowLeft size={16} /> BACK
           </button>
           <div className="flex items-center gap-4">
-             <span className="text-[0.65rem] text-muted font-mono uppercase font-bold tracking-widest">REF: {booking.id}</span>
+             <span className="text-[0.65rem] text-muted font-mono uppercase font-bold tracking-widest">REF: {booking.id.slice(0, 8)}</span>
              <BookingStatusBadge status={booking.status} className="h-8 px-4" />
           </div>
         </header>
@@ -128,17 +130,14 @@ export default function BookingDetailPage() {
              </section>
 
              <section className="space-y-8">
-                <SectionLabel>VIBE ALIGNMENT</SectionLabel>
-                <Card className="p-8 md:p-12 bg-[#111118]/60" glowColor="gold">
-                   <MatchBreakdown 
-                     matchPercentage={booking.matchPercentage}
-                     locationScore={booking.locationScore || 0}
-                     categoryScore={booking.categoryScore || 0}
-                     waveContribution={booking.waveScoreContribution || 0}
-                     locationReason={booking.locationReason}
-                     categoryReason={booking.categoryReason}
-                   />
-                </Card>
+                <MatchBreakdown 
+                  matchPercentage={booking.matchPercentage}
+                  locationScore={booking.locationScore || 0}
+                  categoryScore={booking.categoryScore || 0}
+                  waveContribution={booking.waveScoreContribution || 0}
+                  locationReason={booking.locationReason}
+                  categoryReason={booking.categoryReason}
+                />
              </section>
 
              <section className="space-y-6">
@@ -167,11 +166,10 @@ export default function BookingDetailPage() {
 
           {/* Action Sidebar */}
           <aside className="lg:col-span-4 space-y-10">
-             {/* Counterpart Card */}
              <Card className="p-8 space-y-8 bg-[#16161F]/60" glowColor="muted">
                 <SectionLabel>{isTalent ? 'CLIENT DOSSIER' : 'ARTIST DOSSIER'}</SectionLabel>
                 <div className="flex flex-col items-center text-center space-y-4">
-                   <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-white/10 shadow-2xl">
+                   <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-white/10 shadow-2xl bg-surface">
                       <img 
                         src={isTalent ? (booking.organizerPhoto || 'https://picsum.photos/seed/org/100/100') : (booking.talentPhoto || 'https://picsum.photos/seed/talent/100/100')} 
                         className="w-full h-full object-cover" 
