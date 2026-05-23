@@ -4,28 +4,29 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Calendar, Search, MessageSquare, User, LogOut } from 'lucide-react';
+import { LayoutDashboard, Calendar, Search, MessageSquare, User, LogOut, BarChart3 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/firebase';
 
 const sidebarItems = [
   { label: 'Dashboard', href: '/organizer/dashboard', icon: LayoutDashboard },
-  { label: 'My Events', href: '/organizer/my-events', icon: Calendar },
-  { label: 'Search Talent', href: '/organizer/search-talent', icon: Search },
+  { label: 'My Events', href: '/organizer/events', icon: Calendar },
+  { label: 'Scout Talent', href: '/organizer/search', icon: Search },
   { label: 'Bookings', href: '/organizer/bookings', icon: MessageSquare },
+  { label: 'Analytics', href: '/organizer/analytics', icon: BarChart3 },
   { label: 'Profile', href: '/organizer/profile', icon: User },
 ];
 
 export default function OrganizerLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const { logout } = useAuth();
+  const { logout, platformUser } = useAuth();
 
   return (
     <div className="flex min-h-screen bg-black">
       {/* Sidebar */}
       <aside className="w-64 border-r border-white/5 hidden lg:flex flex-col sticky top-0 h-screen bg-[#050505]">
         <div className="p-8 border-b border-white/5">
-          <Link href="/platform" className="font-display text-2xl text-gold tracking-widest uppercase">ASTROWAVE</Link>
+          <Link href="/" className="font-display text-2xl text-gold tracking-widest uppercase">ASTROWAVE</Link>
           <p className="label text-[0.6rem] mt-1 text-muted">ORGANIZER HUB</p>
         </div>
 
@@ -63,6 +64,7 @@ export default function OrganizerLayout({ children }: { children: React.ReactNod
             {sidebarItems.find(i => i.href === pathname)?.label || 'AstroWave'}
           </h1>
           <div className="flex items-center gap-4">
+             <span className="text-[0.6rem] text-muted uppercase font-bold tracking-widest mr-2">{platformUser?.displayName}</span>
              <div className="w-8 h-8 rounded-full bg-gold/20 border border-gold/40 flex items-center justify-center text-gold text-[10px] font-bold">OR</div>
           </div>
         </header>
