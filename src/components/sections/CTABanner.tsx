@@ -7,13 +7,21 @@ import { Button } from '@/components/ui/Button';
 import { fadeUp } from '@/lib/animations';
 import { useCMSContent } from '@/lib/cms/useCMS';
 
-export default function CTABanner() {
+interface CTABannerProps {
+  overrideHeading?: string;
+  overrideSubtext?: string;
+}
+
+export default function CTABanner({ overrideHeading, overrideSubtext }: CTABannerProps) {
   const { content } = useCMSContent('home', 'cta_banner', {
     heading: 'READY TO WAVE?',
     subtext: "Whether you're an artist, event lover, or brand — AstroWave has a space for you. Let's create something unforgettable.",
     cta1: 'BOOK AN EVENT',
     cta2: 'JOIN THE MOVEMENT'
   });
+
+  const heading = overrideHeading || content.heading;
+  const subtext = overrideSubtext || content.subtext;
 
   return (
     <section className="relative w-full py-[var(--space-2xl)] px-6 lg:px-12 overflow-hidden bg-[var(--color-black)] border-y border-[var(--color-border)]">
@@ -27,14 +35,22 @@ export default function CTABanner() {
 
       <div className="relative z-10 max-w-4xl mx-auto text-center space-y-8">
         <motion.h2 className="display-xl text-glow-gold" variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }}>
-          {content.heading}
+          {heading}
         </motion.h2>
         <motion.p className="body-lg text-[var(--color-muted)] max-w-[560px] mx-auto" variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }} transition={{ delay: 0.2 }}>
-          {content.subtext}
+          {subtext}
         </motion.p>
         <motion.div className="flex flex-col sm:flex-row items-center justify-center gap-6 pt-4" variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }} transition={{ delay: 0.4 }}>
-          <Link href="/contact" className="w-full sm:w-auto"><Button variant="primary" size="lg" className="w-full">{content.cta1}</Button></Link>
-          <Link href="/contact" className="w-full sm:w-auto"><Button variant="secondary" size="lg" className="w-full">{content.cta2}</Button></Link>
+          <Link href="/auth/register" className="w-full sm:w-auto">
+            <Button variant="primary" size="lg" className="w-full">
+              {overrideHeading ? 'FIND TALENT' : content.cta1}
+            </Button>
+          </Link>
+          <Link href="/auth/register" className="w-full sm:w-auto">
+            <Button variant="secondary" size="lg" className="w-full">
+              {overrideHeading ? 'JOIN AS TALENT' : content.cta2}
+            </Button>
+          </Link>
         </motion.div>
       </div>
     </section>

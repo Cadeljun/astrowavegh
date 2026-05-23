@@ -4,16 +4,18 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, Instagram, Twitter, Youtube, Music } from 'lucide-react';
+import { Menu, X, Instagram, Twitter, Youtube, Music, LayoutDashboard } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/utils';
 import { useCMSSettings } from '@/lib/cms/useCMS';
+import { useAuth } from '@/firebase';
 
 const navLinks = [
   { name: 'Home', href: '/' },
   { name: 'About', href: '/about' },
   { name: 'Events', href: '/events' },
   { name: 'Management', href: '/management' },
+  { name: 'Platform', href: '/platform' },
   { name: 'Records', href: '/records', badge: 'Soon' },
   { name: 'Cares', href: '/cares', badge: 'Soon' },
   { name: 'Contact', href: '/contact' },
@@ -24,6 +26,7 @@ export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();
   const { settings } = useCMSSettings();
+  const { user, platformUser } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -38,6 +41,12 @@ export default function Navbar() {
   }, [pathname]);
 
   const siteName = settings?.siteName || 'ASTROWAVE';
+
+  const getDashboardUrl = () => {
+    if (!platformUser) return '/auth/login';
+    if (platformUser.role === 'talent') return '/talent/dashboard';
+    return '/organizer/dashboard';
+  };
 
   return (
     <header
@@ -62,16 +71,23 @@ export default function Navbar() {
           <div className="flex items-center gap-8 mr-4">
             {navLinks.map((link) => {
               const isActive = pathname === link.href;
+              const isPlatform = link.name === 'Platform';
+              
+              // If user is logged in, show Dashboard instead of Platform
+              const displayName = (isPlatform && user) ? 'Dashboard' : link.name;
+              const href = (isPlatform && user) ? getDashboardUrl() : link.href;
+
               return (
                 <Link
                   key={link.name}
-                  href={link.href}
+                  href={href}
                   className={cn(
                     'font-body text-[0.85rem] font-medium tracking-[0.1em] uppercase transition-colors relative flex items-center gap-1.5',
                     isActive ? 'text-[var(--color-gold)]' : 'text-[var(--color-muted)] hover:text-[var(--color-white)]'
                   )}
                 >
-                  {link.name}
+                  {isPlatform && user && <LayoutDashboard size={14} className="text-gold" />}
+                  {displayName}
                   {link.badge && (
                     <span className="text-[0.6rem] bg-[var(--color-gold-dim)] text-[var(--color-gold)] rounded-full px-1.5 py-0.5 leading-none font-bold">
                       {link.badge}
@@ -135,7 +151,11 @@ export default function Navbar() {
 
             <nav className="flex-1 flex flex-col items-center justify-center gap-8" aria-label="Mobile Navigation">
               {navLinks.map((link, idx) => {
-                const isActive = pathname === link.href;
+                const isPlatform = link.name === 'Platform';
+                const displayName = (isPlatform && user) ? 'Dashboard' : link.name;
+                const href = (isPlatform && user) ? getDashboardUrl() : link.href;
+                const isActive = pathname === href;
+
                 return (
                   <motion.div
                     key={link.name}
@@ -144,13 +164,13 @@ export default function Navbar() {
                     transition={{ delay: idx * 0.08 }}
                   >
                     <Link
-                      href={link.href}
+                      href={href}
                       className={cn(
                         'font-display text-[2.5rem] tracking-widest uppercase transition-colors flex items-center gap-3',
                         isActive ? 'text-[var(--color-gold)]' : 'text-[var(--color-white)] hover:text-[var(--color-gold)]'
                       )}
                     >
-                      {link.name}
+                      {displayName}
                       {link.badge && (
                          <span className="text-[0.7rem] bg-[var(--color-gold-dim)] text-[var(--color-gold)] rounded-full px-2 py-1 leading-none font-bold">
                            {link.badge}
