@@ -164,7 +164,7 @@ export default function AdminLoginPage() {
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.95 }}
-                  className={`border rounded-sm p-4 flex gap-4 ${error ? 'bg-red-500/10 border-red-500/20 text-red-400' : 'bg-green/10 border-green/20 text-green'}`}
+                  className={`border rounded-sm p-4 flex gap-4 ${error ? 'bg-red-500/10 border-red-500/20 text-red-400' : 'bg-green-100 border-green-200 text-green-700'}`}
                 >
                   <AlertCircle size={20} className="shrink-0 mt-0.5" />
                   <p className="text-xs font-medium leading-relaxed uppercase tracking-wider">{error || setupMessage}</p>

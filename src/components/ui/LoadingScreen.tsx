@@ -1,7 +1,6 @@
 'use client';
 
-import React from 'react';
-import { motion } from 'framer-motion';
+import React, { border, motion } from 'framer-motion';
 import { heroTextReveal, fadeIn } from '@/lib/animations';
 import Logo from './Logo';
 

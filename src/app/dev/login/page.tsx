@@ -8,6 +8,7 @@ import { Eye, EyeOff, Terminal, AlertCircle, ArrowLeft, Loader2, ShieldCheck } f
 import { ROLE_LABELS } from '@/context/RoleContext'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
+import Logo from '@/components/ui/Logo'
 
 /**
  * DevLoginPage
@@ -33,7 +34,7 @@ export default function DevLoginPage() {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
-    if (isSubmitting) return
+    if (isSubmitting) return shadow-2xl
     
     setIsSubmitting(true)
     setAccessError(null)
@@ -64,12 +65,12 @@ export default function DevLoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#050505] flex items-center justify-center p-6 relative overflow-hidden font-mono">
+    <div className="min-h-screen bg-[#020B18] flex items-center justify-center p-6 relative overflow-hidden font-mono">
       {/* Terminal Grid Background */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         <div 
           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full opacity-[0.05]"
-          style={{ backgroundImage: `radial-gradient(ellipse 60% 40% at 50% 50%, #06B6D4, transparent 70%)` }}
+          style={{ backgroundImage: `radial-gradient(ellipse 60% 40% at 50% 50%, #38BDF8, transparent 70%)` }}
         />
         <div className="absolute inset-0 opacity-[0.1] bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] z-10 pointer-events-none" style={{ backgroundSize: '100% 2px, 3px 100%' }} />
       </div>
@@ -79,16 +80,14 @@ export default function DevLoginPage() {
         animate={{ opacity: 1, y: 0 }}
         className="relative z-20 w-full max-w-[440px]"
       >
-        <div className="bg-[#08080C] border-t-[3px] border-t-cyan-500 border border-white/5 p-10 md:p-12 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+        <div className="bg-[#08080C] border-t-[3px] border-t-sky border border-white/5 p-10 md:p-12 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
           <div className="flex flex-col items-center mb-12">
-            <div className="w-20 h-20 rounded-xl bg-cyan-500/5 border border-cyan-500/20 flex items-center justify-center mb-6 shadow-[0_0_30px_rgba(6,182,212,0.1)]">
-              <Terminal size={40} className="text-cyan-400" />
+            <div className="w-20 h-20 rounded-xl bg-sky/5 border border-sky/20 flex items-center justify-center mb-6 shadow-[0_0_30px_rgba(56,189,248,0.1)]">
+              <Terminal size={40} className="text-sky" />
             </div>
-            <h1 className="font-display text-[2.2rem] text-white tracking-widest mb-1 uppercase">
-              COMMAND CENTER
-            </h1>
-            <div className="flex items-center justify-center gap-3 text-cyan-500/40 uppercase tracking-[0.3em] text-[0.6rem] font-bold">
-              <div className="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-pulse" />
+            <Logo height={40} className="mx-auto" />
+            <div className="flex items-center justify-center gap-3 text-sky/40 uppercase tracking-[0.3em] text-[0.6rem] font-bold mt-4">
+              <div className="w-1.5 h-1.5 rounded-full bg-sky animate-pulse" />
               Secure Authorization
             </div>
           </div>
@@ -103,7 +102,7 @@ export default function DevLoginPage() {
                 required
                 onFocus={clearError}
                 placeholder="identity@astrowave.dev"
-                className="w-full h-14 bg-white/[0.02] border border-white/10 rounded-sm px-5 text-sm text-cyan-50 placeholder:text-white/5 focus:border-cyan-500 focus:bg-cyan-500/[0.03] focus:outline-none transition-all"
+                className="w-full h-14 bg-white/[0.02] border border-white/10 rounded-sm px-5 text-sm text-sky/50 placeholder:text-white/5 focus:border-sky focus:bg-sky/[0.03] focus:outline-none transition-all"
               />
             </div>
 
@@ -117,12 +116,12 @@ export default function DevLoginPage() {
                   required
                   onFocus={clearError}
                   placeholder="••••••••"
-                  className="w-full h-14 bg-white/[0.02] border border-white/10 rounded-sm px-5 text-sm text-cyan-50 placeholder:text-white/5 focus:border-cyan-500 focus:bg-cyan-500/[0.03] focus:outline-none transition-all pr-14"
+                  className="w-full h-14 bg-white/[0.02] border border-white/10 rounded-sm px-5 text-sm text-sky/50 placeholder:text-white/5 focus:border-sky focus:bg-sky/[0.03] focus:outline-none transition-all pr-14"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-white/10 hover:text-cyan-400 transition-colors"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-white/10 hover:text-sky transition-colors"
                 >
                   {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
@@ -146,7 +145,7 @@ export default function DevLoginPage() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full h-16 bg-transparent border border-cyan-500 text-cyan-400 text-xs font-bold tracking-[0.4em] uppercase hover:bg-cyan-500 hover:text-black hover:shadow-[0_0_30px_rgba(6,182,212,0.3)] disabled:opacity-20 transition-all flex items-center justify-center gap-3"
+              className="w-full h-16 bg-transparent border border-sky text-sky text-xs font-bold tracking-[0.4em] uppercase hover:bg-sky hover:text-black hover:shadow-[0_0_30px_rgba(56,189,248,0.3)] disabled:opacity-20 transition-all flex items-center justify-center gap-3"
             >
               {isSubmitting ? (
                 <Loader2 className="animate-spin h-6 w-6" />
@@ -162,7 +161,7 @@ export default function DevLoginPage() {
           <div className="mt-12 pt-10 border-t border-white/5">
             <Link 
               href="/"
-              className="flex items-center justify-center gap-3 text-[0.6rem] font-bold uppercase tracking-[0.3em] text-white/10 hover:text-cyan-400 transition-colors group"
+              className="flex items-center justify-center gap-3 text-[0.6rem] font-bold uppercase tracking-[0.3em] text-white/10 hover:text-sky transition-colors group"
             >
               <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
               Abort to Public Interface

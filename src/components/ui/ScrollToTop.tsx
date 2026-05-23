@@ -35,7 +35,7 @@ export function ScrollToTop() {
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.8 }}
           onClick={scrollToTop}
-          className="fixed bottom-8 left-8 z-[1000] w-11 h-11 rounded-full glass flex items-center justify-center text-gold border border-gold/30 hover:border-gold hover:shadow-[0_0_15px_rgba(255,209,102,0.4)] transition-all"
+          className="fixed bottom-8 left-8 z-[1000] w-11 h-11 rounded-full glass flex items-center justify-center text-green border border-green/30 hover:border-green hover:shadow-[0_0_15px_rgba(0,255,135,0.4)] transition-all"
           aria-label="Scroll to top"
         >
           <ChevronUp size={20} />

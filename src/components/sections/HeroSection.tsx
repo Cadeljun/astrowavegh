@@ -10,6 +10,7 @@ import { heroTextReveal, fadeIn, fadeUp } from '@/lib/animations';
 import { useCMSContent, useCMSSettings } from '@/lib/cms/useCMS';
 import { CloudinaryPresets } from '@/lib/cloudinary/getUrl';
 import { NeonLine } from '@/components/ui/NeonLine';
+import Logo from '@/components/ui/Logo';
 
 export default function HeroSection() {
   const { scrollY } = useScroll();

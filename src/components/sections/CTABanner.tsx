@@ -43,14 +43,14 @@ export default function CTABanner({ overrideHeading, overrideSubtext }: CTABanne
           {subtext}
         </motion.p>
         <motion.div className="flex flex-col sm:flex-row items-center justify-center gap-6 pt-4" variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }} transition={{ delay: 0.4 }}>
-          <Link href="/auth/register" className="w-full sm:w-auto">
+          <Link href="/contact" className="w-full sm:w-auto">
             <Button variant="primary" size="lg" className="w-full">
-              {overrideHeading ? 'FIND TALENT' : content.cta1}
+              {content.cta1}
             </Button>
           </Link>
-          <Link href="/auth/register" className="w-full sm:w-auto">
+          <Link href="/management" className="w-full sm:w-auto">
             <Button variant="secondary" size="lg" className="w-full">
-              {overrideHeading ? 'JOIN AS TALENT' : content.cta2}
+              {content.cta2}
             </Button>
           </Link>
         </motion.div>

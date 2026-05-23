@@ -1,4 +1,3 @@
-
 'use client'
 
 import { useEffect, useState } from 'react'
@@ -28,6 +27,7 @@ import DevGuard from '@/components/dev/DevGuard'
 import { useRole, ROLE_LABELS, ROLE_COLORS } from '@/context/RoleContext'
 import { useAuth } from '@/context/AuthContext'
 import { cn } from '@/lib/utils'
+import Logo from '@/components/ui/Logo'
 
 const navItems = [
   { label: 'Components', href: '/dev/components', icon: Blocks, group: 'LIBRARY' },
@@ -83,29 +83,28 @@ export default function DevLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <DevGuard>
-      <div className="flex min-h-screen bg-[#050505] text-white">
-        <aside className="w-72 border-r border-white/5 flex flex-col sticky top-0 h-screen bg-[#08080C] z-[100]">
+      <div className="flex min-h-screen bg-[#020B18] text-white">
+        <aside className="w-72 border-r border-white/5 flex flex-col sticky top-0 h-screen bg-[#041020] z-[100]">
           <div className="p-8 border-b border-white/5">
             <div className="flex items-center gap-3 mb-2">
-              <div className="p-1.5 rounded-sm bg-cyan-500/10 border border-cyan-500/20 text-cyan-400"><TerminalIcon size={16} /></div>
-              <span className="font-display text-2xl text-gold tracking-tight">ASTROWAVE</span>
+              <Logo height={24} />
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-pulse" />
-              <p className="text-[0.6rem] font-mono text-cyan-500/60 tracking-[0.2em] uppercase font-bold">DEV COMMAND CENTER</p>
+              <div className="w-1.5 h-1.5 rounded-full bg-green animate-pulse" />
+              <p className="text-[0.6rem] font-mono text-green/60 tracking-[0.2em] uppercase font-bold">DEV COMMAND CENTER</p>
             </div>
           </div>
           <nav className="flex-1 p-4 overflow-y-auto space-y-1">
             {filteredNavItems.map((item) => (
-              <Link key={item.href} href={item.href} className={cn("flex items-center justify-between px-4 py-2.5 rounded-md font-mono text-[0.7rem] transition-all group uppercase tracking-wider", isActive(item.href) ? "bg-cyan-500/10 text-cyan-400 border-l-2 border-cyan-500 pl-[14px]" : "text-muted hover:text-white hover:bg-white/5 border-l-2 border-transparent")}>
-                <div className="flex items-center gap-3"><item.icon size={14} className={cn("transition-transform group-hover:scale-110", isActive(item.href) ? "text-cyan-400" : "text-muted")} />{item.label}</div>
-                {isActive(item.href) && <ChevronRight size={10} className="text-cyan-400" />}
+              <Link key={item.href} href={item.href} className={cn("flex items-center justify-between px-4 py-2.5 rounded-md font-mono text-[0.7rem] transition-all group uppercase tracking-wider", isActive(item.href) ? "bg-green/10 text-green border-l-2 border-green pl-[14px]" : "text-muted hover:text-white hover:bg-white/5 border-l-2 border-transparent")}>
+                <div className="flex items-center gap-3"><item.icon size={14} className={cn("transition-transform group-hover:scale-110", isActive(item.href) ? "text-green" : "text-muted")} />{item.label}</div>
+                {isActive(item.href) && <ChevronRight size={10} className="text-green" />}
               </Link>
             ))}
           </nav>
           <div className="p-6 border-t border-white/5 bg-black/40"><SidebarUser /></div>
         </aside>
-        <main className="flex-1 overflow-auto bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(6,182,212,0.05),transparent)]">
+        <main className="flex-1 overflow-auto bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(0,255,135,0.05),transparent)]">
           <div className="max-w-6xl mx-auto p-12">{children}</div>
         </main>
       </div>

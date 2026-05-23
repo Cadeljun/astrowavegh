@@ -16,7 +16,7 @@ export default async function Image() {
     (
       <div
         style={{
-          background: '#050505',
+          background: '#020B18',
           width: '100%',
           height: '100%',
           display: 'flex',
@@ -33,7 +33,7 @@ export default async function Image() {
             position: 'absolute',
             width: '800px',
             height: '400px',
-            background: 'radial-gradient(ellipse, rgba(255, 209, 102, 0.15), transparent)',
+            background: 'radial-gradient(ellipse, rgba(0, 255, 135, 0.12), transparent)',
             borderRadius: '50%',
             top: '50%',
             left: '50%',
@@ -45,8 +45,8 @@ export default async function Image() {
         <div
           style={{
             display: 'flex',
-            background: 'rgba(255, 209, 102, 0.1)',
-            border: '1px solid rgba(255, 209, 102, 0.3)',
+            background: 'rgba(0, 255, 135, 0.1)',
+            border: '1px solid rgba(0, 255, 135, 0.3)',
             borderRadius: '100px',
             padding: '8px 24px',
             marginBottom: '32px',
@@ -54,7 +54,7 @@ export default async function Image() {
         >
           <span
             style={{
-              color: '#FFD166',
+              color: '#00FF87',
               fontSize: '18px',
               fontWeight: 'bold',
               letterSpacing: '0.2em',
@@ -70,11 +70,12 @@ export default async function Image() {
           style={{
             fontSize: '120px',
             fontWeight: 900,
-            color: '#FFD166',
+            color: '#00FF87',
             textTransform: 'uppercase',
             letterSpacing: '0.05em',
             lineHeight: 1,
             marginBottom: '24px',
+            textShadow: '0 0 30px rgba(0, 255, 135, 0.5)',
           }}
         >
           ASTROWAVE
@@ -84,7 +85,7 @@ export default async function Image() {
         <div
           style={{
             fontSize: '28px',
-            color: '#7B7B9A',
+            color: '#6B8CAE',
             fontStyle: 'italic',
             marginBottom: '48px',
           }}
@@ -97,7 +98,7 @@ export default async function Image() {
           style={{
             display: 'flex',
             gap: '24px',
-            color: '#7B7B9A',
+            color: '#6B8CAE',
             fontSize: '16px',
             letterSpacing: '0.2em',
             textTransform: 'uppercase',
