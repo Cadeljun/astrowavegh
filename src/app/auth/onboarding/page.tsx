@@ -1,363 +1,330 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Users, Mic, ChevronRight, Loader2, Sparkles, Phone, Briefcase, CheckCircle, ArrowLeft } from 'lucide-react';
-import { doc, updateDoc, serverTimestamp, setDoc } from 'firebase/firestore';
-import { db, useAuth } from '@/firebase';
-import { Card } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
-import { useToast } from '@/hooks/use-toast';
-import { GHANA_CITIES } from '@/lib/constants/ghana';
-import { UserRole } from '@/types/platform';
-import { cn } from '@/lib/utils';
+import { 
+  Calendar, Mic, 
+  Check, ArrowRight,
+  Loader2
+} from 'lucide-react';
+import { 
+  createOrganizerProfile,
+  createTalentProfile,
+  updateUserRole
+} from '@/lib/firebase/platform';
+import Logo from '@/components/ui/Logo';
 
-const TALENT_CATEGORIES = ['DJ', 'MC', 'Hypeman', 'Singer', 'Dancer', 'Comedian', 'Band', 'Other'];
+const GHANA_CITIES = [
+  'Accra', 'Kumasi', 'Tamale',
+  'Takoradi', 'Cape Coast', 'Tema',
+  'Sunyani', 'Koforidua', 'Ho',
+  'Wa', 'Bolgatanga', 'Techiman',
+  'Obuasi', 'Tarkwa', 'Winneba', 'Other'
+];
+
+const TALENT_CATEGORIES = [
+  { value: 'DJ', emoji: '🎵', label: 'DJ' },
+  { value: 'MC', emoji: '🎤', label: 'MC' },
+  { value: 'Hypeman', emoji: '🙌', label: 'Hypeman' },
+  { value: 'Singer', emoji: '🎶', label: 'Singer' },
+  { value: 'Dancer', emoji: '💃', label: 'Dancer' },
+  { value: 'Comedian', emoji: '😂', label: 'Comedian' },
+  { value: 'Band', emoji: '🎸', label: 'Band' },
+  { value: 'Other', emoji: '✨', label: 'Other' }
+];
 
 export default function OnboardingPage() {
+  const { user, platformUser, loading } = useAuth();
   const router = useRouter();
-  const { user, platformUser, loading: authLoading, refreshPlatformUser } = useAuth();
-  const { toast } = useToast();
-  
   const [step, setStep] = useState(1);
-  const [role, setRole] = useState<UserRole>(null);
-  const [loading, setLoading] = useState(false);
-  
-  const [profileData, setProfileData] = useState({
-    phone: '',
-    city: 'Accra',
-    company: '',
-    bio: '',
+  const [role, setRole] = useState<'organizer' | 'talent' | null>(null);
+  const [formData, setFormData] = useState({
+    city: '',
+    category: '',
     stageName: '',
-    category: 'DJ',
+    company: '',
     basePrice: '',
-    currency: 'GHS' as 'GHS' | 'USD'
+    currency: 'GHS' as 'GHS' | 'USD',
+    bio: ''
   });
+  const [saving, setSaving] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    if (!authLoading && !user) {
+    if (!loading && !user) {
       router.replace('/auth/login');
-    } else if (!authLoading && platformUser?.onboarded) {
-      router.replace(platformUser.role === 'talent' ? '/talent/dashboard' : '/organizer/dashboard');
     }
-  }, [user, platformUser, authLoading, router]);
+    if (!loading && platformUser?.onboarded) {
+      if (platformUser.role === 'talent') {
+        router.replace('/talent/dashboard');
+      } else {
+        router.replace('/organizer/dashboard');
+      }
+    }
+  }, [user, loading, platformUser, router]);
 
-  const handleRoleSelect = async (selectedRole: UserRole) => {
-    setRole(selectedRole);
-    setStep(2);
+  const update = (key: string, value: string) => {
+    setFormData(prev => ({ ...prev, [key]: value }));
+    setErrors(prev => {
+      const next = { ...prev };
+      delete next[key];
+      return next;
+    });
   };
 
-  const handleBasicProfileSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setStep(3);
+  const validateStep2 = () => {
+    const errs: Record<string, string> = {};
+    if (!formData.city) {
+      errs.city = 'Please select your city';
+    }
+    if (role === 'talent') {
+      if (!formData.stageName.trim()) {
+        errs.stageName = 'Stage name is required';
+      }
+      if (!formData.category) {
+        errs.category = 'Please select your category';
+      }
+      if (!formData.basePrice || Number(formData.basePrice) < 1) {
+        errs.basePrice = 'Please enter your base price';
+      }
+    }
+    return errs;
   };
 
-  const handleFinalize = async () => {
-    if (!user || !role) return;
-    setLoading(true);
+  const handleFinish = async () => {
+    const errs = validateStep2();
+    if (Object.keys(errs).length > 0) {
+      setErrors(errs);
+      return;
+    }
 
+    setSaving(true);
     try {
-      const userRef = doc(db, 'users', user.uid);
-      await updateDoc(userRef, {
-        role: role,
-        onboarded: true,
-        updatedAt: serverTimestamp()
-      });
-
-      if (role === 'organizer' || role === 'both') {
-        await setDoc(doc(db, 'organizer_profiles', user.uid), {
-          uid: user.uid,
-          displayName: user.displayName || '',
-          email: user.email || '',
-          phone: profileData.phone,
-          city: profileData.city,
-          company: profileData.company,
-          bio: profileData.bio,
-          eventCount: 0,
-          totalSpent: 0,
-          verified: false,
-          rating: 0,
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp()
+      if (role === 'organizer') {
+        await createOrganizerProfile(user!.uid, {
+          displayName: user!.displayName || '',
+          email: user!.email || '',
+          photoURL: user!.photoURL || '',
+          city: formData.city,
+          company: formData.company,
+          bio: formData.bio,
+          phone: '',
+          region: '',
+          country: 'Ghana'
         });
-      }
-
-      if (role === 'talent' || role === 'both') {
-        await setDoc(doc(db, 'talent_profiles', user.uid), {
-          uid: user.uid,
-          displayName: user.displayName || '',
-          stageName: profileData.stageName || user.displayName || '',
-          email: user.email || '',
-          phone: profileData.phone,
-          city: profileData.city,
-          category: profileData.category,
-          basePrice: Number(profileData.basePrice) || 0,
-          currency: profileData.currency,
-          bio: profileData.bio,
-          waveScore: 0,
-          averageRating: 0,
-          ratingCount: 0,
-          eventCount: 0,
-          totalBookings: 0,
-          completedBookings: 0,
-          cancelledBookings: 0,
-          active: true,
-          available: true,
-          verified: false,
-          featured: false,
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp()
+        await updateUserRole(user!.uid, 'organizer');
+        router.push('/organizer/dashboard');
+      } else if (role === 'talent') {
+        await createTalentProfile(user!.uid, {
+          displayName: user!.displayName || '',
+          stageName: formData.stageName,
+          email: user!.email || '',
+          photoURL: user!.photoURL || '',
+          city: formData.city,
+          category: formData.category as any,
+          basePrice: Number(formData.basePrice),
+          currency: formData.currency,
+          bio: formData.bio,
+          phone: '',
+          region: '',
+          country: 'Ghana',
+          available: true
         });
+        await updateUserRole(user!.uid, 'talent');
+        router.push('/talent/dashboard');
       }
-
-      await refreshPlatformUser();
-      toast({ title: "Welcome to AstroWave!", description: "Redirecting to your dashboard..." });
-      router.replace(role === 'talent' ? '/talent/dashboard' : '/organizer/dashboard');
-    } catch (err: any) {
-      toast({ variant: "destructive", title: "Setup Failed", description: err.message });
+    } catch (err) {
+      console.error(err);
+      setErrors({ general: 'Something went wrong. Try again.' });
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
   };
 
-  if (authLoading) return null;
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ background: '#020B18' }}>
+        <Loader2 size={32} className="animate-spin" style={{ color: '#00FF87' }} />
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-10">
-      {/* Step Indicator */}
-      <div className="flex items-center justify-between max-w-xs mx-auto mb-8">
-        {[1, 2, 3].map((s) => (
-          <div key={s} className="flex flex-col items-center gap-2">
-            <div className={cn(
-              "w-8 h-8 rounded-full border-2 flex items-center justify-center font-bold text-xs transition-all duration-500",
-              step >= s ? "border-gold bg-gold/10 text-gold shadow-[0_0_15px_rgba(255,209,102,0.3)]" : "border-white/10 text-muted"
-            )}>
-              {s}
-            </div>
-            <span className={cn("text-[10px] font-bold uppercase tracking-widest", step >= s ? "text-gold" : "text-muted")}>
-              {s === 1 ? 'Account' : s === 2 ? 'Role' : 'Profile'}
-            </span>
-          </div>
-        ))}
+    <div className="min-h-screen flex items-center justify-center p-4" style={{ background: '#020B18' }}>
+      <div className="fixed inset-0 pointer-events-none">
+        <div style={{ position: 'absolute', top: 0, right: 0, width: '400px', height: '400px', background: 'radial-gradient(circle, rgba(0,255,135,0.06), transparent 70%)' }} />
+        <div style={{ position: 'absolute', bottom: 0, left: 0, width: '400px', height: '400px', background: 'radial-gradient(circle, rgba(14,165,233,0.06), transparent 70%)' }} />
       </div>
 
-      <AnimatePresence mode="wait">
-        {step === 1 && (
-          <motion.div
-            key="step1"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            className="space-y-8"
-          >
-            <div className="text-center space-y-2">
-              <h1 className="display-md text-white">How will you use AstroWave?</h1>
-              <p className="body-md text-muted">Choose your role to get started</p>
-            </div>
+      <div className="relative z-10 w-full max-w-[560px]">
+        <div className="flex justify-center mb-8">
+          <Logo height={44} linkTo="/" />
+        </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card 
-                className="p-8 cursor-pointer group hover:border-gold transition-all duration-500 bg-white/[0.02]"
-                onClick={() => handleRoleSelect('organizer')}
+        <div className="flex items-center justify-center gap-3 mb-8">
+          {[1, 2].map(s => (
+            <div key={s} className="flex items-center gap-3">
+              <div
+                className="w-8 h-8 rounded-full flex items-center justify-center font-mono text-xs font-bold transition-all duration-300"
+                style={{
+                  background: s <= step ? '#00FF87' : 'rgba(15,32,64,1)',
+                  color: s <= step ? '#020B18' : '#6B8CAE',
+                  border: s <= step ? 'none' : '1px solid #0F2040'
+                }}
               >
-                <div className="flex flex-col items-center text-center space-y-6">
-                  <div className="p-6 rounded-2xl bg-gold/10 text-gold group-hover:scale-110 transition-transform">
-                    <Users size={40} />
-                  </div>
-                  <div className="space-y-2">
-                    <h3 className="font-display text-2xl text-white uppercase tracking-widest">I'm an Organizer</h3>
-                    <p className="text-xs text-muted leading-relaxed">I plan events and need to find the right talent for my events.</p>
-                  </div>
-                  <ul className="space-y-3 text-left w-full max-w-[200px] mx-auto">
-                    {['Post events', 'Find matched talent', 'Manage bookings', 'Rate performers'].map(f => (
-                      <li key={f} className="flex items-center gap-3 text-[10px] font-bold text-white uppercase tracking-wider">
-                        <CheckCircle size={14} className="text-gold" /> {f}
+                {s < step ? <Check size={14} /> : s}
+              </div>
+              {s < 2 && (
+                <div className="w-16 h-px" style={{ background: step > s ? '#00FF87' : '#0F2040' }} />
+              )}
+            </div>
+          ))}
+        </div>
+
+        <div
+          className="rounded-2xl p-8"
+          style={{
+            background: 'rgba(4,16,32,0.85)',
+            backdropFilter: 'blur(16px)',
+            border: '1px solid rgba(14,165,233,0.15)',
+            borderTop: '3px solid #00FF87'
+          }}
+        >
+          {step === 1 && (
+            <div>
+              <div className="text-center mb-8">
+                <h1 className="font-display text-3xl uppercase mb-2" style={{ color: '#F0F8FF', letterSpacing: '0.05em' }}>
+                  How Will You Use AstroWave?
+                </h1>
+                <p className="font-body text-sm" style={{ color: '#6B8CAE' }}>
+                  Welcome, {user?.displayName?.split(' ')[0]}! Choose your role to get started.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                <button
+                  onClick={() => { setRole('organizer'); setStep(2); }}
+                  className="p-6 rounded-xl text-left transition-all duration-200 group"
+                  style={{ background: 'rgba(0,255,135,0.05)', border: '1px solid rgba(0,255,135,0.2)' }}
+                >
+                  <Calendar size={32} className="mb-4" style={{ color: '#00FF87' }} />
+                  <h3 className="font-display text-xl uppercase mb-2" style={{ color: '#F0F8FF' }}>I'm an Organizer</h3>
+                  <p className="font-body text-[10px] mb-4 leading-relaxed uppercase font-bold tracking-widest opacity-60" style={{ color: '#6B8CAE' }}>
+                    Plan events & book talent
+                  </p>
+                  <ul className="space-y-1.5">
+                    {['Post events', 'Find matches', 'Manage bookings'].map(f => (
+                      <li key={f} className="flex items-center gap-2 font-body text-xs font-bold uppercase tracking-tighter" style={{ color: '#6B8CAE' }}>
+                        <Check size={12} style={{ color: '#00FF87' }} /> {f}
                       </li>
                     ))}
                   </ul>
-                  <Button variant="primary" className="w-full h-12">SELECT ORGANIZER</Button>
-                </div>
-              </Card>
+                </button>
 
-              <Card 
-                className="p-8 cursor-pointer group hover:border-purple transition-all duration-500 bg-white/[0.02]"
-                onClick={() => handleRoleSelect('talent')}
-              >
-                <div className="flex flex-col items-center text-center space-y-6">
-                  <div className="p-6 rounded-2xl bg-purple/10 text-purple group-hover:scale-110 transition-transform">
-                    <Mic size={40} />
-                  </div>
-                  <div className="space-y-2">
-                    <h3 className="font-display text-2xl text-white uppercase tracking-widest">I'm a Talent</h3>
-                    <p className="text-xs text-muted leading-relaxed">I perform at events and want to get discovered by organizers.</p>
-                  </div>
-                  <ul className="space-y-3 text-left w-full max-w-[200px] mx-auto">
-                    {['Create talent profile', 'Get matched to events', 'Manage bookings', 'Build Wave Score'].map(f => (
-                      <li key={f} className="flex items-center gap-3 text-[10px] font-bold text-white uppercase tracking-wider">
-                        <CheckCircle size={14} className="text-purple" /> {f}
+                <button
+                  onClick={() => { setRole('talent'); setStep(2); }}
+                  className="p-6 rounded-xl text-left transition-all duration-200 group"
+                  style={{ background: 'rgba(14,165,233,0.05)', border: '1px solid rgba(14,165,233,0.2)' }}
+                >
+                  <Mic size={32} className="mb-4" style={{ color: '#0EA5E9' }} />
+                  <h3 className="font-display text-xl uppercase mb-2" style={{ color: '#F0F8FF' }}>I'm a Talent</h3>
+                  <p className="font-body text-[10px] mb-4 leading-relaxed uppercase font-bold tracking-widest opacity-60" style={{ color: '#6B8CAE' }}>
+                    Perform & grow your wave
+                  </p>
+                  <ul className="space-y-1.5">
+                    {['Create profile', 'Get discovered', 'Build Wave Score'].map(f => (
+                      <li key={f} className="flex items-center gap-2 font-body text-xs font-bold uppercase tracking-tighter" style={{ color: '#6B8CAE' }}>
+                        <Check size={12} style={{ color: '#0EA5E9' }} /> {f}
                       </li>
                     ))}
                   </ul>
-                  <Button variant="secondary" className="w-full h-12 border-purple text-purple hover:bg-purple">SELECT TALENT</Button>
-                </div>
-              </Card>
-            </div>
-
-            <div className="text-center">
-              <button 
-                onClick={() => handleRoleSelect('both')}
-                className="text-[10px] text-muted hover:text-gold font-bold uppercase tracking-[0.2em] underline underline-offset-4"
-              >
-                I'm both an organizer and talent
-              </button>
-            </div>
-          </motion.div>
-        )}
-
-        {step === 2 && (
-          <motion.div
-            key="step2"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            className="space-y-8"
-          >
-            <div className="flex items-center gap-4">
-              <button onClick={() => setStep(1)} className="p-2 hover:bg-white/5 rounded-full text-muted hover:text-white transition-colors">
-                <ArrowLeft size={20} />
-              </button>
-              <div className="flex-1">
-                <h2 className="display-md text-white">SET UP YOUR PROFILE</h2>
-                <p className="text-xs text-muted uppercase tracking-widest">Entering details for: <span className="text-gold">{role?.toUpperCase()}</span></p>
+                </button>
               </div>
             </div>
+          )}
 
-            <Card className="p-8">
-              <form onSubmit={handleBasicProfileSubmit} className="space-y-6">
-                {role === 'organizer' ? (
+          {step === 2 && (
+            <div>
+              <div className="text-center mb-8">
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full font-mono text-xs mb-3 font-bold uppercase" style={{ background: role === 'organizer' ? 'rgba(0,255,135,0.1)' : 'rgba(14,165,233,0.1)', color: role === 'organizer' ? '#00FF87' : '#0EA5E9', border: `1px solid ${role === 'organizer' ? 'rgba(0,255,135,0.3)' : 'rgba(14,165,233,0.3)'}` }}>
+                  {role === 'organizer' ? '📅 Organizer' : '🎤 Talent'}
+                </div>
+                <h2 className="font-display text-2xl uppercase mb-2" style={{ color: '#F0F8FF', letterSpacing: '0.05em' }}>
+                  Complete Your Profile
+                </h2>
+              </div>
+
+              <div className="flex flex-col gap-4">
+                {role === 'talent' && (
+                  <div>
+                    <label className="block font-mono text-[11px] font-semibold tracking-widest uppercase mb-2" style={{ color: '#6B8CAE' }}>Stage Name *</label>
+                    <input type="text" value={formData.stageName} onChange={e => update('stageName', e.target.value)} placeholder="e.g. DJ Wave" className="admin-input h-12" />
+                    {errors.stageName && <p className="font-body text-xs mt-1" style={{ color: '#ef4444' }}>{errors.stageName}</p>}
+                  </div>
+                )}
+
+                {role === 'organizer' && (
+                  <div>
+                    <label className="block font-mono text-[11px] font-semibold tracking-widest uppercase mb-2" style={{ color: '#6B8CAE' }}>Company / Organisation</label>
+                    <input type="text" value={formData.company} onChange={e => update('company', e.target.value)} placeholder="Optional" className="admin-input h-12" />
+                  </div>
+                )}
+
+                <div>
+                  <label className="block font-mono text-[11px] font-semibold tracking-widest uppercase mb-2" style={{ color: '#6B8CAE' }}>City *</label>
+                  <select value={formData.city} onChange={e => update('city', e.target.value)} className="admin-input h-12">
+                    <option value="">Select your city</option>
+                    {GHANA_CITIES.map(city => <option key={city} value={city}>{city}</option>)}
+                  </select>
+                  {errors.city && <p className="font-body text-xs mt-1" style={{ color: '#ef4444' }}>{errors.city}</p>}
+                </div>
+
+                {role === 'talent' && (
                   <>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="space-y-2">
-                        <label className="admin-label">PHONE NUMBER *</label>
-                        <input required type="tel" className="admin-input" placeholder="+233..." value={profileData.phone} onChange={e => setProfileData({...profileData, phone: e.target.value})} />
+                    <div>
+                      <label className="block font-mono text-[11px] font-semibold tracking-widest uppercase mb-2" style={{ color: '#6B8CAE' }}>Category *</label>
+                      <div className="grid grid-cols-4 gap-2">
+                        {TALENT_CATEGORIES.map(cat => (
+                          <button key={cat.value} type="button" onClick={() => update('category', cat.value)} className={`p-3 rounded-xl flex flex-col items-center gap-1 transition-all duration-200 border ${formData.category === cat.value ? 'bg-green-dim border-green/40' : 'bg-white/5 border-white/10'}`}>
+                            <span className="text-xl">{cat.emoji}</span>
+                            <span className="font-mono text-[9px] font-bold uppercase" style={{ color: formData.category === cat.value ? '#00FF87' : '#6B8CAE' }}>{cat.label}</span>
+                          </button>
+                        ))}
                       </div>
-                      <div className="space-y-2">
-                        <label className="admin-label">CITY *</label>
-                        <select className="admin-input h-11" value={profileData.city} onChange={e => setProfileData({...profileData, city: e.target.value})}>
-                          {GHANA_CITIES.map(c => <option key={c} value={c}>{c}</option>)}
-                        </select>
-                      </div>
+                      {errors.category && <p className="font-body text-xs mt-2" style={{ color: '#ef4444' }}>{errors.category}</p>}
                     </div>
-                    <div className="space-y-2">
-                      <label className="admin-label">COMPANY NAME (OPTIONAL)</label>
-                      <input className="admin-input" placeholder="e.g. Wave Productions" value={profileData.company} onChange={e => setProfileData({...profileData, company: e.target.value})} />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="admin-label">BRIEF BIO</label>
-                      <textarea rows={4} className="admin-input resize-none" placeholder="Tell us about your event style..." value={profileData.bio} onChange={e => setProfileData({...profileData, bio: e.target.value})} />
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="space-y-2">
-                        <label className="admin-label">STAGE NAME *</label>
-                        <input required className="admin-input" placeholder="e.g. DJ Horizon" value={profileData.stageName} onChange={e => setProfileData({...profileData, stageName: e.target.value})} />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="admin-label">CATEGORY *</label>
-                        <select className="admin-input h-11" value={profileData.category} onChange={e => setProfileData({...profileData, category: e.target.value})}>
-                          {TALENT_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-                        </select>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="space-y-2">
-                        <label className="admin-label">PHONE NUMBER *</label>
-                        <input required type="tel" className="admin-input" placeholder="+233..." value={profileData.phone} onChange={e => setProfileData({...profileData, phone: e.target.value})} />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="admin-label">CITY *</label>
-                        <select className="admin-input h-11" value={profileData.city} onChange={e => setProfileData({...profileData, city: e.target.value})}>
-                          {GHANA_CITIES.map(c => <option key={c} value={c}>{c}</option>)}
-                        </select>
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <label className="admin-label">BASE PRICE *</label>
+
+                    <div>
+                      <label className="block font-mono text-[11px] font-semibold tracking-widest uppercase mb-2" style={{ color: '#6B8CAE' }}>Base Price *</label>
                       <div className="flex gap-2">
-                        <input required type="number" className="admin-input flex-1" placeholder="0.00" value={profileData.basePrice} onChange={e => setProfileData({...profileData, basePrice: e.target.value})} />
-                        <select className="admin-input w-32 h-11" value={profileData.currency} onChange={e => setProfileData({...profileData, currency: e.target.value as any})}>
+                        <input type="number" value={formData.basePrice} onChange={e => update('basePrice', e.target.value)} placeholder="0" className="admin-input h-12 flex-1" />
+                        <select value={formData.currency} onChange={e => update('currency', e.target.value)} className="admin-input h-12 w-24">
                           <option value="GHS">GHS</option>
                           <option value="USD">USD</option>
                         </select>
                       </div>
-                    </div>
-                    <div className="space-y-2">
-                      <label className="admin-label">PROFESSIONAL BIO *</label>
-                      <textarea required rows={4} className="admin-input resize-none" placeholder="Describe your sound, experience, and energy..." value={profileData.bio} onChange={e => setProfileData({...profileData, bio: e.target.value})} />
+                      {errors.basePrice && <p className="font-body text-xs mt-1" style={{ color: '#ef4444' }}>{errors.basePrice}</p>}
                     </div>
                   </>
                 )}
 
-                <Button type="submit" className="w-full h-14 mt-4">CONTINUE <ChevronRight size={20} className="ml-2" /></Button>
-              </form>
-            </Card>
-          </motion.div>
-        )}
-
-        {step === 3 && (
-          <motion.div
-            key="step3"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="space-y-8"
-          >
-            <div className="text-center space-y-4">
-              <div className="w-20 h-20 rounded-full bg-gold/10 border border-gold/20 flex items-center justify-center mx-auto shadow-[0_0_30px_rgba(255,209,102,0.2)]">
-                <Sparkles size={40} className="text-gold" />
+                <div>
+                  <label className="block font-mono text-[11px] font-semibold tracking-widest uppercase mb-2" style={{ color: '#6B8CAE' }}>Bio</label>
+                  <textarea value={formData.bio} onChange={e => update('bio', e.target.value)} placeholder="A short intro..." rows={3} className="admin-input py-3 resize-none" />
+                </div>
               </div>
-              <h2 className="display-md text-white">PROFILE READY</h2>
-              <p className="body-md text-muted">Review your information before launching.</p>
+
+              <div className="flex gap-3 mt-8">
+                <button onClick={() => setStep(1)} className="px-6 py-3 rounded-xl font-body font-bold text-xs uppercase tracking-widest border border-white/10 text-muted hover:text-white transition-all">← Back</button>
+                <button onClick={handleFinish} disabled={saving} className="flex-1 flex items-center justify-center gap-2 py-4 px-6 rounded-xl font-body font-bold text-sm uppercase tracking-widest transition-all duration-200 border border-green text-green hover:bg-green hover:text-black disabled:opacity-50 shadow-[0_0_20px_rgba(0,255,135,0.2)]">
+                  {saving ? <Loader2 size={16} className="animate-spin" /> : <>Complete Setup <ArrowRight size={16} /></>}
+                </button>
+              </div>
             </div>
-
-            <Card className="p-8 space-y-6">
-              <div className="flex justify-between items-center pb-4 border-b border-white/5">
-                <p className="admin-label m-0">Platform Role</p>
-                <Badge variant="active" className={role === 'talent' ? 'bg-purple-dim text-purple border-purple' : 'bg-gold-dim text-gold border-gold'}>
-                  {role === 'both' ? 'Hybrid Operator' : role?.toUpperCase()}
-                </Badge>
-              </div>
-              <div className="space-y-4">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted">Identity</span>
-                  <span className="text-white font-bold">{profileData.stageName || user?.displayName}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted">Location</span>
-                  <span className="text-white font-bold">{profileData.city}, Ghana</span>
-                </div>
-                {role !== 'organizer' && (
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted">Specialty</span>
-                    <span className="text-white font-bold">{profileData.category}</span>
-                  </div>
-                )}
-              </div>
-            </Card>
-
-            <Button disabled={loading} onClick={handleFinalize} className="w-full h-16 text-lg font-bold tracking-widest">
-              {loading ? <Loader2 className="animate-spin" /> : 'GO TO MY DASHBOARD'}
-            </Button>
-
-            <button onClick={() => setStep(2)} className="w-full text-[10px] text-muted hover:text-white uppercase font-bold tracking-widest">
-              Edit information
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

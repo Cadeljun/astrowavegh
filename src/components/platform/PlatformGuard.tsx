@@ -56,13 +56,11 @@ export default function PlatformGuard({
 
   if (loading || platformLoading) {
     return (
-      <div className="min-h-screen bg-[#050505] flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-10 h-10 rounded-full border-2 border-[#FFD166] border-t-transparent animate-spin" />
-          <p className="font-body text-sm text-[#7B7B9A] tracking-widest uppercase">
-            Loading...
-          </p>
-        </div>
+      <div className="min-h-screen bg-[#020B18] flex flex-col items-center justify-center gap-6">
+        <div className="w-12 h-12 rounded-full border-2 border-green/20 border-t-green animate-spin shadow-[0_0_20px_rgba(0,255,135,0.2)]" />
+        <p className="font-body text-xs text-green/60 tracking-[0.4em] uppercase font-bold animate-pulse">
+          Authorising Link...
+        </p>
       </div>
     );
   }

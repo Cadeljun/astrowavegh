@@ -1,195 +1,131 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState } from 'react';
-import { useAuth as useFirebaseAuth } from '@/firebase';
 import {
-  onAuthStateChanged,
-  signInWithEmailAndPassword,
-  signOut,
-  User as FirebaseUser,
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  ReactNode
+} from 'react';
+import {
+  User,
   GoogleAuthProvider,
   signInWithPopup,
-  createUserWithEmailAndPassword,
-  updateProfile,
-  sendPasswordResetEmail
+  signOut,
+  onAuthStateChanged
 } from 'firebase/auth';
+import { auth } from '@/firebase';
 import { useRouter } from 'next/navigation';
-import { 
+import {
   createUserDocument,
   getUserDocument
 } from '@/lib/firebase/platform';
-import { User as PlatformUser } from '@/types/platform';
 
 interface AuthContextType {
-  user: FirebaseUser | null;
-  platformUser: PlatformUser | null;
+  user: User | null;
   loading: boolean;
+  platformUser: any | null;
   platformLoading: boolean;
-  error: string | null;
   isAdmin: boolean;
   needsOnboarding: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string, name: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
-  resetPassword: (email: string) => Promise<void>;
   logout: () => Promise<void>;
+  error: string | null;
   clearError: () => void;
-  refreshPlatformUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({} as AuthContextType);
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const auth = useFirebaseAuth();
-  const router = useRouter();
-  const [user, setUser] = useState<FirebaseUser | null>(null);
-  const [platformUser, setPlatformUser] = useState<PlatformUser | null>(null);
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [platformLoading, setPlatformLoading] = useState(false);
+  const [platformUser, setPlatformUser] = useState<any | null>(null);
+  const [platformLoading, setPlatformLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
-    if (!auth) return;
+    const unsubscribe = onAuthStateChanged(
+      auth,
+      async (firebaseUser) => {
+        setUser(firebaseUser);
+        setLoading(false);
 
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      setUser(currentUser);
-      if (currentUser) {
-        setPlatformLoading(true);
-        const pUser = await getUserDocument(currentUser.uid);
-        setPlatformUser(pUser);
-        setPlatformLoading(false);
-      } else {
-        setPlatformUser(null);
-      }
-      setLoading(false);
-    });
-    
-    return () => unsubscribe();
-  }, [auth]);
-
-  const refreshPlatformUser = async () => {
-    if (!user) return;
-    const pUser = await getUserDocument(user.uid);
-    setPlatformUser(pUser);
-  };
-
-  const login = async (email: string, password: string) => {
-    if (!auth) return;
-    setError(null);
-    try {
-      const cred = await signInWithEmailAndPassword(auth, email, password);
-      const pUser = await getUserDocument(cred.user.uid);
-      setPlatformUser(pUser);
-      
-      if (!pUser || !pUser.onboarded) {
-        router.push('/auth/onboarding');
-      } else {
-        if (pUser.role === 'organizer' || pUser.role === 'both') {
-          router.push('/organizer/dashboard');
+        if (firebaseUser) {
+          try {
+            const doc = await getUserDocument(firebaseUser.uid);
+            setPlatformUser(doc);
+          } catch (err) {
+            console.error('Failed to fetch platform user:', err);
+            setPlatformUser(null);
+          } finally {
+            setPlatformLoading(false);
+          }
         } else {
-          router.push('/talent/dashboard');
+          setPlatformUser(null);
+          setPlatformLoading(false);
         }
+      },
+      (err) => {
+        console.error('Auth state change error:', err);
+        setLoading(false);
+        setPlatformLoading(false);
       }
-    } catch (err: any) {
-      handleAuthError(err);
-      throw err;
-    }
-  };
-
-  const register = async (email: string, password: string, name: string) => {
-    if (!auth) return;
-    setError(null);
-    try {
-      const cred = await createUserWithEmailAndPassword(auth, email, password);
-      await updateProfile(cred.user, { displayName: name });
-      
-      const pUserData: Partial<PlatformUser> = {
-        email,
-        displayName: name,
-        photoURL: '',
-        role: null,
-        provider: 'email'
-      };
-      
-      await createUserDocument(cred.user.uid, pUserData);
-      setPlatformUser(pUserData as PlatformUser);
-      router.push('/auth/onboarding');
-    } catch (err: any) {
-      handleAuthError(err);
-      throw err;
-    }
-  };
+    );
+    return () => unsubscribe();
+  }, []);
 
   const signInWithGoogle = async () => {
-    if (!auth) return;
     setError(null);
-    const provider = new GoogleAuthProvider();
     try {
-      const cred = await signInWithPopup(auth, provider);
-      const existing = await getUserDocument(cred.user.uid);
-      
+      const provider = new GoogleAuthProvider();
+      provider.setCustomParameters({
+        prompt: 'select_account'
+      });
+
+      const result = await signInWithPopup(auth, provider);
+      const firebaseUser = result.user;
+
+      const existing = await getUserDocument(firebaseUser.uid);
+
       if (!existing) {
-        const newPUser: Partial<PlatformUser> = {
-          email: cred.user.email || '',
-          displayName: cred.user.displayName || '',
-          photoURL: cred.user.photoURL || '',
+        await createUserDocument(firebaseUser.uid, {
+          email: firebaseUser.email || '',
+          displayName: firebaseUser.displayName || '',
+          photoURL: firebaseUser.photoURL || '',
           role: null,
-          provider: 'google'
-        };
-        await createUserDocument(cred.user.uid, newPUser);
-        setPlatformUser(newPUser as PlatformUser);
+          provider: 'google',
+          onboarded: false,
+          active: true
+        });
+        router.push('/auth/onboarding');
+      } else if (!existing.onboarded) {
         router.push('/auth/onboarding');
       } else {
-        setPlatformUser(existing);
-        if (!existing.onboarded) {
-          router.push('/auth/onboarding');
+        if (existing.role === 'organizer' || existing.role === 'both') {
+          router.push('/organizer/dashboard');
+        } else if (existing.role === 'talent') {
+          router.push('/talent/dashboard');
         } else {
-          if (existing.role === 'organizer' || existing.role === 'both') {
-            router.push('/organizer/dashboard');
-          } else {
-            router.push('/talent/dashboard');
-          }
+          router.push('/auth/onboarding');
         }
       }
     } catch (err: any) {
-      handleAuthError(err);
-      throw err;
+      const messages: Record<string, string> = {
+        'auth/popup-closed-by-user': 'Sign in cancelled. Try again.',
+        'auth/popup-blocked': 'Popup blocked. Allow popups and try again.',
+        'auth/cancelled-popup-request': 'Sign in cancelled.',
+        'auth/network-request-failed': 'Network error. Check your connection.',
+        'auth/unauthorized-domain': 'This domain is not authorised. Contact support.'
+      };
+      setError(messages[err.code] || 'Something went wrong. Please try again.');
     }
-  };
-
-  const resetPassword = async (email: string) => {
-    if (!auth) return;
-    await sendPasswordResetEmail(auth, email);
   };
 
   const logout = async () => {
-    if (auth) {
-      await signOut(auth);
-      setPlatformUser(null);
-      router.push('/auth/login');
-    }
-  };
-
-  const handleAuthError = (err: any) => {
-    switch (err.code) {
-      case 'auth/user-not-found':
-        setError('No account found with this email.');
-        break;
-      case 'auth/wrong-password':
-        setError('Incorrect password.');
-        break;
-      case 'auth/invalid-credential':
-        setError('Invalid email or password.');
-        break;
-      case 'auth/too-many-requests':
-        setError('Too many failed attempts. Try again later.');
-        break;
-      case 'auth/email-already-in-use':
-        setError('This email is already registered.');
-        break;
-      default:
-        setError('An unexpected error occurred.');
-    }
+    await signOut(auth);
+    setPlatformUser(null);
+    router.push('/');
   };
 
   const clearError = () => setError(null);
@@ -198,24 +134,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const needsOnboarding = !!user && !!platformUser && !platformUser.onboarded;
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        platformUser,
-        loading,
-        platformLoading,
-        error,
-        isAdmin,
-        needsOnboarding,
-        login,
-        register,
-        signInWithGoogle,
-        resetPassword,
-        logout,
-        clearError,
-        refreshPlatformUser
-      }}
-    >
+    <AuthContext.Provider value={{
+      user,
+      loading,
+      platformUser,
+      platformLoading,
+      isAdmin,
+      needsOnboarding,
+      signInWithGoogle,
+      logout,
+      error,
+      clearError
+    }}>
       {children}
     </AuthContext.Provider>
   );
@@ -223,6 +153,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (!context) throw new Error('useAuth must be used within AuthProvider');
+  if (!context) {
+    throw new Error('useAuth must be used within AuthProvider');
+  }
   return context;
 };
