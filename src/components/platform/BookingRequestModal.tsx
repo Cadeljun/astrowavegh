@@ -2,8 +2,8 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Send, Zap, Loader2, Calendar, MapPin, DollarSign, MessageSquare } from 'lucide-react';
-import { collection, addDoc, serverTimestamp, doc, updateDoc } from 'firebase/firestore';
+import { X, Send, Zap, Loader2, Calendar, MapPin, DollarSign, Info } from 'lucide-react';
+import { collection, doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { db, useAuth } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { Card } from '@/components/ui/Card';
@@ -26,73 +26,83 @@ export default function BookingRequestModal({ isOpen, onClose, talent, event }: 
   const [message, setMessage] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  // Initialize price when talent changes
+  // Sync state when talent changes
   React.useEffect(() => {
-    if (talent) setAgreedPrice(talent.basePrice);
+    if (talent) setAgreedPrice(talent.basePrice || 0);
   }, [talent]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || !talent || !event) return;
+
     if (message.length < 20) {
-      toast({ variant: 'destructive', title: 'Message too short', description: 'Please provide at least 20 characters.' });
+      toast({ variant: 'destructive', title: 'Message too short', description: 'Please explain the booking in at least 20 characters.' });
       return;
     }
 
     setSubmitting(true);
-    try {
-      const bookingData = {
-        eventId: event.id || '',
-        eventTitle: event.title,
-        eventDate: event.date,
-        eventVenue: event.venue,
-        eventCity: event.city || 'Accra',
-        organizerId: user.uid,
-        organizerName: user.displayName || 'Organizer',
-        talentId: talent.talentId,
-        talentName: talent.talentName || talent.stageName,
-        talentStageName: talent.stageName,
-        talentPhoto: talent.photoURL || '',
-        talentCategory: talent.category,
-        matchPercentage: talent.matchPercentage,
-        waveScore: talent.waveScore || 0,
-        agreedPrice: Number(agreedPrice),
-        currency: talent.currency || 'GHS',
-        message,
-        status: 'pending',
-        ratingSubmitted: false,
-        rated: false,
-        requestedAt: serverTimestamp(),
-        respondedAt: null,
-        completedAt: null,
-        updatedAt: serverTimestamp()
-      };
+    
+    // Generate doc reference for non-blocking mutation
+    const bookingRef = doc(collection(db, 'bookings'));
+    const bookingId = bookingRef.id;
 
-      // 1. Create Booking Record
-      await addDoc(collection(db, 'bookings'), bookingData);
+    const bookingData = {
+      id: bookingId,
+      eventId: event.id,
+      organizerId: user.uid,
+      organizerName: user.displayName || 'Organizer',
+      talentId: talent.talentId,
+      talentName: talent.talentName || talent.stageName,
+      talentStageName: talent.stageName,
+      talentCategory: talent.category,
+      talentPhoto: talent.photoURL || '',
+      matchPercentage: talent.matchPercentage,
+      waveScore: talent.waveScore || 0,
+      eventTitle: event.title,
+      eventDate: event.date,
+      eventVenue: event.venue,
+      eventCity: event.city || 'Accra',
+      agreedPrice: Number(agreedPrice),
+      currency: talent.currency || 'GHS',
+      message,
+      status: 'pending',
+      ratingSubmitted: false,
+      rated: false,
+      requestedAt: serverTimestamp(),
+      respondedAt: null,
+      completedAt: null,
+      updatedAt: serverTimestamp()
+    };
 
-      // 2. Optimistically update event status (optional logic depending on platform strategy)
-      // await updateDoc(doc(db, 'platform_events', event.id), { status: 'booked', updatedAt: serverTimestamp() });
+    // Non-blocking Firestore Write
+    setDoc(bookingRef, bookingData)
+      .then(async () => {
+        // Optimistically update event status
+        const eventRef = doc(db, 'platform_events', event.id);
+        setDoc(eventRef, { status: 'booked', updatedAt: serverTimestamp() }, { merge: true });
 
-      // 3. Notify Talent
-      await addDoc(collection(db, 'notifications'), {
-        userId: talent.talentId,
-        type: 'booking_request',
-        title: 'New Booking Request! 🌊',
-        message: `${user.displayName} wants to book you for "${event.title}".`,
-        read: false,
-        actionUrl: '/talent/bookings',
-        relatedId: event.id,
-        createdAt: serverTimestamp()
+        // Notify talent
+        const notifyRef = doc(collection(db, 'notifications'));
+        setDoc(notifyRef, {
+          userId: talent.talentId,
+          type: 'booking_request',
+          title: 'New Booking Request!',
+          message: `${user.displayName} wants to book you for "${event.title}"`,
+          read: false,
+          actionUrl: '/talent/bookings',
+          relatedId: bookingId,
+          createdAt: serverTimestamp()
+        });
+
+        toast({ title: "Booking Request Sent!", description: `${talent.stageName} has been notified.` });
+        onClose();
+      })
+      .catch((err) => {
+        toast({ variant: 'destructive', title: "Booking Failed", description: err.message });
+      })
+      .finally(() => {
+        setSubmitting(false);
       });
-
-      toast({ title: "Request Sent!", description: `${talent.stageName} has been notified.` });
-      onClose();
-    } catch (error: any) {
-      toast({ variant: 'destructive', title: "Booking Failed", description: error.message });
-    } finally {
-      setSubmitting(false);
-    }
   };
 
   if (!isOpen || !talent) return null;
@@ -123,17 +133,20 @@ export default function BookingRequestModal({ isOpen, onClose, talent, event }: 
                <div className="space-y-4">
                   <p className="text-[0.6rem] label m-0">ARTIST</p>
                   <div className="flex items-center gap-3">
-                     <div className="w-10 h-10 rounded-full overflow-hidden border border-white/10">
+                     <div className="w-12 h-12 rounded-full overflow-hidden border border-white/10 shadow-lg">
                         <img src={talent.photoURL} className="w-full h-full object-cover" alt="" />
                      </div>
                      <p className="text-sm font-bold text-white uppercase truncate">{talent.stageName}</p>
                   </div>
                </div>
                <div className="space-y-4 border-l border-white/5 pl-6">
-                  <p className="text-[0.6rem] label m-0">EVENT</p>
+                  <p className="text-[0.6rem] label m-0">EVENT BRIEF</p>
                   <div className="space-y-1">
                      <p className="text-sm font-bold text-white uppercase truncate">{event?.title}</p>
-                     <p className="text-[0.6rem] text-muted uppercase tracking-widest flex items-center gap-2"><Calendar size={10} /> {new Date(event?.date?.toDate ? event.date.toDate() : event?.date).toLocaleDateString()}</p>
+                     <p className="text-[0.6rem] text-muted uppercase tracking-widest flex items-center gap-2">
+                        <Calendar size={10} /> 
+                        {new Date(event?.date?.toDate ? event.date.toDate() : event?.date).toLocaleDateString()}
+                     </p>
                   </div>
                </div>
             </div>
@@ -141,8 +154,8 @@ export default function BookingRequestModal({ isOpen, onClose, talent, event }: 
             <div className="space-y-6">
                <div className="space-y-3">
                   <label className="admin-label flex justify-between items-center">
-                     ENGAGEMENT FEE ({talent.currency})
-                     <span className="text-[0.55rem] text-muted lowercase font-normal italic">Talent's base: {talent.basePrice}</span>
+                     ENGAGEMENT OFFER ({talent.currency || 'GHS'})
+                     <span className="text-[0.55rem] text-muted lowercase font-normal italic">Talent Base: {talent.basePrice}</span>
                   </label>
                   <div className="relative">
                      <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 text-gold" size={18} />
@@ -157,11 +170,11 @@ export default function BookingRequestModal({ isOpen, onClose, talent, event }: 
                </div>
 
                <div className="space-y-3">
-                  <label className="admin-label">PROPOSAL MESSAGE</label>
+                  <label className="admin-label">BOOKING MESSAGE</label>
                   <textarea 
                     rows={4} 
                     className="admin-input py-4 resize-none min-h-[120px]" 
-                    placeholder="Describe the role, specific sets, arrival time, and any vibe-checks..." 
+                    placeholder="Describe the role, specific requirements, and why this artist is a perfect fit for your vibe..." 
                     value={message}
                     onChange={e => setMessage(e.target.value)}
                     required
@@ -175,10 +188,10 @@ export default function BookingRequestModal({ isOpen, onClose, talent, event }: 
 
             <div className="pt-4 space-y-4">
                <Button type="submit" disabled={submitting} className="w-full h-16 text-lg font-bold tracking-[0.2em] shadow-[0_0_40px_rgba(255,209,102,0.2)]">
-                  {submitting ? <Loader2 className="animate-spin" /> : <><Send size={18} className="mr-3" /> INITIALIZE REQUEST</>}
+                  {submitting ? <Loader2 className="animate-spin" /> : <><Send size={18} className="mr-3" /> SEND REQUEST</>}
                </Button>
-               <p className="text-[0.55rem] text-center text-muted uppercase tracking-[0.1em] px-8 leading-relaxed">
-                  By sending, you agree to AstroWave professional guidelines. Talent responses are typically expected within 24 hours.
+               <p className="text-[0.55rem] text-center text-muted uppercase tracking-[0.1em] px-8 leading-relaxed italic opacity-60">
+                  Talent will be notified instantly. Responses are typically received within 24 hours.
                </p>
             </div>
           </form>

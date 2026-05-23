@@ -1,6 +1,6 @@
 /**
  * @fileOverview The core AstroWave Talent Matching Engine.
- * Calculates match percentages based on Location, Category, and Wave Score.
+ * Implements the Match % formula: Location (30) + Category (40) + Wave Score Contribution (30).
  */
 
 import type { 
@@ -21,7 +21,7 @@ export interface MatchBreakdown {
 }
 
 // ─── LOCATION SCORE ─────────────────
-// Max 30 pts: Same City (30), Same Region (15), Other (0)
+// Max 30 pts: Same City (30), Same Region (15), Different (0)
 
 export function calculateLocationScore(
   talentCity: string,
@@ -29,19 +29,19 @@ export function calculateLocationScore(
   eventCity: string,
   eventRegion: string
 ): { score: number; reason: string } {
-  const talentCityNorm = talentCity?.toLowerCase().trim() || '';
-  const eventCityNorm = eventCity?.toLowerCase().trim() || '';
-  const talentRegionNorm = talentRegion?.toLowerCase().trim() || '';
-  const eventRegionNorm = eventRegion?.toLowerCase().trim() || '';
+  const tCity = talentCity.toLowerCase().trim();
+  const eCity = eventCity.toLowerCase().trim();
+  const tRegion = talentRegion.toLowerCase().trim();
+  const eRegion = eventRegion.toLowerCase().trim();
 
-  if (talentCityNorm && talentCityNorm === eventCityNorm) {
+  if (tCity === eCity && tCity !== '') {
     return { 
       score: 30, 
       reason: `Same city (${talentCity})` 
     };
   }
 
-  if (talentRegionNorm && talentRegionNorm === eventRegionNorm) {
+  if (tRegion === eRegion && tRegion !== '') {
     return { 
       score: 15, 
       reason: `Same region (${talentRegion})` 
@@ -50,7 +50,7 @@ export function calculateLocationScore(
 
   return { 
     score: 0, 
-    reason: 'Outside primary location' 
+    reason: 'Different location' 
   };
 }
 
@@ -61,18 +61,18 @@ export function calculateCategoryScore(
   talentCategory: string,
   requiredCategory: string
 ): { score: number; reason: string } {
-  const match = talentCategory?.toLowerCase() === requiredCategory?.toLowerCase();
+  const match = talentCategory.toLowerCase() === requiredCategory.toLowerCase();
 
   return {
     score: match ? 40 : 0,
     reason: match
-      ? `Exact category match: ${talentCategory}`
-      : `Specialty mismatch (${talentCategory} vs ${requiredCategory})`
+      ? `Exact match: ${talentCategory}`
+      : `No match: ${talentCategory} vs ${requiredCategory}`
   };
 }
 
 // ─── WAVE SCORE CONTRIBUTION ────────
-// Max 30 pts: (Wave Score / 5) * 30
+// Max 30 pts: (Talent Wave Score ÷ 5) × 30
 
 export function calculateWaveContribution(
   waveScore: number
@@ -80,7 +80,7 @@ export function calculateWaveContribution(
   const contribution = parseFloat(((waveScore / 5) * 30).toFixed(2));
   return {
     score: contribution,
-    reason: `Wave Performance: ${waveScore}/5.0`
+    reason: `(${waveScore} ÷ 5) × 30`
   };
 }
 
@@ -92,9 +92,9 @@ export function calculateMatchPercentage(
 ): MatchBreakdown {
   const location = calculateLocationScore(
     talent.city,
-    talent.region,
+    talent.region || '',
     event.city,
-    event.region
+    event.region || ''
   );
 
   const category = calculateCategoryScore(
@@ -113,8 +113,8 @@ export function calculateMatchPercentage(
   const explanation = [
     `Location: ${location.score}/30 — ${location.reason}`,
     `Category: ${category.score}/40 — ${category.reason}`,
-    `Wave Score: ${wave.score.toFixed(1)}/30 — ${wave.reason}`,
-    `Total Sync: ${matchPercentage}%`
+    `Wave Score: ${wave.score.toFixed(1)}/30 — Wave Score ${talent.waveScore || 0}/5`,
+    `Total: ${matchPercentage}%`
   ].join('\n');
 
   return {
@@ -148,6 +148,7 @@ export async function runMatchingEngine(
       photoURL: talent.photoURL,
       category: talent.category,
       city: talent.city,
+      region: talent.region,
       waveScore: talent.waveScore,
       matchPercentage: breakdown.matchPercentage,
       locationScore: breakdown.locationScore,
@@ -156,8 +157,7 @@ export async function runMatchingEngine(
       basePrice: talent.basePrice,
       currency: talent.currency,
       available: talent.available,
-      // Store breakdown for UI rendering
-      explanation: breakdown.explanation
+      breakdown
     };
   });
 

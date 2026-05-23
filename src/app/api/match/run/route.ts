@@ -17,6 +17,10 @@ import type {
   TalentProfile
 } from '@/types/platform';
 
+/**
+ * Server-side API that runs the matching engine for a given event.
+ * Results are cached in the 'matches' collection and event status is updated.
+ */
 export async function POST(request: Request) {
   try {
     const { eventId } = await request.json();
@@ -48,11 +52,11 @@ export async function POST(request: Request) {
     await setDoc(doc(db, 'matches', eventId), {
       eventId,
       organizerId: event.organizerId,
-      eventTitle: event.title,
       results: results.slice(0, 20), // Store top 20 candidates
       generatedAt: serverTimestamp(),
       expiresAt: Timestamp.fromDate(expiresAt),
-      evaluatedCount: talents.length
+      totalTalentsEvaluated: talents.length,
+      totalMatches: results.length
     });
 
     // 5. Update event status to 'matched' and store top matches reference
@@ -64,8 +68,8 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       success: true,
-      matchCount: results.length,
-      topScore: results[0]?.matchPercentage || 0
+      totalMatches: results.length,
+      topMatch: results[0] || null
     });
 
   } catch (error: any) {
