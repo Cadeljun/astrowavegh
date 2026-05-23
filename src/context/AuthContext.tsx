@@ -56,7 +56,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             const doc = await getUserDocument(firebaseUser.uid);
             setPlatformUser(doc);
           } catch (err) {
-            console.error('Failed to fetch platform user:', err);
             setPlatformUser(null);
           } finally {
             setPlatformLoading(false);
@@ -66,8 +65,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setPlatformLoading(false);
         }
       },
-      (err) => {
-        console.error('Auth state change error:', err);
+      () => {
         setLoading(false);
         setPlatformLoading(false);
       }
@@ -79,9 +77,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setError(null);
     try {
       const provider = new GoogleAuthProvider();
-      provider.setCustomParameters({
-        prompt: 'select_account'
-      });
+      provider.setCustomParameters({ prompt: 'select_account' });
 
       const result = await signInWithPopup(auth, provider);
       const firebaseUser = result.user;

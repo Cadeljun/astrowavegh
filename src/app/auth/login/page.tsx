@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation';
 import { AlertCircle, Waves } from 'lucide-react';
 import Link from 'next/link';
 
-// Google SVG icon
 function GoogleIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -23,7 +22,6 @@ export default function LoginPage() {
   const router = useRouter();
   const [signing, setSigning] = useState(false);
 
-  // Redirect if already logged in
   useEffect(() => {
     if (!loading && user) {
       router.replace('/auth/onboarding');
@@ -52,7 +50,6 @@ export default function LoginPage() {
           borderTop: '3px solid #00FF87'
         }}
       >
-        {/* Header */}
         <div className="text-center mb-8">
           <div
             className="w-14 h-14 rounded-2xl mx-auto mb-4 flex items-center justify-center"
@@ -64,10 +61,7 @@ export default function LoginPage() {
             <Waves size={26} style={{ color: '#00FF87' }} />
           </div>
 
-          <h1
-            className="font-display text-3xl uppercase mb-2"
-            style={{ color: '#F0F8FF', letterSpacing: '0.05em' }}
-          >
+          <h1 className="font-display text-3xl uppercase mb-2" style={{ color: '#F0F8FF', letterSpacing: '0.05em' }}>
             Welcome Back
           </h1>
           <p className="font-body text-sm" style={{ color: '#6B8CAE' }}>
@@ -75,69 +69,21 @@ export default function LoginPage() {
           </p>
         </div>
 
-        {/* Access the platform */}
-        <div
-          className="rounded-xl p-4 mb-6"
-          style={{
-            background: 'rgba(14,165,233,0.06)',
-            border: '1px solid rgba(14,165,233,0.12)'
-          }}
-        >
-          <p
-            className="font-body text-[10px] text-center mb-3 font-bold uppercase tracking-widest"
-            style={{ color: '#6B8CAE' }}
-          >
-            AstroWave Platform Access
-          </p>
-          <div className="flex justify-center gap-6 flex-wrap">
-            {[
-              { emoji: '🎵', label: 'Find Talent' },
-              { emoji: '📅', label: 'Post Events' },
-              { emoji: '⭐', label: 'Wave Score' },
-              { emoji: '📊', label: 'Analytics' }
-            ].map((item) => (
-              <div key={item.label} className="flex flex-col items-center gap-1">
-                <span className="text-xl">{item.emoji}</span>
-                <span className="font-mono text-[9px] font-bold uppercase" style={{ color: '#6B8CAE' }}>
-                  {item.label}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Error message */}
         {error && (
-          <div
-            className="flex items-start gap-2.5 p-3.5 rounded-xl mb-5"
-            style={{
-              background: 'rgba(239,68,68,0.08)',
-              border: '1px solid rgba(239,68,68,0.2)'
-            }}
-          >
+          <div className="flex items-start gap-2.5 p-3.5 rounded-xl mb-5" style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)' }}>
             <AlertCircle size={15} className="flex-shrink-0 mt-0.5" style={{ color: '#ef4444' }} />
-            <p className="font-body text-sm" style={{ color: '#ef4444' }}>
-              {error}
-            </p>
+            <p className="font-body text-sm" style={{ color: '#ef4444' }}>{error}</p>
           </div>
         )}
 
-        {/* Google Sign In Button */}
         <button
           onClick={handleGoogleSignIn}
           disabled={signing}
-          className="w-full flex items-center justify-center gap-3 py-4 px-6 rounded-xl font-body font-bold text-sm transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-          style={{
-            background: signing ? 'rgba(255,255,255,0.05)' : '#F0F8FF',
-            color: '#020B18',
-            border: '1px solid transparent'
-          }}
+          className="w-full flex items-center justify-center gap-3 py-4 px-6 rounded-xl font-body font-bold text-sm transition-all duration-200 disabled:opacity-50"
+          style={{ background: signing ? 'rgba(255,255,255,0.05)' : '#F0F8FF', color: '#020B18' }}
         >
           {signing ? (
-            <>
-              <span className="w-5 h-5 rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: '#020B18', borderTopColor: 'transparent' }} />
-              <span className="uppercase tracking-widest">Signing in...</span>
-            </>
+            <span className="w-5 h-5 rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: '#020B18', borderTopColor: 'transparent' }} />
           ) : (
             <>
               <GoogleIcon />
@@ -150,18 +96,6 @@ export default function LoginPage() {
           New to AstroWave?{' '}
           <Link href="/auth/register" className="text-[#00FF87] font-bold hover:underline">
             Create account →
-          </Link>
-        </p>
-
-        {/* Terms */}
-        <p className="text-center font-body text-[10px] mt-4 opacity-50 uppercase tracking-tighter" style={{ color: '#6B8CAE' }}>
-          By signing in you agree to our{' '}
-          <Link href="/terms" className="underline hover:text-[#00FF87] transition-colors">
-            Terms
-          </Link>{' '}
-          and{' '}
-          <Link href="/privacy" className="underline hover:text-[#00FF87] transition-colors">
-            Privacy Policy
           </Link>
         </p>
       </div>
