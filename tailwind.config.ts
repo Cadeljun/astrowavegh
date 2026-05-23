@@ -11,7 +11,7 @@ const config: Config = {
     extend: {
       fontFamily: {
         display: ['var(--font-display)', 'cursive'],
-        body: ['var(--font-outfit)', 'sans-serif'],
+        body: ['var(--font-body)', 'sans-serif'],
       },
       colors: {
         background: 'hsl(var(--background))',

@@ -27,8 +27,8 @@ export default function Logo({
         : '/logo/astrowave-logo.svg');
   
   const logoWidth = variant === 'icon' 
-    ? height * 1.45
-    : height * 3.75;
+    ? height 
+    : height * 4.5;
 
   const content = (
     <Image

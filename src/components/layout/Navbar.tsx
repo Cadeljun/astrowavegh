@@ -84,12 +84,12 @@ export default function Navbar() {
                   href={link.href}
                   className={cn(
                     'font-body text-[0.85rem] font-medium tracking-[0.1em] uppercase transition-colors relative flex items-center gap-1.5',
-                    isActive ? 'text-[var(--color-green)]' : 'text-[var(--color-muted)] hover:text-[var(--color-white)]'
+                    isActive ? 'text-green' : 'text-muted hover:text-white'
                   )}
                 >
                   {link.name}
                   {link.badge && (
-                    <span className="text-[0.6rem] bg-[var(--color-green-dim)] text-[var(--color-green)] rounded-full px-1.5 py-0.5 leading-none font-bold">
+                    <span className="text-[0.6rem] bg-green-dim text-green rounded-full px-1.5 py-0.5 leading-none font-bold">
                       {link.badge}
                     </span>
                   )}
@@ -157,7 +157,7 @@ export default function Navbar() {
 
         {/* Mobile Toggle */}
         <button
-          className="lg:hidden text-[var(--color-white)] p-2 transition-colors hover:text-[var(--color-green)]"
+          className="lg:hidden text-white p-2 transition-colors hover:text-green"
           onClick={() => setIsMobileMenuOpen(true)}
           aria-label="Open Menu"
         >
@@ -173,13 +173,13 @@ export default function Navbar() {
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ duration: 0.4, ease: 'easeInOut' }}
-            className="fixed inset-0 z-[2000] bg-[var(--color-dark)] flex flex-col p-8 lg:hidden"
+            className="fixed inset-0 z-[2000] bg-dark flex flex-col p-8 lg:hidden"
           >
             <div className="flex justify-between items-center mb-12">
               <Logo height={40} />
               <button 
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="text-[var(--color-white)] p-2 hover:text-[var(--color-green)] transition-colors"
+                className="text-white p-2 hover:text-green transition-colors"
                 aria-label="Close Menu"
               >
                 <X size={32} />
@@ -227,7 +227,7 @@ export default function Navbar() {
 
             <div className="flex items-center justify-center gap-8 pt-12">
               {[Instagram, Twitter, Music].map((Icon, i) => (
-                <Link key={i} href="#" className="text-[var(--color-muted)] hover:text-[var(--color-green)] transition-colors">
+                <Link key={i} href="#" className="text-muted hover:text-green transition-colors">
                   <Icon size={24} />
                 </Link>
               ))}

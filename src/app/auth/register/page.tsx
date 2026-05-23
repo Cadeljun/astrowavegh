@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
-import { AlertCircle, Waves, ArrowRight } from 'lucide-react';
+import { AlertCircle, Waves } from 'lucide-react';
 import Link from 'next/link';
 
 function GoogleIcon() {

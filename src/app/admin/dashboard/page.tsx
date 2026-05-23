@@ -18,6 +18,8 @@ import {
 } from '@/lib/firebase/helpers'
 import { orderBy, where, collection, getDocs, limit } from 'firebase/firestore'
 import { db } from '@/firebase'
+import { Badge } from '@/components/ui/Badge'
+import Logo from '@/components/ui/Logo'
 
 interface StatCardProps {
   icon: React.ReactNode
@@ -43,16 +45,16 @@ function StatCard({
 
   return (
     <div 
-      className="bg-[#16161F] border border-[#1E1E2E] rounded-xl p-5 hover:border-opacity-60 transition-all duration-200 group"
+      className="bg-[#0A1A32] border border-[#0F2040] rounded-xl p-5 hover:border-opacity-60 transition-all duration-200 group"
       style={{ borderBottomColor: accentColor, borderBottomWidth: '2px' }}
     >
       <div className="mb-3" style={{ color: accentColor }}>
         {icon}
       </div>
-      <p className="font-display text-4xl text-[#F8F8FF] leading-none mb-1">
+      <p className="font-display text-4xl text-[#F0F8FF] leading-none mb-1">
         {value}
       </p>
-      <p className="font-body text-xs tracking-[0.15em] uppercase text-[#7B7B9A]">
+      <p className="font-body text-xs tracking-[0.15em] uppercase text-[#6B8CAE]">
         {label}
       </p>
     </div>
@@ -79,32 +81,32 @@ function RecentTable({
   emptyMessage: string
 }) {
   return (
-    <div className="bg-[#16161F] border border-[#1E1E2E] rounded-xl overflow-hidden h-full">
-      <div className="px-5 py-4 border-b border-[#1E1E2E] flex items-center justify-between">
-        <h3 className="font-body text-sm font-semibold tracking-[0.1em] uppercase text-[#7B7B9A]">
+    <div className="bg-[#0A1A32] border border-[#0F2040] rounded-xl overflow-hidden h-full">
+      <div className="px-5 py-4 border-b border-[#0F2040] flex items-center justify-between">
+        <h3 className="font-body text-sm font-semibold tracking-[0.1em] uppercase text-[#6B8CAE]">
           {title}
         </h3>
-        <Link href={viewAllHref} className="font-body text-xs text-[#FFD166] hover:underline tracking-wider uppercase">
+        <Link href={viewAllHref} className="font-body text-xs text-[#00FF87] hover:underline tracking-wider uppercase">
           View All →
         </Link>
       </div>
       {loading ? (
         <div className="p-5 space-y-3">
           {[...Array(3)].map((_, i) => (
-            <div key={i} className="h-10 bg-[#1E1E2E] rounded animate-pulse" />
+            <div key={i} className="h-10 bg-[#0F2040] rounded animate-pulse" />
           ))}
         </div>
       ) : items.length === 0 ? (
         <div className="p-8 text-center">
-          <p className="font-body text-sm text-[#7B7B9A]">{emptyMessage}</p>
+          <p className="font-body text-sm text-[#6B8CAE]">{emptyMessage}</p>
         </div>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-[#1E1E2E]">
+              <tr className="border-b border-[#0F2040]">
                 {columns.map(col => (
-                  <th key={col.key} className="px-5 py-3 text-left font-body text-xs font-semibold tracking-[0.15em] uppercase text-[#7B7B9A]">
+                  <th key={col.key} className="px-5 py-3 text-left font-body text-xs font-semibold tracking-[0.15em] uppercase text-[#6B8CAE]">
                     {col.label}
                   </th>
                 ))}
@@ -114,7 +116,7 @@ function RecentTable({
               {items.map((item, i) => (
                 <tr key={item.id || i} className="border-b border-[rgba(255,255,255,0.04)] hover:bg-[rgba(255,255,255,0.02)] transition-colors">
                   {columns.map(col => (
-                    <td key={col.key} className="px-5 py-3.5 font-body text-sm text-[#F8F8FF]">
+                    <td key={col.key} className="px-5 py-3.5 font-body text-sm text-[#F0F8FF]">
                       {col.render ? col.render(item) : item[col.key] ?? '—'}
                     </td>
                   ))}
@@ -171,7 +173,7 @@ export default function AdminDashboard() {
         setStats({
           platformUsers: uCount,
           totalEvents: eCount,
-          activePlatformEvents: eCount, // Simplified
+          activePlatformEvents: eCount, 
           pendingBookings: bCount.length,
           avgWaveScore: Number(avgWS.toFixed(2)),
           newContacts: cCount.length
@@ -198,16 +200,16 @@ export default function AdminDashboard() {
 
   return (
     <div className="max-w-7xl mx-auto pb-10">
-      <div className="flex items-start justify-between mb-8 flex-wrap gap-4">
+      <div className="flex items-start justify-between mb-8 flex-wrap gap-4 border-b border-[#0F2040] pb-8">
         <div>
-          <h1 className="font-display text-4xl text-[#F8F8FF] uppercase">Dashboard</h1>
-          <p className="font-body text-sm text-[#7B7B9A] mt-1">Horizon Core Intelligence · System Node Live</p>
+          <h1 className="font-display text-4xl text-[#F0F8FF] uppercase">Dashboard</h1>
+          <p className="font-body text-sm text-[#6B8CAE] mt-1">Horizon Core Intelligence · System Node Live</p>
         </div>
         <div className="text-right">
           {currentTime && (
             <>
-              <p className="font-display text-2xl text-[#FFD166]">{formatTime(currentTime)}</p>
-              <p className="font-body text-xs text-[#7B7B9A] mt-0.5">{formatDate(currentTime)}</p>
+              <p className="font-display text-2xl text-[#00FF87]">{formatTime(currentTime)}</p>
+              <p className="font-body text-xs text-[#6B8CAE] mt-0.5">{formatDate(currentTime)}</p>
             </>
           )}
         </div>
@@ -215,25 +217,25 @@ export default function AdminDashboard() {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
-        <StatCard icon={<Users size={22} />} value={stats.platformUsers} label="Platform Users" accentColor="#06B6D4" loading={loading} />
-        <StatCard icon={<CalendarCheck size={22} />} value={stats.activePlatformEvents} label="Active Events" accentColor="#FFD166" loading={loading} />
-        <StatCard icon={<Clock size={22} />} value={stats.pendingBookings} label="Pending Gigs" accentColor="#EAB308" loading={loading} />
-        <StatCard icon={<Star size={22} />} value={stats.avgWaveScore} label="Avg Wave Score" accentColor="#A855F7" loading={loading} />
-        <StatCard icon={<Mail size={22} />} value={stats.newContacts} label="New Contacts" accentColor="#FFD166" loading={loading} />
-        <StatCard icon={<Bell size={22} />} value={stats.totalEvents} label="Event Briefs" accentColor="#7B7B9A" loading={loading} />
+        <StatCard icon={<Users size={22} />} value={stats.platformUsers} label="Platform Users" accentColor="#38BDF8" loading={loading} />
+        <StatCard icon={<CalendarCheck size={22} />} value={stats.activePlatformEvents} label="Active Events" accentColor="#00FF87" loading={loading} />
+        <StatCard icon={<Clock size={22} />} value={stats.pendingBookings} label="Pending Gigs" accentColor="#0EA5E9" loading={loading} />
+        <StatCard icon={<Star size={22} />} value={stats.avgWaveScore} label="Avg Wave Score" accentColor="#00FF87" loading={loading} />
+        <StatCard icon={<Mail size={22} />} value={stats.newContacts} label="New Contacts" accentColor="#0EA5E9" loading={loading} />
+        <StatCard icon={<Bell size={22} />} value={stats.totalEvents} label="Event Briefs" accentColor="#38BDF8" loading={loading} />
       </div>
 
       {/* Quick Actions */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {[
-          { label: 'Platform Analytics', href: '/admin/platform/analytics', icon: <BarChart2 size={20} />, color: '#06B6D4' },
-          { label: 'Manage Talent', href: '/admin/platform/talent', icon: <Award size={20} />, color: '#A855F7' },
-          { label: 'Moderate Content', href: '/admin/platform/ratings', icon: <Star size={20} />, color: '#FFD166' },
-          { label: 'System Control', href: '/dev', icon: <Zap size={20} />, color: '#7B7B9A' }
+          { label: 'Platform Analytics', href: '/admin/platform/analytics', icon: <BarChart2 size={20} />, color: '#38BDF8' },
+          { label: 'Manage Talent', href: '/admin/platform/talent', icon: <Award size={20} />, color: '#0EA5E9' },
+          { label: 'Moderate Content', href: '/admin/platform/ratings', icon: <Star size={20} />, color: '#00FF87' },
+          { label: 'System Control', href: '/dev', icon: <Zap size={20} />, color: '#6B8CAE' }
         ].map((action) => (
-          <Link key={action.href} href={action.href} className="bg-[#16161F] border border-[#1E1E2E] rounded-xl p-5 flex items-center gap-3 hover:border-opacity-60 hover:bg-[rgba(255,255,255,0.02)] hover:border-[#FFD166] transition-all duration-200 group">
+          <Link key={action.href} href={action.href} className="bg-[#0A1A32] border border-[#0F2040] rounded-xl p-5 flex items-center gap-3 hover:border-opacity-60 hover:bg-[rgba(255,255,255,0.02)] hover:border-[#00FF87] transition-all duration-200 group">
             <span style={{ color: action.color }}>{action.icon}</span>
-            <span className="font-body text-sm font-semibold tracking-wider uppercase text-[#7B7B9A] group-hover:text-[#F8F8FF] transition-colors">{action.label}</span>
+            <span className="font-body text-sm font-semibold tracking-wider uppercase text-[#6B8CAE] group-hover:text-[#F0F8FF] transition-colors">{action.label}</span>
           </Link>
         ))}
       </div>
@@ -260,7 +262,7 @@ export default function AdminDashboard() {
           columns={[
             { key: 'eventTitle', label: 'Gig' },
             { key: 'talentStageName', label: 'Artist' },
-            { key: 'status', label: 'State', render: (item) => <span className="text-xs uppercase font-bold text-gold">{item.status}</span> }
+            { key: 'status', label: 'State', render: (item) => <span className="text-xs uppercase font-bold text-[#00FF87]">{item.status}</span> }
           ]}
         />
       </div>

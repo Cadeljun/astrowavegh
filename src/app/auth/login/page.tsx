@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
-import { AlertCircle, Waves, ArrowRight } from 'lucide-react';
+import { AlertCircle, Waves } from 'lucide-react';
 import Link from 'next/link';
 
 // Google SVG icon
@@ -135,10 +135,7 @@ export default function LoginPage() {
         >
           {signing ? (
             <>
-              <span
-                className="w-5 h-5 rounded-full border-2 border-t-transparent animate-spin"
-                style={{ borderColor: '#020B18', borderTopColor: 'transparent' }}
-              />
+              <span className="w-5 h-5 rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: '#020B18', borderTopColor: 'transparent' }} />
               <span className="uppercase tracking-widest">Signing in...</span>
             </>
           ) : (
