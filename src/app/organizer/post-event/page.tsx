@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar, MapPin, Zap, Info, Loader2, Save, ArrowRight, ArrowLeft, Users, DollarSign, Check } from 'lucide-react';
-import { useAuth } from '@/firebase';
+import { useAuth } from '@/context/AuthContext';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { SectionLabel } from '@/components/ui/SectionLabel';
@@ -94,7 +94,7 @@ export default function PostEventPage() {
       
       toast({ title: "Event Posted!", description: "Initializing Matching Engine..." });
       
-      // Simulate/Trigger engine (Real logic would be in match/[id] page load)
+      // Navigate to match page which handles engine logic
       router.push(`/match/${eventId}`);
     } catch (error: any) {
       toast({ variant: "destructive", title: "Post failed", description: error.message });
@@ -133,7 +133,12 @@ export default function PostEventPage() {
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div className="space-y-2">
                       <label className="admin-label">EVENT TITLE *</label>
-                      <input className={cn("admin-input h-14", errors.title && "border-red-400/50")} placeholder="e.g. Midnight Mirage 2025" value={formData.title} onChange={e => update('title', e.target.value)} />
+                      <input 
+                        className={cn("admin-input h-14", errors.title && "border-red-400/50")} 
+                        placeholder="e.g. Midnight Mirage 2025" 
+                        value={formData.title} 
+                        onChange={e => update('title', e.target.value)} 
+                      />
                       {errors.title && <p className="text-[0.6rem] text-red-400 font-bold uppercase">{errors.title}</p>}
                     </div>
                     <div className="space-y-2">
@@ -231,7 +236,7 @@ export default function PostEventPage() {
                     </div>
                     <div className="space-y-4">
                        <label className="admin-label">SPECIFIC REQUIREMENTS</label>
-                       <textarea rows={4} className="admin-input resize-none py-4" placeholder="e.g. Own DJ equipment needed, arrival 1hr prior..." value={formData.requirements} onChange={e => update('requirements', e.target.value)} />
+                       <textarea rows={4} className="admin-input resize-none py-4" placeholder="e.g. Own DJ equipment needed, arrival 1hr prior..." value={formData.requirements} onChange={e => setFormData({...formData, requirements: e.target.value})} />
                     </div>
                  </div>
               </Card>
