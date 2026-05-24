@@ -1,42 +1,83 @@
-import * as admin from 'firebase-admin'
+import * as admin from 'firebase-admin';
 
-if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.cert({
-      project_id: 
-        process.env.FIREBASE_PROJECT_ID,
-      client_email: 
-        process.env.FIREBASE_CLIENT_EMAIL,
-      private_key: 
-        process.env.FIREBASE_PRIVATE_KEY
-          ?.replace(/\\n/g, '\n')
-    })
-  })
+/**
+ * Initializes the Firebase Admin SDK lazily to avoid build-time errors
+ * when environment variables are not present.
+ */
+function getAdminApp() {
+  if (admin.apps.length > 0) {
+    return admin.apps[0];
+  }
+
+  try {
+    let serviceAccount: any;
+
+    // Check for a full service account JSON string first
+    if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+      serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+    } else {
+      // Fallback to individual environment variables
+      serviceAccount = {
+        project_id: process.env.FIREBASE_PROJECT_ID,
+        client_email: process.env.FIREBASE_CLIENT_EMAIL,
+        private_key: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+      };
+    }
+
+    // Validate mandatory project_id to prevent crashing the build
+    if (!serviceAccount || !serviceAccount.project_id) {
+      console.warn('Firebase Admin: Missing project_id. Skipping initialization.');
+      return null;
+    }
+
+    return admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount),
+    });
+  } catch (error) {
+    console.error('Firebase Admin initialization failed:', error);
+    return null;
+  }
 }
 
 export async function POST(req: Request) {
+  const app = getAdminApp();
+
+  if (!app) {
+    return new Response(
+      JSON.stringify({ error: 'Server configuration error: Firebase Admin failed to initialize.' }),
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
+    );
+  }
+
+  try {
     const { name, email, role, active } = await req.json();
 
-    try {
-        const userRecord = await admin.auth().createUser({
-            email,
-            emailVerified: true,
-            displayName: name
-        });
+    const userRecord = await admin.auth(app).createUser({
+      email,
+      emailVerified: true,
+      displayName: name,
+    });
 
-        await admin.firestore().collection('user_roles').doc(userRecord.uid).set({
-            uid: userRecord.uid,
-            email,
-            name,
-            role,
-            active,
-            createdAt: admin.firestore.FieldValue.serverTimestamp(),
-            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-            lastLogin: null
-        });
+    await admin.firestore(app).collection('user_roles').doc(userRecord.uid).set({
+      uid: userRecord.uid,
+      email,
+      name,
+      role,
+      active,
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      lastLogin: null,
+    });
 
-        return new Response(JSON.stringify({ uid: userRecord.uid }), { status: 201 });
-    } catch (error) {
-        return new Response(JSON.stringify({ error: (error as Error).message }), { status: 500 });
-    }
+    return new Response(
+      JSON.stringify({ uid: userRecord.uid }),
+      { status: 201, headers: { 'Content-Type': 'application/json' } }
+    );
+  } catch (error: any) {
+    console.error('Error in create-user API:', error);
+    return new Response(
+      JSON.stringify({ error: error.message || 'Internal server error' }),
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
+    );
+  }
 }
