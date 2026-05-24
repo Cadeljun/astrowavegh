@@ -2,31 +2,24 @@ import * as admin from 'firebase-admin';
 
 /**
  * Initializes the Firebase Admin SDK lazily to avoid build-time errors
- * when environment variables are not present.
+ * when environment variables are not present during page data collection.
  */
 function getAdminApp() {
   if (admin.apps.length > 0) {
     return admin.apps[0];
   }
 
+  const serviceAccountVar = process.env.FIREBASE_SERVICE_ACCOUNT;
+  
+  if (!serviceAccountVar) {
+    return null;
+  }
+
   try {
-    let serviceAccount: any;
+    const serviceAccount = JSON.parse(serviceAccountVar);
 
-    // Check for a full service account JSON string first
-    if (process.env.FIREBASE_SERVICE_ACCOUNT) {
-      serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-    } else {
-      // Fallback to individual environment variables
-      serviceAccount = {
-        project_id: process.env.FIREBASE_PROJECT_ID,
-        client_email: process.env.FIREBASE_CLIENT_EMAIL,
-        private_key: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-      };
-    }
-
-    // Validate mandatory project_id to prevent crashing the build
-    if (!serviceAccount || !serviceAccount.project_id) {
-      console.warn('Firebase Admin: Missing project_id. Skipping initialization.');
+    // Explicitly validate project_id to prevent "Service account object must contain a string 'project_id' property" error
+    if (!serviceAccount || typeof serviceAccount.project_id !== 'string') {
       return null;
     }
 
@@ -34,7 +27,7 @@ function getAdminApp() {
       credential: admin.credential.cert(serviceAccount),
     });
   } catch (error) {
-    console.error('Firebase Admin initialization failed:', error);
+    console.error('Firebase Admin lazy initialization failed:', error);
     return null;
   }
 }
