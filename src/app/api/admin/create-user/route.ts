@@ -1,88 +1,83 @@
-import * as admin from 'firebase-admin';
+import { NextResponse } from 'next/server'
 
-let firebaseApp: admin.app.App | null = null;
+// Check credentials exist before 
+// attempting to initialize
+const projectId = 
+  process.env.FIREBASE_PROJECT_ID
+const clientEmail = 
+  process.env.FIREBASE_CLIENT_EMAIL
+const privateKey = 
+  process.env.FIREBASE_PRIVATE_KEY
 
-/**
- * Initializes the Firebase Admin SDK lazily to avoid build-time errors.
- * Returns null if the service account is not configured correctly.
- */
-function getFirebaseApp() {
-  if (firebaseApp) return firebaseApp;
+let adminApp: any = null
 
-  // Check if an app is already initialized (handles dev environment hot-reloads)
-  if (admin.apps.length > 0) {
-    firebaseApp = admin.apps[0];
-    return firebaseApp;
+async function getAdminApp() {
+  if (adminApp) return adminApp
+  
+  // Fail gracefully if no credentials
+  if (!projectId || !clientEmail || 
+      !privateKey) {
+    throw new Error(
+      'Firebase Admin credentials not configured. ' +
+      'Add FIREBASE_PROJECT_ID, ' +
+      'FIREBASE_CLIENT_EMAIL and ' +
+      'FIREBASE_PRIVATE_KEY to environment variables.'
+    )
   }
-
-  const saEnv = process.env.FIREBASE_SERVICE_ACCOUNT;
-  if (!saEnv) {
-    console.warn('FIREBASE_SERVICE_ACCOUNT environment variable is missing.');
-    return null;
+  
+  const admin = await import('firebase-admin')
+  
+  if (!admin.apps.length) {
+    adminApp = admin.initializeApp({
+      credential: admin.credential.cert({
+        projectId,
+        clientEmail,
+        privateKey: privateKey
+          .replace(/\\n/g, '\n')
+      })
+    })
+  } else {
+    adminApp = admin.apps[0]
   }
-
-  try {
-    const serviceAccount = JSON.parse(saEnv);
-
-    if (!serviceAccount || typeof serviceAccount.project_id !== 'string') {
-      console.error('Service account JSON must include a string "project_id" property.');
-      return null;
-    }
-
-    firebaseApp = admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount),
-    });
-
-    return firebaseApp;
-  } catch (err) {
-    console.error('Firebase Admin initialization error:', err);
-    return null;
-  }
+  
+  return adminApp
 }
 
-export async function POST(req: Request) {
-  const app = getFirebaseApp();
-
-  if (!app) {
-    return new Response(
-      JSON.stringify({ error: 'Internal Server Error: Firebase Admin not configured correctly.' }),
-      { status: 500, headers: { 'Content-Type': 'application/json' } }
-    );
-  }
-
+export async function POST(
+  request: Request
+) {
   try {
-    const { name, email, role, active } = await req.json();
-    const auth = admin.auth(app);
-    const db = admin.firestore(app);
-
-    // Create user in Firebase Authentication
-    const userRecord = await auth.createUser({
-      email,
-      emailVerified: true,
-      displayName: name,
-    });
-
-    // Store user role and status in Firestore
-    await db.collection('user_roles').doc(userRecord.uid).set({
-      uid: userRecord.uid,
-      email,
-      name,
-      role,
-      active,
-      createdAt: admin.firestore.FieldValue.serverTimestamp(),
-      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-      lastLogin: null,
-    });
-
-    return new Response(
-      JSON.stringify({ uid: userRecord.uid }),
-      { status: 201, headers: { 'Content-Type': 'application/json' } }
-    );
+    // This will throw clear error if 
+    // credentials missing
+    await getAdminApp()
+    
+    const admin = await import('firebase-admin')
+    const { email, password, name } = 
+      await request.json()
+    
+    if (!email || !password) {
+      return NextResponse.json(
+        { error: 'Email and password required' },
+        { status: 400 }
+      )
+    }
+    
+    const user = await admin.auth()
+      .createUser({
+        email,
+        password,
+        displayName: name || ''
+      })
+    
+    return NextResponse.json({ 
+      success: true,
+      uid: user.uid 
+    })
+    
   } catch (error: any) {
-    console.error('Error in create-user API:', error);
-    return new Response(
-      JSON.stringify({ error: error.message || 'Internal server error' }),
-      { status: 500, headers: { 'Content-Type': 'application/json' } }
-    );
+    return NextResponse.json(
+      { error: error.message },
+      { status: 500 }
+    )
   }
 }
