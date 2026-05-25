@@ -144,6 +144,7 @@ export default function AdminDashboard() {
   const [recentBookings, setRecentBookings] = useState<any[]>([])
   const [currentTime, setCurrentTime] = useState<Date | null>(null)
 
+  // Prevent hydration mismatch by deferring clock start
   useEffect(() => {
     setCurrentTime(new Date())
     const interval = setInterval(() => setCurrentTime(new Date()), 1000)

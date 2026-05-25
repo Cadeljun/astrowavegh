@@ -11,6 +11,8 @@ import {
 } from 'firebase/firestore';
 import { recordCompletedEvent } from '@/lib/algorithms/updateWaveScore';
 import { createNotification } from '@/lib/firebase/platform';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
 
 export interface EventFormData {
   title: string;
@@ -92,8 +94,7 @@ export async function postEvent(
 ): Promise<string> {
   const eventDate = new Date(data.date);
   
-  // 1. Create the event document
-  const ref = await addDoc(collection(db, 'platform_events'), {
+  const eventData = {
     organizerId,
     organizerName,
     organizerPhoto,
@@ -120,15 +121,36 @@ export async function postEvent(
     bookedTalentId: null,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp()
-  });
-  
-  // 2. Increment organizer event count
-  await updateDoc(doc(db, 'organizer_profiles', organizerId), { 
-    eventCount: increment(1),
-    updatedAt: serverTimestamp()
-  });
-  
-  return ref.id;
+  };
+
+  try {
+    // 1. Create the event document
+    const ref = await addDoc(collection(db, 'platform_events'), eventData);
+    
+    // 2. Increment organizer event count (Non-blocking)
+    const orgRef = doc(db, 'organizer_profiles', organizerId);
+    updateDoc(orgRef, { 
+      eventCount: increment(1),
+      updatedAt: serverTimestamp()
+    }).catch(async (serverError) => {
+      errorEmitter.emit('permission-error', new FirestorePermissionError({
+        path: orgRef.path,
+        operation: 'update'
+      }));
+    });
+    
+    return ref.id;
+  } catch (serverError: any) {
+    if (serverError.code === 'permission-denied') {
+      const permissionError = new FirestorePermissionError({
+        path: 'platform_events',
+        operation: 'create',
+        requestResourceData: eventData
+      });
+      errorEmitter.emit('permission-error', permissionError);
+    }
+    throw serverError;
+  }
 }
 
 /**
@@ -144,25 +166,32 @@ export async function completeEvent(
   if (!snap.exists()) throw new Error('Event not found');
   const eventData = snap.data();
 
-  await updateDoc(eventRef, {
+  updateDoc(eventRef, {
     status: 'completed',
     updatedAt: serverTimestamp()
-  });
-  
-  // Record completion for talent metrics
-  if (talentId && eventData.date) {
-    await recordCompletedEvent(talentId, eventData.date);
-  }
-  
-  // Notify talent
-  await createNotification(
-    talentId,
-    'booking_completed',
-    'Event Completed! 🌊',
-    `The event "${eventData.title}" has been marked complete. Great work!`,
-    '/talent/bookings',
-    eventId
-  );
+  })
+    .then(async () => {
+      // Record completion for talent metrics
+      if (talentId && eventData.date) {
+        await recordCompletedEvent(talentId, eventData.date);
+      }
+      
+      // Notify talent
+      await createNotification(
+        talentId,
+        'booking_completed',
+        'Event Completed! 🌊',
+        `The event "${eventData.title}" has been marked complete. Great work!`,
+        '/talent/bookings',
+        eventId
+      );
+    })
+    .catch(async (serverError) => {
+      errorEmitter.emit('permission-error', new FirestorePermissionError({
+        path: eventRef.path,
+        operation: 'update'
+      }));
+    });
 }
 
 /**
@@ -179,8 +208,13 @@ export async function cancelEvent(
   if (snap.data().organizerId !== organizerId) throw new Error('Unauthorized');
   if (snap.data().status === 'booked') throw new Error('Cannot cancel a booked event. Please contact talent first.');
   
-  await updateDoc(ref, {
+  updateDoc(ref, {
     status: 'cancelled',
     updatedAt: serverTimestamp()
+  }).catch(async (serverError) => {
+    errorEmitter.emit('permission-error', new FirestorePermissionError({
+      path: ref.path,
+      operation: 'update'
+    }));
   });
 }

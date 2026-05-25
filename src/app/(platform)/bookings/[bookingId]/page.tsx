@@ -1,7 +1,6 @@
-
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -40,6 +39,7 @@ import {
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import PlatformGuard from '@/components/platform/PlatformGuard';
+import type { Booking } from '@/types/platform';
 
 export default function BookingDetailPage() {
   const params = useParams();
@@ -49,9 +49,18 @@ export default function BookingDetailPage() {
   const bookingId = params.bookingId as string;
   const db = useFirestore();
 
-  const { data: booking, loading } = useDoc<any>(doc(db, 'bookings', bookingId));
+  const { data: booking, loading } = useDoc<Booking>(doc(db, 'bookings', bookingId));
   const [actionLoading, setActionLoading] = useState(false);
   const [talentResponse, setTalentResponse] = useState('');
+  const [isPast, setIsPast] = useState(false);
+
+  // Prevent hydration errors by calculating time-sensitive logic in useEffect
+  useEffect(() => {
+    if (booking?.eventDate) {
+      const eventDate = booking.eventDate?.toDate ? booking.eventDate.toDate() : new Date(booking.eventDate);
+      setIsPast(eventDate < new Date());
+    }
+  }, [booking]);
 
   if (loading) {
     return (
@@ -75,7 +84,6 @@ export default function BookingDetailPage() {
   const isTalent = user?.uid === booking.talentId;
   const isOrganizer = user?.uid === booking.organizerId;
   const eventDate = booking.eventDate?.toDate ? booking.eventDate.toDate() : new Date(booking.eventDate);
-  const isPast = eventDate < new Date();
 
   const handleAction = async (actionFn: () => Promise<void>, successMsg: string) => {
     setActionLoading(true);
@@ -83,7 +91,7 @@ export default function BookingDetailPage() {
       await actionFn();
       toast({ title: successMsg });
     } catch (error: any) {
-      toast({ variant: 'destructive', title: "Action Failed", description: error.message });
+      // Errors handled within service via contextual emitter
     } finally {
       setActionLoading(false);
     }

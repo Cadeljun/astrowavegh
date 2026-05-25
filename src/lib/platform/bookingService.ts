@@ -1,4 +1,3 @@
-
 'use client';
 
 import { db } from '@/firebase';
@@ -12,6 +11,8 @@ import {
 } from 'firebase/firestore';
 import { createNotification, logActivity } from '@/lib/firebase/platform';
 import { recordCompletedEvent } from '@/lib/algorithms/updateWaveScore';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
 
 /**
  * Talent accepts a pending booking request.
@@ -37,42 +38,61 @@ export async function acceptBooking(
     throw new Error('Booking is no longer pending');
   }
 
-  // 1. Update Booking status
-  await updateDoc(bookingRef, {
+  const updateData = {
     status: 'accepted',
     talentResponse: response,
     respondedAt: serverTimestamp(),
     updatedAt: serverTimestamp()
-  });
+  };
 
-  // 2. Confirm the event as booked
-  await updateDoc(doc(db, 'platform_events', booking.eventId), {
-    status: 'booked',
-    bookedTalentId: talentId,
-    bookedTalentName: booking.talentStageName,
-    bookedTalentPhoto: booking.talentPhoto,
-    bookedTalentWaveScore: booking.waveScore || 0,
-    updatedAt: serverTimestamp()
-  });
+  // 1. Update Booking status (Non-blocking)
+  updateDoc(bookingRef, updateData)
+    .then(async () => {
+      // 2. Confirm the event as booked
+      const eventRef = doc(db, 'platform_events', booking.eventId);
+      const eventUpdate = {
+        status: 'booked',
+        bookedTalentId: talentId,
+        bookedTalentName: booking.talentStageName,
+        bookedTalentPhoto: booking.talentPhoto,
+        bookedTalentWaveScore: booking.waveScore || 0,
+        updatedAt: serverTimestamp()
+      };
+      
+      updateDoc(eventRef, eventUpdate).catch(async (serverError) => {
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+          path: eventRef.path,
+          operation: 'update',
+          requestResourceData: eventUpdate
+        }));
+      });
 
-  // 3. Notify the organizer
-  await createNotification(
-    booking.organizerId,
-    'booking_accepted',
-    'Booking Accepted! 🎉',
-    `${booking.talentStageName} accepted your request for ${booking.eventTitle}`,
-    `/bookings/${bookingId}`,
-    bookingId
-  );
+      // 3. Notify the organizer
+      await createNotification(
+        booking.organizerId,
+        'booking_accepted',
+        'Booking Accepted! 🎉',
+        `${booking.talentStageName} accepted your request for ${booking.eventTitle}`,
+        `/bookings/${bookingId}`,
+        bookingId
+      );
 
-  // 4. Log activity
-  await logActivity(
-    'bookings',
-    'updated',
-    bookingId,
-    booking.talentName,
-    'Booking accepted'
-  );
+      // 4. Log activity
+      await logActivity(
+        'bookings',
+        'updated',
+        bookingId,
+        booking.talentName,
+        'Booking accepted'
+      );
+    })
+    .catch(async (serverError) => {
+      errorEmitter.emit('permission-error', new FirestorePermissionError({
+        path: bookingRef.path,
+        operation: 'update',
+        requestResourceData: updateData
+      }));
+    });
 }
 
 /**
@@ -96,34 +116,53 @@ export async function declineBooking(
     throw new Error('Unauthorized');
   }
 
-  // 1. Update Booking status
-  await updateDoc(bookingRef, {
+  const updateData = {
     status: 'declined',
     talentResponse: reason,
     respondedAt: serverTimestamp(),
     updatedAt: serverTimestamp()
-  });
+  };
 
-  // 2. Revert event to open/matched status
-  await updateDoc(doc(db, 'platform_events', booking.eventId), {
-    status: 'matched',
-    bookedTalentId: null,
-    updatedAt: serverTimestamp()
-  });
+  // 1. Update Booking status
+  updateDoc(bookingRef, updateData)
+    .then(async () => {
+      // 2. Revert event to open/matched status
+      const eventRef = doc(db, 'platform_events', booking.eventId);
+      const eventUpdate = {
+        status: 'matched',
+        bookedTalentId: null,
+        updatedAt: serverTimestamp()
+      };
 
-  // 3. Notify the organizer
-  await createNotification(
-    booking.organizerId,
-    'booking_declined',
-    'Booking Declined',
-    `${booking.talentStageName} is unavailable for ${booking.eventTitle}. Explore other matches.`,
-    `/match/${booking.eventId}`,
-    bookingId
-  );
+      updateDoc(eventRef, eventUpdate).catch(async (serverError) => {
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+          path: eventRef.path,
+          operation: 'update',
+          requestResourceData: eventUpdate
+        }));
+      });
+
+      // 3. Notify the organizer
+      await createNotification(
+        booking.organizerId,
+        'booking_declined',
+        'Booking Declined',
+        `${booking.talentStageName} is unavailable for ${booking.eventTitle}. Explore other matches.`,
+        `/match/${booking.eventId}`,
+        bookingId
+      );
+    })
+    .catch(async (serverError) => {
+      errorEmitter.emit('permission-error', new FirestorePermissionError({
+        path: bookingRef.path,
+        operation: 'update',
+        requestResourceData: updateData
+      }));
+    });
 }
 
 /**
- * Organizer cancels a booking (can be done if status is pending or accepted).
+ * Organizer cancels a booking.
  */
 export async function cancelBooking(
   bookingId: string,
@@ -142,38 +181,63 @@ export async function cancelBooking(
     throw new Error('Unauthorized');
   }
 
-  // 1. Update Booking status
-  await updateDoc(bookingRef, {
+  const updateData = {
     status: 'cancelled',
     updatedAt: serverTimestamp()
-  });
+  };
 
-  // 2. Revert event status
-  await updateDoc(doc(db, 'platform_events', booking.eventId), {
-    status: 'open',
-    bookedTalentId: null,
-    updatedAt: serverTimestamp()
-  });
+  // 1. Update Booking status
+  updateDoc(bookingRef, updateData)
+    .then(async () => {
+      // 2. Revert event status
+      const eventRef = doc(db, 'platform_events', booking.eventId);
+      const eventUpdate = {
+        status: 'open',
+        bookedTalentId: null,
+        updatedAt: serverTimestamp()
+      };
 
-  // 3. Notify talent if they were already accepted or it was pending
-  await createNotification(
-    booking.talentId,
-    'booking_cancelled',
-    'Booking Cancelled',
-    `${booking.organizerName} has cancelled the booking for ${booking.eventTitle}`,
-    `/talent/bookings`,
-    bookingId
-  );
+      updateDoc(eventRef, eventUpdate).catch(async (serverError) => {
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+          path: eventRef.path,
+          operation: 'update',
+          requestResourceData: eventUpdate
+        }));
+      });
 
-  // 4. Update talent stats (cancelled bookings tracking)
-  await updateDoc(doc(db, 'talent_profiles', booking.talentId), {
-    cancelledBookings: increment(1),
-    updatedAt: serverTimestamp()
-  });
+      // 3. Notify talent
+      await createNotification(
+        booking.talentId,
+        'booking_cancelled',
+        'Booking Cancelled',
+        `${booking.organizerName} has cancelled the booking for ${booking.eventTitle}`,
+        `/talent/bookings`,
+        bookingId
+      );
+
+      // 4. Update talent stats
+      const talentRef = doc(db, 'talent_profiles', booking.talentId);
+      updateDoc(talentRef, {
+        cancelledBookings: increment(1),
+        updatedAt: serverTimestamp()
+      }).catch(async (serverError) => {
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+          path: talentRef.path,
+          operation: 'update'
+        }));
+      });
+    })
+    .catch(async (serverError) => {
+      errorEmitter.emit('permission-error', new FirestorePermissionError({
+        path: bookingRef.path,
+        operation: 'update',
+        requestResourceData: updateData
+      }));
+    });
 }
 
 /**
- * Organizer marks the booking/event as completed after it occurs.
+ * Organizer marks the booking/event as completed.
  */
 export async function completeBooking(
   bookingId: string,
@@ -192,40 +256,59 @@ export async function completeBooking(
     throw new Error('Unauthorized');
   }
 
-  // 1. Update Booking status
-  await updateDoc(bookingRef, {
+  const updateData = {
     status: 'completed',
     completedAt: serverTimestamp(),
     updatedAt: serverTimestamp()
-  });
+  };
 
-  // 2. Mark event as completed
-  await updateDoc(doc(db, 'platform_events', booking.eventId), {
-    status: 'completed',
-    updatedAt: serverTimestamp()
-  });
+  // 1. Update Booking status
+  updateDoc(bookingRef, updateData)
+    .then(async () => {
+      // 2. Mark event as completed
+      const eventRef = doc(db, 'platform_events', booking.eventId);
+      const eventUpdate = {
+        status: 'completed',
+        updatedAt: serverTimestamp()
+      };
 
-  // 3. Record for Talent Wave Score (increments count and updates recency)
-  if (booking.eventDate) {
-    await recordCompletedEvent(booking.talentId, booking.eventDate);
-  }
+      updateDoc(eventRef, eventUpdate).catch(async (serverError) => {
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+          path: eventRef.path,
+          operation: 'update',
+          requestResourceData: eventUpdate
+        }));
+      });
 
-  // 4. Notify both parties
-  await createNotification(
-    booking.talentId,
-    'booking_completed',
-    'Event Complete! 🌊',
-    `The event "${booking.eventTitle}" is now complete. Great work!`,
-    `/talent/dashboard`,
-    bookingId
-  );
+      // 3. Record for Talent Wave Score
+      if (booking.eventDate) {
+        await recordCompletedEvent(booking.talentId, booking.eventDate);
+      }
 
-  await createNotification(
-    organizerId,
-    'rating_reminder',
-    'Rate Your Talent',
-    `How was ${booking.talentStageName} at ${booking.eventTitle}? Leave a review!`,
-    `/organizer/bookings`,
-    bookingId
-  );
+      // 4. Notify both parties
+      await createNotification(
+        booking.talentId,
+        'booking_completed',
+        'Event Complete! 🌊',
+        `The event "${booking.eventTitle}" is now complete. Great work!`,
+        `/talent/dashboard`,
+        bookingId
+      );
+
+      await createNotification(
+        organizerId,
+        'rating_reminder',
+        'Rate Your Talent',
+        `How was ${booking.talentStageName} at ${booking.eventTitle}? Leave a review!`,
+        `/organizer/bookings`,
+        bookingId
+      );
+    })
+    .catch(async (serverError) => {
+      errorEmitter.emit('permission-error', new FirestorePermissionError({
+        path: bookingRef.path,
+        operation: 'update',
+        requestResourceData: updateData
+      }));
+    });
 }
