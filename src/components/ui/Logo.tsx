@@ -19,12 +19,19 @@ export default function Logo({
 }: LogoProps) {
   const { settings } = useCMSSettings();
   
-  const logoSrc = settings?.logoUrl 
-    || (variant === 'icon'
+  // Choose correct source based on variant
+  let logoSrc = settings?.logoUrl;
+  if (variant === 'dark' && settings?.logoDarkUrl) logoSrc = settings.logoDarkUrl;
+  if (variant === 'icon' && settings?.logoIconUrl) logoSrc = settings.logoIconUrl;
+  
+  // Fallback to defaults if settings are empty
+  if (!logoSrc) {
+    logoSrc = variant === 'icon'
       ? '/logo/astrowave-icon.svg'
       : variant === 'dark'
         ? '/logo/astrowave-logo-dark.svg'
-        : '/logo/astrowave-logo.svg');
+        : '/logo/astrowave-logo.svg';
+  }
   
   const logoWidth = variant === 'icon' 
     ? height 

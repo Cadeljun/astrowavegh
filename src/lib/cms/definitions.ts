@@ -247,6 +247,10 @@ export interface GlobalSettings {
   siteName: string
   tagline: string
   logoUrl: string
+  logoDarkUrl: string
+  logoIconUrl: string
+  faviconUrl: string
+  ogImageUrl: string
   email: string
   location: string
   instagram: string
@@ -266,7 +270,11 @@ export interface GlobalSettings {
 export const DEFAULT_SETTINGS: GlobalSettings = {
   siteName: 'AstroWave',
   tagline: 'Vibes Beyond the Horizon.',
-  logoUrl: '',
+  logoUrl: 'https://res.cloudinary.com/dmd5bq3va/image/upload/v1740348737/logo-light_vzvmlaglz9l1hgevktn.svg',
+  logoDarkUrl: '',
+  logoIconUrl: 'https://res.cloudinary.com/dmd5bq3va/image/upload/v1779674858/ivzvmlaglz9l1hgevktn.png',
+  faviconUrl: 'https://res.cloudinary.com/dmd5bq3va/image/upload/v1779674858/ivzvmlaglz9l1hgevktn.png',
+  ogImageUrl: '',
   email: 'info@astrowave.live',
   location: 'Accra, Ghana',
   instagram: 'https://instagram.com/astrowavegh',

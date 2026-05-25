@@ -23,6 +23,7 @@ const bebasNeue = Bebas_Neue({
   display: 'swap',
 });
 
+// Fallback constant
 const FAVICON_URL = 'https://res.cloudinary.com/dmd5bq3va/image/upload/v1779674858/ivzvmlaglz9l1hgevktn.png';
 
 export const viewport: Viewport = {
@@ -68,10 +69,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        {/* Explicitly defined head links to help some browsers override cache */}
-        <link rel="icon" href={FAVICON_URL} type="image/png" sizes="any" />
-        <link rel="shortcut icon" href={FAVICON_URL} type="image/png" />
-        <link rel="apple-touch-icon" href={FAVICON_URL} />
         
         <SchemaOrg
           schema={{

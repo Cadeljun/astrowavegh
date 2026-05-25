@@ -9,6 +9,7 @@ import Footer from '@/components/layout/Footer';
 import LoadingScreen from '@/components/ui/LoadingScreen';
 import { ScrollToTop } from '@/components/ui/ScrollToTop';
 import Image from 'next/image';
+import Head from 'next/head';
 
 function MaintenancePage() {
   const { settings } = useCMSSettings();
@@ -77,6 +78,17 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
   }, []);
 
   const isMaintenance = settings?.maintenanceMode && !isAdminRoute;
+
+  // Real-time Favicon injector
+  useEffect(() => {
+    if (settings?.faviconUrl) {
+      const link: HTMLLinkElement = document.querySelector("link[rel*='icon']") || document.createElement('link');
+      link.type = 'image/x-icon';
+      link.rel = 'shortcut icon';
+      link.href = settings.faviconUrl;
+      document.getElementsByTagName('head')[0].appendChild(link);
+    }
+  }, [settings?.faviconUrl]);
 
   return (
     <>
