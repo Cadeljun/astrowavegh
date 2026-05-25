@@ -285,7 +285,7 @@ export const DEFAULT_SETTINGS: GlobalSettings = {
   siteName: 'AstroWave',
   tagline: 'Vibes Beyond the Horizon.',
   logoUrl: 'https://res.cloudinary.com/dmd5bq3va/image/upload/v1779676928/h301f38brcdtgkdz8myk.png',
-  logoDarkUrl: '',
+  logoDarkUrl: 'https://res.cloudinary.com/dmd5bq3va/image/upload/v1779676928/h301f38brcdtgkdz8myk.png',
   logoIconUrl: 'https://res.cloudinary.com/dmd5bq3va/image/upload/v1779674858/ivzvmlaglz9l1hgevktn.png',
   faviconUrl: 'https://res.cloudinary.com/dmd5bq3va/image/upload/v1779674858/ivzvmlaglz9l1hgevktn.png',
   faviconSvgCode: '',

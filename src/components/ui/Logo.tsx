@@ -11,6 +11,8 @@ interface LogoProps {
   className?: string;
 }
 
+const PRIMARY_LOGO = 'https://res.cloudinary.com/dmd5bq3va/image/upload/v1779676928/h301f38brcdtgkdz8myk.png';
+
 export default function Logo({
   variant = 'default',
   height = 40,
@@ -23,11 +25,11 @@ export default function Logo({
   let logoSrc = '';
   
   if (variant === 'dark') {
-    logoSrc = settings?.logoDarkUrl || '/logo/astrowave-logo-dark.svg';
+    logoSrc = settings?.logoDarkUrl || PRIMARY_LOGO;
   } else if (variant === 'icon') {
-    logoSrc = settings?.logoIconUrl || '/logo/astrowave-icon.svg';
+    logoSrc = settings?.logoIconUrl || 'https://res.cloudinary.com/dmd5bq3va/image/upload/v1779674858/ivzvmlaglz9l1hgevktn.png';
   } else {
-    logoSrc = settings?.logoUrl || '/logo/astrowave-logo.svg';
+    logoSrc = settings?.logoUrl || PRIMARY_LOGO;
   }
   
   const logoWidth = variant === 'icon' 
