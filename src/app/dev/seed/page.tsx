@@ -34,23 +34,23 @@ export default function DevSeedPage() {
     try {
       const batch = writeBatch(db);
       
-      const heroPlaceholder = getPlaceholderById('hero-bg');
-      const eventPlaceholder = getPlaceholderById('default-event');
-      const talentPlaceholder = getPlaceholderById('default-talent');
-      const galleryPlaceholder = getPlaceholderById('default-gallery');
-
+      // 1. Seed Global Settings (Logo, Favicon, etc.)
       const settingsRef = doc(db, 'cms_settings', 'global');
       batch.set(settingsRef, {
         ...DEFAULT_SETTINGS,
         updatedAt: serverTimestamp()
       });
+      addLog('✓ Global settings initialized');
 
+      // 2. Seed Page Content
       CMS_PAGES.forEach(page => {
         page.sections.forEach(section => {
           const docId = `${page.slug}_${section.key}`;
           const ref = doc(db, 'cms_content', docId);
           const fields: Record<string, string> = {};
-          section.fields.forEach(f => { fields[f.key] = f.placeholder || ''; });
+          section.fields.forEach(f => { 
+            fields[f.key] = f.placeholder || ''; 
+          });
           
           batch.set(ref, {
             pageSlug: page.slug,
@@ -93,7 +93,8 @@ export default function DevSeedPage() {
         active: true,
         available: true,
         photoURL: talentPlaceholder?.imageUrl || '',
-        createdAt: serverTimestamp()
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
       };
       await setDoc(doc(talentRef, testTalent.uid), testTalent);
       addLog(`✓ Seeded Talent: ${testTalent.stageName}`);
@@ -108,7 +109,8 @@ export default function DevSeedPage() {
         talentCategory: 'DJ',
         city: 'Accra',
         date: serverTimestamp(),
-        createdAt: serverTimestamp()
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
       };
       await addDoc(eventRef, testEvent);
       addLog(`✓ Seeded Platform Event: ${testEvent.title}`);

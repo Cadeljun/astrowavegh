@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useCMSSettings } from '@/lib/cms/useCMS';
+import { DEFAULT_SETTINGS } from '@/lib/cms/definitions';
 
 interface LogoProps {
   variant?: 'default' | 'icon' | 'dark';
@@ -10,8 +11,6 @@ interface LogoProps {
   linkTo?: string;
   className?: string;
 }
-
-const PRIMARY_LOGO = 'https://res.cloudinary.com/dmd5bq3va/image/upload/v1779676928/h301f38brcdtgkdz8myk.png';
 
 export default function Logo({
   variant = 'default',
@@ -21,15 +20,15 @@ export default function Logo({
 }: LogoProps) {
   const { settings } = useCMSSettings();
   
-  // Choose correct source based on variant
+  // Choice logic based on variant with reliable fallbacks from CMS definitions
   let logoSrc = '';
   
   if (variant === 'dark') {
-    logoSrc = settings?.logoDarkUrl || PRIMARY_LOGO;
+    logoSrc = settings?.logoDarkUrl || DEFAULT_SETTINGS.logoDarkUrl;
   } else if (variant === 'icon') {
-    logoSrc = settings?.logoIconUrl || 'https://res.cloudinary.com/dmd5bq3va/image/upload/v1779674858/ivzvmlaglz9l1hgevktn.png';
+    logoSrc = settings?.logoIconUrl || DEFAULT_SETTINGS.logoIconUrl;
   } else {
-    logoSrc = settings?.logoUrl || PRIMARY_LOGO;
+    logoSrc = settings?.logoUrl || DEFAULT_SETTINGS.logoUrl;
   }
   
   const logoWidth = variant === 'icon' 
