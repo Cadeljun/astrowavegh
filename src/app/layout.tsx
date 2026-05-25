@@ -23,6 +23,8 @@ const bebasNeue = Bebas_Neue({
   display: 'swap',
 });
 
+const FAVICON_URL = 'https://res.cloudinary.com/dmd5bq3va/image/upload/v1779674858/ivzvmlaglz9l1hgevktn.png';
+
 export const metadata: Metadata = {
   metadataBase: new URL('https://astrowave.com'),
   title: {
@@ -43,16 +45,9 @@ export const metadata: Metadata = {
   creator: 'AstroWave',
   publisher: 'AstroWave',
   icons: {
-    icon: [
-      { url: '/favicon.svg', type: 'image/svg+xml' },
-      { url: '/favicon-32.png', sizes: '32x32', type: 'image/png' },
-    ],
-    apple: [
-      { url: '/apple-touch-icon.png', sizes: '180x180' }
-    ],
-    other: [
-      { rel: 'mask-icon', url: '/favicon.svg', color: '#00FF87' }
-    ]
+    icon: FAVICON_URL,
+    shortcut: FAVICON_URL,
+    apple: FAVICON_URL,
   }
 };
 
@@ -62,7 +57,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+        <link rel="icon" href={FAVICON_URL} />
+        <link rel="apple-touch-icon" href={FAVICON_URL} />
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#020B18" />
         
