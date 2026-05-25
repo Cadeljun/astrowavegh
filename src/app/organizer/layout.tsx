@@ -1,4 +1,3 @@
-
 'use client';
 
 import React from 'react';
@@ -7,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { LayoutDashboard, Calendar, Search, MessageSquare, User, LogOut, BarChart3 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/firebase';
+import Logo from '@/components/ui/Logo';
 
 const sidebarItems = [
   { label: 'Dashboard', href: '/organizer/dashboard', icon: LayoutDashboard },
@@ -26,7 +26,7 @@ export default function OrganizerLayout({ children }: { children: React.ReactNod
       {/* Sidebar */}
       <aside className="w-64 border-r border-white/5 hidden lg:flex flex-col sticky top-0 h-screen bg-[#050505]">
         <div className="p-8 border-b border-white/5">
-          <Link href="/" className="font-display text-2xl text-gold tracking-widest uppercase">ASTROWAVE</Link>
+          <Logo height={32} linkTo="/" />
           <p className="label text-[0.6rem] mt-1 text-muted">ORGANIZER HUB</p>
         </div>
 

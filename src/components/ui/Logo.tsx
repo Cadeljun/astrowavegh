@@ -12,6 +12,11 @@ interface LogoProps {
   className?: string;
 }
 
+/**
+ * Standard AstroWave Logo component.
+ * Dynamically resolves URLs from Cloud Firestore (cms_settings/global).
+ * This ensures that changing the logo in the CMS updates the entire site instantly.
+ */
 export default function Logo({
   variant = 'default',
   height = 40,
@@ -20,7 +25,6 @@ export default function Logo({
 }: LogoProps) {
   const { settings } = useCMSSettings();
   
-  // Choice logic based on variant with reliable fallbacks from CMS definitions
   let logoSrc = '';
   
   if (variant === 'dark') {
@@ -31,6 +35,11 @@ export default function Logo({
     logoSrc = settings?.logoUrl || DEFAULT_SETTINGS.logoUrl;
   }
   
+  // Fallback to static brand URL if both setting and default fail (safety)
+  if (!logoSrc) {
+    logoSrc = 'https://res.cloudinary.com/dmd5bq3va/image/upload/v1779676928/h301f38brcdtgkdz8myk.png';
+  }
+
   const logoWidth = variant === 'icon' 
     ? height 
     : height * 4.5;

@@ -3,6 +3,7 @@
 import { usePathname } from 'next/navigation'
 import AdminGuard from '@/components/admin/AdminGuard'
 import AdminSidebar from '@/components/admin/AdminSidebar'
+import Logo from '@/components/ui/Logo'
 
 export default function AdminLayout({ 
   children 
@@ -35,14 +36,7 @@ export default function AdminLayout({
             px-4 h-14 sticky top-0 z-50
             bg-[#0A0A0F] 
             border-b border-[#1E1E2E]">
-            <span className="font-display 
-              text-xl text-[#FFD166]"
-              style={{
-                textShadow: '0 0 20px rgba(255,209,102,0.4)'
-              }}
-            >
-              ASTROWAVE
-            </span>
+            <Logo height={24} linkTo="/admin/dashboard" />
             <span className="font-body 
               text-xs tracking-widest 
               uppercase text-[#7B7B9A]">
