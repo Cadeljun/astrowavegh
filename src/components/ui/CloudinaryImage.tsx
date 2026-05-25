@@ -16,6 +16,7 @@ interface CloudinaryImageProps {
   priority?: boolean
   fallback?: string
   objectFit?: 'cover' | 'contain' | 'fill'
+  aiHint?: string
 }
 
 export default function CloudinaryImage({
@@ -28,7 +29,8 @@ export default function CloudinaryImage({
   transforms = {},
   priority = false,
   fallback = 'https://picsum.photos/seed/placeholder/800/600',
-  objectFit = 'cover'
+  objectFit = 'cover',
+  aiHint
 }: CloudinaryImageProps) {
   const [error, setError] = useState(false)
   
@@ -38,16 +40,21 @@ export default function CloudinaryImage({
 
   const imgSrc = error ? fallback : optimizedUrl
 
+  const commonProps = {
+    alt,
+    className: cn(`object-${objectFit}`, className),
+    priority,
+    onError: () => setError(true),
+    sizes: "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw",
+    "data-ai-hint": aiHint
+  }
+
   if (fill) {
     return (
       <Image
         src={imgSrc}
-        alt={alt}
         fill
-        className={cn(`object-${objectFit}`, className)}
-        priority={priority}
-        onError={() => setError(true)}
-        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+        {...commonProps}
       />
     )
   }
@@ -55,13 +62,9 @@ export default function CloudinaryImage({
   return (
     <Image
       src={imgSrc}
-      alt={alt}
       width={width || 800}
       height={height || 600}
-      className={className}
-      priority={priority}
-      onError={() => setError(true)}
-      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+      {...commonProps}
     />
   )
 }

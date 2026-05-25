@@ -8,6 +8,7 @@ import CloudinaryImage from '@/components/ui/CloudinaryImage';
 import { cardHover } from '@/lib/animations';
 import { cn } from '@/lib/utils';
 import { useCMSSettings } from '@/lib/cms/useCMS';
+import { getPlaceholderById } from '@/app/lib/placeholder-images';
 
 interface TalentCardProps {
   name: string;
@@ -15,6 +16,7 @@ interface TalentCardProps {
   bio: string;
   imageUrl: string;
   className?: string;
+  aiHint?: string;
 }
 
 export default function TalentCard({
@@ -22,10 +24,12 @@ export default function TalentCard({
   role,
   bio,
   imageUrl,
-  className
+  className,
+  aiHint
 }: TalentCardProps) {
   const { settings } = useCMSSettings();
-  const systemPlaceholder = settings?.defaultTalentPhoto || 'https://picsum.photos/seed/talent/400/400';
+  const defaultTalent = getPlaceholderById('default-talent');
+  const systemPlaceholder = settings?.defaultTalentPhoto || defaultTalent?.imageUrl || '';
 
   const roleStyles = {
     DJ: {
@@ -65,6 +69,7 @@ export default function TalentCard({
             format: 'auto'
           }}
           fallback={systemPlaceholder}
+          aiHint={aiHint || defaultTalent?.imageHint}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60 z-10" />
         

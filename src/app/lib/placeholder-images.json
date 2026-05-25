@@ -1,0 +1,58 @@
+{
+  "placeholderImages": [
+    {
+      "id": "hero-bg",
+      "description": "Cinematic Ghanaian nightlife crowd",
+      "imageUrl": "https://picsum.photos/seed/astrowave-hero/1920/1080",
+      "imageHint": "nightlife crowd"
+    },
+    {
+      "id": "mask-mirage",
+      "description": "Elegant masquerade party with purple neon",
+      "imageUrl": "https://picsum.photos/seed/astrowave-mask/800/600",
+      "imageHint": "masquerade party"
+    },
+    {
+      "id": "splash-seduction",
+      "description": "Vibrant poolside party under the sun",
+      "imageUrl": "https://picsum.photos/seed/astrowave-splash/800/600",
+      "imageHint": "pool party"
+    },
+    {
+      "id": "dj-1",
+      "description": "Professional DJ performing live",
+      "imageUrl": "https://picsum.photos/seed/astrowave-dj1/600/600",
+      "imageHint": "dj performing"
+    },
+    {
+      "id": "dj-2",
+      "description": "Electronic music artist on stage",
+      "imageUrl": "https://picsum.photos/seed/astrowave-dj2/600/600",
+      "imageHint": "electronic musician"
+    },
+    {
+      "id": "artist-1",
+      "description": "Creative portrait of an African musician",
+      "imageUrl": "https://picsum.photos/seed/astrowave-art1/600/600",
+      "imageHint": "musician portrait"
+    },
+    {
+      "id": "default-event",
+      "description": "Generic event background",
+      "imageUrl": "https://picsum.photos/seed/astrowave-event/800/600",
+      "imageHint": "event concert"
+    },
+    {
+      "id": "default-talent",
+      "description": "Generic talent portrait",
+      "imageUrl": "https://picsum.photos/seed/astrowave-talent/600/600",
+      "imageHint": "person portrait"
+    },
+    {
+      "id": "default-gallery",
+      "description": "Generic gallery photo",
+      "imageUrl": "https://picsum.photos/seed/astrowave-gallery/800/600",
+      "imageHint": "party photo"
+    }
+  ]
+}

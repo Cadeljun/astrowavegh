@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState } from 'react';
@@ -16,11 +15,10 @@ import {
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { SectionHeading } from '@/components/ui/SectionHeading';
-import { AlertTriangle, Terminal, Database, Loader2, RefreshCw, Trash2, Zap } from 'lucide-react';
+import { AlertTriangle, Database, Loader2, RefreshCw, Trash2, Zap } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
 import { CMS_PAGES } from '@/lib/cms/definitions';
+import { getPlaceholderById } from '@/app/lib/placeholder-images';
 
 export default function DevSeedPage() {
   const { toast } = useToast();
@@ -36,6 +34,11 @@ export default function DevSeedPage() {
     try {
       const batch = writeBatch(db);
       
+      const heroPlaceholder = getPlaceholderById('hero-bg');
+      const eventPlaceholder = getPlaceholderById('default-event');
+      const talentPlaceholder = getPlaceholderById('default-talent');
+      const galleryPlaceholder = getPlaceholderById('default-gallery');
+
       const settingsRef = doc(db, 'cms_settings', 'global');
       batch.set(settingsRef, {
         siteName: 'AstroWave',
@@ -45,13 +48,13 @@ export default function DevSeedPage() {
         maintenanceMode: false,
         instagram: 'https://instagram.com/astrowavegh',
         twitter: 'https://twitter.com/astrowavegh',
-        logoUrl: '',
+        logoUrl: 'https://res.cloudinary.com/dmd5bq3va/image/upload/v1779676928/h301f38brcdtgkdz8myk.png',
         heroVideoUrl: '',
-        heroPosterUrl: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=1200',
-        heroImageUrl: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=1200',
-        defaultEventPoster: 'https://images.unsplash.com/photo-1514525253361-bee8a187449b?q=80&w=800',
-        defaultTalentPhoto: 'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?q=80&w=400',
-        defaultGalleryPhoto: 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?q=80&w=800',
+        heroPosterUrl: heroPlaceholder?.imageUrl || '',
+        heroImageUrl: heroPlaceholder?.imageUrl || '',
+        defaultEventPoster: eventPlaceholder?.imageUrl || '',
+        defaultTalentPhoto: talentPlaceholder?.imageUrl || '',
+        defaultGalleryPhoto: galleryPlaceholder?.imageUrl || '',
         updatedAt: serverTimestamp()
       });
 
@@ -87,6 +90,8 @@ export default function DevSeedPage() {
     addLog('🚀 INITIATING PLATFORM SEED...');
     try {
       const talentRef = collection(db, 'talent_profiles');
+      const talentPlaceholder = getPlaceholderById('dj-1');
+      
       const testTalent = {
         uid: 'test-talent-1',
         displayName: 'Elias Koranteng',
@@ -100,6 +105,7 @@ export default function DevSeedPage() {
         eventCount: 42,
         active: true,
         available: true,
+        photoURL: talentPlaceholder?.imageUrl || '',
         createdAt: serverTimestamp()
       };
       await setDoc(doc(talentRef, testTalent.uid), testTalent);
@@ -113,6 +119,7 @@ export default function DevSeedPage() {
         venue: 'The Labadi Beach',
         status: 'open',
         talentCategory: 'DJ',
+        city: 'Accra',
         date: serverTimestamp(),
         createdAt: serverTimestamp()
       };

@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/Button';
 import TalentCard from '@/components/talent/TalentCard';
 import { staggerContainer, scaleIn } from '@/lib/animations';
 import { useCMSContent } from '@/lib/cms/useCMS';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { getPlaceholderById } from '@/app/lib/placeholder-images';
 
 export default function TalentTeaser() {
   const { content } = useCMSContent('home', 'talent', {
@@ -17,14 +17,14 @@ export default function TalentTeaser() {
     subtitle: 'The faces behind the wave.'
   });
 
-  const dj1 = PlaceHolderImages.find(img => img.id === 'dj-roster-1')?.imageUrl || '';
-  const dj2 = PlaceHolderImages.find(img => img.id === 'dj-roster-2')?.imageUrl || '';
-  const art1 = PlaceHolderImages.find(img => img.id === 'artist-roster-1')?.imageUrl || '';
+  const dj1 = getPlaceholderById('dj-1');
+  const dj2 = getPlaceholderById('dj-2');
+  const art1 = getPlaceholderById('artist-1');
 
   const talent = [
-    { name: 'DJ Horizon', role: 'DJ' as const, bio: 'Accra-based DJ delivering high-energy sets across Ghana. Known for seamless Amapiano and Afrobeats mixes.', imageUrl: dj1 },
-    { name: 'DJ Void', role: 'DJ' as const, bio: 'Pushing boundaries with futuristic house and electronic rhythms. A staple of the AstroWave night.', imageUrl: dj2 },
-    { name: 'Uzy', role: 'Artist' as const, bio: 'The creative pulse of the brand. A fresh voice redefining the sound of modern African storytelling.', imageUrl: art1 }
+    { name: 'DJ Horizon', role: 'DJ' as const, bio: 'Accra-based DJ delivering high-energy sets across Ghana. Known for seamless Amapiano and Afrobeats mixes.', imageUrl: dj1?.imageUrl || '', aiHint: dj1?.imageHint },
+    { name: 'DJ Void', role: 'DJ' as const, bio: 'Pushing boundaries with futuristic house and electronic rhythms. A staple of the AstroWave night.', imageUrl: dj2?.imageUrl || '', aiHint: dj2?.imageHint },
+    { name: 'Uzy', role: 'Artist' as const, bio: 'The creative pulse of the brand. A fresh voice redefining the sound of modern African storytelling.', imageUrl: art1?.imageUrl || '', aiHint: art1?.imageHint }
   ];
 
   return (

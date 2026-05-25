@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/Button';
 import EventCard from '@/components/events/EventCard';
 import { staggerContainer, fadeUp } from '@/lib/animations';
 import { useCMSContent } from '@/lib/cms/useCMS';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { getPlaceholderById } from '@/app/lib/placeholder-images';
 
 export default function FeaturedEvents() {
   const { content } = useCMSContent('home', 'events', {
@@ -17,8 +17,8 @@ export default function FeaturedEvents() {
     subtitle: 'Step into the wave.'
   });
 
-  const maskImage = PlaceHolderImages.find(img => img.id === 'mask-mirage')?.imageUrl || '';
-  const splashImage = PlaceHolderImages.find(img => img.id === 'splash-seduction')?.imageUrl || '';
+  const maskPlaceholder = getPlaceholderById('mask-mirage');
+  const splashPlaceholder = getPlaceholderById('splash-seduction');
 
   const events = [
     { 
@@ -27,7 +27,8 @@ export default function FeaturedEvents() {
       date: 'TBA', 
       venue: 'Accra, Ghana', 
       description: 'A mysterious high-energy nightlife experience where identity meets music and fashion.', 
-      imageUrl: maskImage 
+      imageUrl: maskPlaceholder?.imageUrl || '',
+      aiHint: maskPlaceholder?.imageHint
     },
     { 
       name: 'SPLASH & SEDUCTION', 
@@ -35,7 +36,8 @@ export default function FeaturedEvents() {
       date: 'TBA', 
       venue: 'Accra, Ghana', 
       description: 'Daytime pool vibes meet nightlife energy in one complete lifestyle experience.', 
-      imageUrl: splashImage 
+      imageUrl: splashPlaceholder?.imageUrl || '',
+      aiHint: splashPlaceholder?.imageHint
     }
   ];
 

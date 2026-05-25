@@ -10,6 +10,7 @@ import CloudinaryImage from '@/components/ui/CloudinaryImage';
 import { cardHover } from '@/lib/animations';
 import { cn } from '@/lib/utils';
 import { useCMSSettings } from '@/lib/cms/useCMS';
+import { getPlaceholderById } from '@/app/lib/placeholder-images';
 
 interface EventCardProps {
   name: string;
@@ -19,6 +20,7 @@ interface EventCardProps {
   description: string;
   imageUrl: string;
   className?: string;
+  aiHint?: string;
 }
 
 export default function EventCard({
@@ -28,10 +30,12 @@ export default function EventCard({
   venue,
   description,
   imageUrl,
-  className
+  className,
+  aiHint
 }: EventCardProps) {
   const { settings } = useCMSSettings();
-  const systemPlaceholder = settings?.defaultEventPoster || 'https://picsum.photos/seed/event/800/600';
+  const defaultEvent = getPlaceholderById('default-event');
+  const systemPlaceholder = settings?.defaultEventPoster || defaultEvent?.imageUrl || '';
 
   return (
     <motion.div
@@ -58,6 +62,7 @@ export default function EventCard({
             format: 'auto'
           }}
           fallback={systemPlaceholder}
+          aiHint={aiHint || defaultEvent?.imageHint}
         />
         <div className="absolute inset-0 bg-black/40 group-hover:bg-black/60 transition-colors duration-300 z-10" />
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent z-20" />
