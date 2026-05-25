@@ -3,18 +3,10 @@
 import React from 'react';
 import { Card } from '@/components/ui/Card';
 import { SectionHeading } from '@/components/ui/SectionHeading';
-import { Map, ArrowRight, Copy, ExternalLink, Database, Cloud } from 'lucide-react';
+import { Map, ArrowRight, Copy, ExternalLink, Database, Cloud, Zap, Info } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-
-const MEDIA_MAP = [
-  { folder: 'astrowave/events/general', firestore: 'events/{eventId}', field: 'imageUrl', desc: 'Default event posters' },
-  { folder: 'astrowave/events/mask-mirage', firestore: 'events/{id}', field: 'imageUrl', desc: 'Mask Mirage specific assets' },
-  { folder: 'astrowave/talent/djs', firestore: 'talent/{talentId}', field: 'imageUrl', desc: 'DJ roster profile photos' },
-  { folder: 'astrowave/brand/logos', firestore: 'cms_settings/global', field: 'logoUrl', desc: 'Brand identity assets' },
-  { folder: 'astrowave/videos/hero', firestore: 'cms_settings/global', field: 'heroVideoUrl', desc: 'Homepage hero video streams' },
-  { folder: 'astrowave/gallery/past-events', firestore: 'gallery/{id}', field: 'imageUrl', desc: 'Memory archive photos' },
-  { folder: 'astrowave/brand/backgrounds', firestore: 'cms_seo/{page}', field: 'ogImage', desc: 'SEO & social share cards' },
-];
+import { MEDIA_SCHEMA } from '@/lib/cloudinary';
+import { Badge } from '@/components/ui/Badge';
 
 export default function MediaMapPage() {
   const { toast } = useToast();
@@ -26,57 +18,81 @@ export default function MediaMapPage() {
 
   return (
     <div className="space-y-12">
-      <SectionHeading 
-        label="CORE ARCHITECTURE" 
-        title="MEDIA MAP" 
-        subtitle="Visualizing the link between Cloudinary assets and Firestore data."
-      />
+      <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <SectionHeading 
+          label="CORE ARCHITECTURE" 
+          title="MEDIA SYNC MAP" 
+          subtitle="Visualizing the automated link between Cloudinary assets and Firestore documents."
+          className="mb-0"
+        />
+        <div className="flex items-center gap-3 px-4 py-2 rounded-sm bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 font-mono text-[0.6rem] font-bold uppercase tracking-widest">
+           <Zap size={12} className="animate-pulse" /> Active Connection: Live
+        </div>
+      </header>
 
-      <div className="grid grid-cols-1 gap-4">
-        {MEDIA_MAP.map((item, i) => (
-          <Card key={i} className="p-6 bg-[#0A0A0F] border-white/5 flex items-center gap-8 group" glowColor="muted">
-            <div className="flex-1 space-y-4">
-              <div className="flex items-center gap-4">
-                <div className="flex flex-col gap-1">
-                  <div className="flex items-center gap-2 text-cyan-400 font-mono text-[0.65rem] font-bold uppercase tracking-widest">
-                    <Cloud size={10} /> Cloudinary Path
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <code className="text-white text-sm bg-white/5 px-2 py-1 rounded">{item.folder}</code>
-                    <button onClick={() => copy(item.folder)} className="opacity-0 group-hover:opacity-100 p-1.5 hover:bg-white/10 rounded transition-all"><Copy size={12} /></button>
-                  </div>
+      <div className="grid grid-cols-1 gap-6">
+        {Object.entries(MEDIA_SCHEMA).map(([key, item]) => (
+          <Card key={key} className="p-8 bg-[#0A0A0F] border-white/5 flex flex-col lg:flex-row lg:items-center gap-10 group relative" glowColor="muted">
+            <div className="lg:w-48 space-y-2">
+               <Badge variant="active" className="bg-white/5 border-white/10 text-muted">{key.toUpperCase()}</Badge>
+               <h4 className="text-lg font-bold text-white uppercase tracking-tight">{item.label}</h4>
+               <p className="text-[0.65rem] text-muted italic leading-relaxed">{item.description}</p>
+            </div>
+
+            <div className="flex-1 flex flex-col md:flex-row items-start md:items-center gap-6 lg:gap-12">
+              {/* Cloudinary Section */}
+              <div className="flex-1 space-y-3 min-w-0">
+                <div className="flex items-center gap-2 text-cyan-400 font-mono text-[0.6rem] font-bold uppercase tracking-widest opacity-60">
+                  <Cloud size={10} /> Cloudinary Storage
                 </div>
-
-                <ArrowRight size={20} className="text-muted/20" />
-
-                <div className="flex flex-col gap-1">
-                  <div className="flex items-center gap-2 text-gold font-mono text-[0.65rem] font-bold uppercase tracking-widest">
-                    <Database size={10} /> Firestore Field
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <code className="text-white text-sm bg-gold/5 px-2 py-1 rounded border border-gold/10">{item.firestore} → {item.field}</code>
-                    <button onClick={() => copy(`${item.firestore}.${item.field}`)} className="opacity-0 group-hover:opacity-100 p-1.5 hover:bg-white/10 rounded transition-all"><Copy size={12} /></button>
-                  </div>
+                <div className="flex items-center gap-2">
+                  <code className="text-white text-xs bg-white/5 px-3 py-2 rounded border border-white/10 truncate flex-1">
+                    {item.path}
+                  </code>
+                  <button onClick={() => copy(item.path)} className="p-2 hover:bg-white/10 rounded transition-all"><Copy size={12} /></button>
                 </div>
               </div>
-              <p className="text-[0.65rem] text-muted italic">Purpose: {item.desc}</p>
+
+              <div className="hidden md:block">
+                <ArrowRight size={24} className="text-muted/10" />
+              </div>
+
+              {/* Firestore Section */}
+              <div className="flex-1 space-y-3 min-w-0">
+                <div className="flex items-center gap-2 text-gold font-mono text-[0.6rem] font-bold uppercase tracking-widest opacity-60">
+                  <Database size={10} /> Firestore Registry
+                </div>
+                <div className="flex items-center gap-2">
+                  <code className="text-white text-xs bg-gold/5 px-3 py-2 rounded border border-gold/10 truncate flex-1">
+                    {item.firestore}
+                  </code>
+                  <button onClick={() => copy(item.firestore)} className="p-2 hover:bg-gold/10 rounded transition-all"><Copy size={12} /></button>
+                </div>
+              </div>
             </div>
             
-            <div className="flex gap-2">
-               <button className="p-3 bg-white/5 hover:bg-cyan-500/10 hover:text-cyan-400 rounded-lg transition-all" title="View in Cloudinary">
-                 <ExternalLink size={16} />
-               </button>
+            <div className="space-y-3 lg:w-48 pt-4 lg:pt-0 lg:border-l border-white/5 lg:pl-10">
+               <p className="text-[0.55rem] label m-0">Affected Fields</p>
+               <div className="flex flex-wrap gap-1.5">
+                  {item.fields.map(f => (
+                    <span key={f} className="text-[0.55rem] font-mono text-cyan-400/60 bg-cyan-400/5 px-1.5 py-0.5 rounded uppercase">
+                      {f}
+                    </span>
+                  ))}
+               </div>
             </div>
           </Card>
         ))}
       </div>
 
-      <div className="p-8 rounded-xl bg-blue-500/5 border border-blue-500/10 text-blue-400 flex gap-4">
-        <Map size={24} className="shrink-0" />
+      <div className="p-8 rounded-xl bg-blue-500/5 border border-blue-500/10 text-blue-400 flex gap-6">
+        <div className="w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center shrink-0">
+          <Info size={24} />
+        </div>
         <div className="space-y-2">
-          <p className="font-bold text-sm uppercase tracking-widest">Architectural Note</p>
-          <p className="text-xs leading-relaxed">
-            The AstroWave site is built to be "Data-First." Never hardcode media URLs. By storing Cloudinary links in Firestore, you can swap any visual element instantly from the Admin Panel or Dev Command Center without a redeploy.
+          <p className="font-bold text-sm uppercase tracking-widest">Architectural Principle: Data-First Media</p>
+          <p className="text-xs leading-relaxed opacity-80">
+            AstroWave utilizes a strictly decoupled media layer. Visual assets are never hardcoded. By mapping Cloudinary folders to specific Firestore documents, the entire visual identity of the platform can be swapped instantly from the Dev Command Center or Admin Panel without requiring a code push or rebuild.
           </p>
         </div>
       </div>
