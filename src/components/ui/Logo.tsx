@@ -12,12 +12,13 @@ interface LogoProps {
   className?: string;
 }
 
-const AUTHORITATIVE_LOGO = 'https://res.cloudinary.com/dmd5bq3va/image/upload/v1779676928/h301f38brcdtgkdz8myk.png';
-const AUTHORITATIVE_ICON = 'https://res.cloudinary.com/dmd5bq3va/image/upload/v1779674858/ivzvmlaglz9l1hgevktn.png';
+// Global authoritative defaults to prevent display failure
+const PRIMARY_LOGO = 'https://res.cloudinary.com/dmd5bq3va/image/upload/v1779676928/h301f38brcdtgkdz8myk.png';
+const PRIMARY_ICON = 'https://res.cloudinary.com/dmd5bq3va/image/upload/v1779674858/ivzvmlaglz9l1hgevktn.png';
 
 /**
  * Robust Logo component for AstroWave.
- * Handles dynamic Firestore values with authoritative hardcoded fallbacks to prevent display failure.
+ * Handles dynamic Firestore values with authoritative hardcoded fallbacks.
  */
 export default function Logo({
   variant = 'default',
@@ -29,33 +30,34 @@ export default function Logo({
   
   let logoSrc = '';
   
-  // Resolve source based on variant with layered fallbacks
+  // Resolve source based on variant with tiered fallbacks
   if (variant === 'icon') {
-    logoSrc = settings?.logoIconUrl || DEFAULT_SETTINGS.logoIconUrl || AUTHORITATIVE_ICON;
+    logoSrc = settings?.logoIconUrl || DEFAULT_SETTINGS.logoIconUrl || PRIMARY_ICON;
   } else if (variant === 'dark') {
-    logoSrc = settings?.logoDarkUrl || DEFAULT_SETTINGS.logoDarkUrl || AUTHORITATIVE_LOGO;
+    logoSrc = settings?.logoDarkUrl || DEFAULT_SETTINGS.logoDarkUrl || PRIMARY_LOGO;
   } else {
-    logoSrc = settings?.logoUrl || DEFAULT_SETTINGS.logoUrl || AUTHORITATIVE_LOGO;
+    logoSrc = settings?.logoUrl || DEFAULT_SETTINGS.logoUrl || PRIMARY_LOGO;
   }
   
-  // Final safety check
+  // Secondary safety check for empty strings or invalid loads
   if (!logoSrc || logoSrc.trim() === '') {
-    logoSrc = variant === 'icon' ? AUTHORITATIVE_ICON : AUTHORITATIVE_LOGO;
+    logoSrc = variant === 'icon' ? PRIMARY_ICON : PRIMARY_LOGO;
   }
 
   const content = (
     <div 
-      style={{ height: `${height}px`, width: 'auto' }} 
-      className={cn("relative flex items-center select-none", className)}
+      style={{ height: `${height}px`, minWidth: variant === 'icon' ? `${height}px` : '120px' }} 
+      className={cn("relative flex items-center select-none flex-shrink-0", className)}
     >
       <img
         src={logoSrc}
         alt="AstroWave"
         style={{ height: '100%', width: 'auto' }}
-        className="object-contain block max-w-full"
+        className="object-contain block max-w-full h-full"
+        loading="eager"
         onError={(e) => {
           const target = e.target as HTMLImageElement;
-          const fallback = variant === 'icon' ? AUTHORITATIVE_ICON : AUTHORITATIVE_LOGO;
+          const fallback = variant === 'icon' ? PRIMARY_ICON : PRIMARY_LOGO;
           if (target.src !== fallback) {
             target.src = fallback;
           }
@@ -67,7 +69,7 @@ export default function Logo({
   if (!linkTo) return content;
 
   return (
-    <Link href={linkTo} className="inline-flex items-center">
+    <Link href={linkTo} className="inline-flex items-center flex-shrink-0">
       {content}
     </Link>
   );
