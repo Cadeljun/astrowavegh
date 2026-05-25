@@ -8,6 +8,7 @@ import { RoleProvider } from '@/context/RoleContext';
 import ClientLayout from '@/components/layout/ClientLayout';
 import SchemaOrg from '@/components/seo/SchemaOrg';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
+import DynamicFavicon from '@/components/ui/DynamicFavicon';
 
 const outfit = Outfit({
   subsets: ['latin'],
@@ -85,7 +86,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <FirebaseClientProvider>
           <AuthProvider>
             <RoleProvider>
-              <ClientLayout>{children}</ClientLayout>
+              <ClientLayout>
+                <DynamicFavicon />
+                {children}
+              </ClientLayout>
               <Toaster />
             </RoleProvider>
           </AuthProvider>

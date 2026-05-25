@@ -250,7 +250,20 @@ export interface GlobalSettings {
   logoDarkUrl: string
   logoIconUrl: string
   faviconUrl: string
+  faviconSvgCode: string
   ogImageUrl: string
+  ogImageHome: string
+  ogImageAbout: string
+  ogImageEvents: string
+  ogImageManagement: string
+  ogImageContact: string
+  ogImageRecords: string
+  ogImageCares: string
+  ogImagePlatform: string
+  brandGreen: string
+  brandBlue: string
+  brandSky: string
+  brandBg: string
   email: string
   location: string
   instagram: string
@@ -265,6 +278,7 @@ export interface GlobalSettings {
   defaultEventPoster: string
   defaultTalentPhoto: string
   defaultGalleryPhoto: string
+  updatedAt?: any
 }
 
 export const DEFAULT_SETTINGS: GlobalSettings = {
@@ -274,7 +288,20 @@ export const DEFAULT_SETTINGS: GlobalSettings = {
   logoDarkUrl: '',
   logoIconUrl: 'https://res.cloudinary.com/dmd5bq3va/image/upload/v1779674858/ivzvmlaglz9l1hgevktn.png',
   faviconUrl: 'https://res.cloudinary.com/dmd5bq3va/image/upload/v1779674858/ivzvmlaglz9l1hgevktn.png',
+  faviconSvgCode: '',
   ogImageUrl: '',
+  ogImageHome: '',
+  ogImageAbout: '',
+  ogImageEvents: '',
+  ogImageManagement: '',
+  ogImageContact: '',
+  ogImageRecords: '',
+  ogImageCares: '',
+  ogImagePlatform: '',
+  brandGreen: '#00FF87',
+  brandBlue: '#0EA5E9',
+  brandSky: '#38BDF8',
+  brandBg: '#020B18',
   email: 'info@astrowave.live',
   location: 'Accra, Ghana',
   instagram: 'https://instagram.com/astrowavegh',
