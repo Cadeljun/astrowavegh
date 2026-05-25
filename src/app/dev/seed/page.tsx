@@ -17,7 +17,7 @@ import { Card } from '@/components/ui/Card';
 import { SectionHeading } from '@/components/ui/SectionHeading';
 import { AlertTriangle, Database, Loader2, RefreshCw, Trash2, Zap } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { CMS_PAGES } from '@/lib/cms/definitions';
+import { CMS_PAGES, DEFAULT_SETTINGS } from '@/lib/cms/definitions';
 import { getPlaceholderById } from '@/app/lib/placeholder-images';
 
 export default function DevSeedPage() {
@@ -41,20 +41,7 @@ export default function DevSeedPage() {
 
       const settingsRef = doc(db, 'cms_settings', 'global');
       batch.set(settingsRef, {
-        siteName: 'AstroWave',
-        tagline: 'Vibes Beyond the Horizon.',
-        email: 'info@astrowave.live',
-        location: 'Accra, Ghana',
-        maintenanceMode: false,
-        instagram: 'https://instagram.com/astrowavegh',
-        twitter: 'https://twitter.com/astrowavegh',
-        logoUrl: 'https://res.cloudinary.com/dmd5bq3va/image/upload/v1779676928/h301f38brcdtgkdz8myk.png',
-        heroVideoUrl: '',
-        heroPosterUrl: heroPlaceholder?.imageUrl || '',
-        heroImageUrl: heroPlaceholder?.imageUrl || '',
-        defaultEventPoster: eventPlaceholder?.imageUrl || '',
-        defaultTalentPhoto: talentPlaceholder?.imageUrl || '',
-        defaultGalleryPhoto: galleryPlaceholder?.imageUrl || '',
+        ...DEFAULT_SETTINGS,
         updatedAt: serverTimestamp()
       });
 

@@ -1,13 +1,14 @@
 import { db } from '@/firebase'
-import { doc, updateDoc, getDoc, serverTimestamp } from 'firebase/firestore'
+import { doc, setDoc, updateDoc, getDoc, serverTimestamp } from 'firebase/firestore'
 
 export async function saveBrandAsset(field: string, url: string): Promise<void> {
   if (!db) return
   const ref = doc(db, 'cms_settings', 'global')
-  await updateDoc(ref, {
+  // Use setDoc with merge: true to handle case where document doesn't exist yet
+  await setDoc(ref, {
     [field]: url,
     updatedAt: serverTimestamp()
-  })
+  }, { merge: true })
 }
 
 export async function getBrandAssets(): Promise<Record<string, any>> {
@@ -20,8 +21,8 @@ export async function getBrandAssets(): Promise<Record<string, any>> {
 export async function saveFaviconSVG(svgCode: string): Promise<void> {
   if (!db) return
   const ref = doc(db, 'cms_settings', 'global')
-  await updateDoc(ref, {
+  await setDoc(ref, {
     faviconSvgCode: svgCode,
     updatedAt: serverTimestamp()
-  })
+  }, { merge: true })
 }
