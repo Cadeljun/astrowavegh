@@ -24,32 +24,34 @@ export default function CTABanner({ overrideHeading, overrideSubtext }: CTABanne
   const subtext = overrideSubtext || content.subtext;
 
   return (
-    <section className="relative w-full py-[var(--space-2xl)] px-6 lg:px-12 overflow-hidden bg-[var(--color-light)] border-y border-[var(--color-border)]">
+    <section className="relative w-full py-20 lg:py-[var(--space-2xl)] px-6 lg:px-12 overflow-hidden bg-[var(--color-light)] border-y border-[var(--color-border)]">
       <div className="absolute inset-0 z-0 pointer-events-none" style={{ 
         background: 'linear-gradient(135deg, rgba(14, 165, 233, 0.1) 0%, rgba(2, 11, 24, 0.95) 40%, rgba(0, 255, 135, 0.07) 100%)' 
       }} />
-      <div className="absolute top-1/2 left-0 -translate-y-1/2 w-[300px] h-[300px] bg-[var(--color-blue)] opacity-[0.15] blur-[120px] rounded-full z-0" />
-      <div className="absolute top-1/2 right-0 -translate-y-1/2 w-[300px] h-[300px] bg-[var(--color-green)] opacity-[0.15] blur-[120px] rounded-full z-0" />
+      
+      {/* Dynamic Background Glows */}
+      <div className="absolute top-1/2 left-0 -translate-y-1/2 w-[200px] lg:w-[400px] h-[200px] lg:h-[400px] bg-[var(--color-blue)] opacity-[0.1] blur-[80px] lg:blur-[120px] rounded-full z-0" />
+      <div className="absolute top-1/2 right-0 -translate-y-1/2 w-[200px] lg:w-[400px] h-[200px] lg:h-[400px] bg-[var(--color-green)] opacity-[0.1] blur-[80px] lg:blur-[120px] rounded-full z-0" />
 
       <div className="absolute inset-0 flex items-center justify-center z-0 pointer-events-none select-none">
-        <span className="font-display text-[12vw] lg:text-[18rem] text-white opacity-[0.02] leading-none tracking-tighter">ASTROWAVE</span>
+        <span className="font-display text-[15vw] lg:text-[18rem] text-white opacity-[0.02] leading-none tracking-tighter">ASTROWAVE</span>
       </div>
 
-      <div className="relative z-10 max-w-4xl mx-auto text-center space-y-8">
+      <div className="relative z-10 max-w-4xl mx-auto text-center space-y-6 lg:space-y-8">
         <motion.h2 className="display-xl text-green text-glow-green" variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }}>
           {heading}
         </motion.h2>
-        <motion.p className="body-lg text-[var(--color-muted)] max-w-[560px] mx-auto" variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }} transition={{ delay: 0.2 }}>
+        <motion.p className="body-lg text-[var(--color-muted)] max-w-[560px] mx-auto text-sm sm:text-base lg:text-lg" variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }} transition={{ delay: 0.2 }}>
           {subtext}
         </motion.p>
-        <motion.div className="flex flex-col sm:flex-row items-center justify-center gap-6 pt-4" variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }} transition={{ delay: 0.4 }}>
+        <motion.div className="flex flex-col sm:flex-row items-center justify-center gap-4 lg:gap-6 pt-4" variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }} transition={{ delay: 0.4 }}>
           <Link href="/contact" className="w-full sm:w-auto">
-            <Button variant="primary" size="lg" className="w-full">
+            <Button variant="primary" size="lg" className="w-full min-w-[220px]">
               {content.cta1}
             </Button>
           </Link>
           <Link href="/management" className="w-full sm:w-auto">
-            <Button variant="secondary" size="lg" className="w-full">
+            <Button variant="secondary" size="lg" className="w-full min-w-[220px]">
               {content.cta2}
             </Button>
           </Link>

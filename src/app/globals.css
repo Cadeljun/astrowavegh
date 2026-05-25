@@ -102,10 +102,10 @@
   border-radius: var(--radius-full);
 }
 
-/* Typography Scale */
+/* Typography Scale — Responsive Fluid Scaling */
 .display-2xl {
   font-family: var(--font-display);
-  font-size: clamp(4rem, 12vw, 10rem);
+  font-size: clamp(3rem, 10vw, 10rem);
   line-height: 0.95;
   letter-spacing: 0.02em;
   text-transform: uppercase;
@@ -113,7 +113,7 @@
 
 .display-xl {
   font-family: var(--font-display);
-  font-size: clamp(3rem, 8vw, 7rem);
+  font-size: clamp(2.5rem, 8vw, 7rem);
   line-height: 1;
   letter-spacing: 0.02em;
   text-transform: uppercase;
@@ -128,16 +128,16 @@
 
 .display-md {
   font-family: var(--font-display);
-  font-size: clamp(1.5rem, 3vw, 2.5rem);
+  font-size: clamp(1.5rem, 4vw, 2.5rem);
   line-height: 1.1;
   text-transform: uppercase;
 }
 
 .body-lg {
   font-family: var(--font-body);
-  font-size: clamp(1rem, 1.5vw, 1.2rem);
+  font-size: clamp(1rem, 1.2vw, 1.2rem);
   font-weight: 300;
-  line-height: 1.8;
+  line-height: 1.6;
 }
 
 .label {
@@ -202,4 +202,10 @@
   letter-spacing: 0.1em;
   color: var(--color-muted);
   margin-bottom: 8px;
+}
+
+/* Responsive Overrides */
+@media (max-width: 768px) {
+  .display-2xl { line-height: 1; }
+  .body-lg { line-height: 1.5; }
 }

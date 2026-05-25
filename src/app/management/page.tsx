@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Briefcase, CalendarCheck, Megaphone, TrendingUp, Smartphone, Music, Camera, DollarSign, Loader2, Send } from 'lucide-react';
+import { Briefcase, CalendarCheck, Megaphone, TrendingUp, Smartphone, Music, Camera, DollarSign, Loader2 } from 'lucide-react';
 import { collection, query, where, addDoc, serverTimestamp } from 'firebase/firestore';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
@@ -86,26 +86,26 @@ export default function ManagementPage() {
 
   return (
     <div className="flex flex-col w-full">
-      <section className="relative h-[65vh] w-full flex items-center justify-center overflow-hidden bg-black">
+      <section className="relative h-[60vh] lg:h-[65vh] w-full flex items-center justify-center overflow-hidden bg-black px-6">
         <div className="absolute inset-0 z-0 opacity-40" style={{ background: 'radial-gradient(ellipse 70% 50% at 50% 50%, rgba(168, 85, 247, 0.12), transparent 70%)' }} />
-        <div className="relative z-10 text-center px-6 max-w-4xl">
+        <div className="relative z-10 text-center max-w-4xl">
           <motion.div variants={fadeIn} initial="hidden" animate="show"><SectionLabel className="justify-center">{hero.label}</SectionLabel></motion.div>
-          <motion.h1 variants={heroTextReveal} initial="hidden" animate="show" className="display-xl text-glow-purple mb-6 whitespace-pre-line">{hero.heading}</motion.h1>
-          <motion.p variants={fadeUp} initial="hidden" animate="show" transition={{ delay: 0.9 }} className="body-lg text-muted max-w-xl mx-auto mb-10">{hero.subtext}</motion.p>
-          <motion.div variants={fadeUp} initial="hidden" animate="show" transition={{ delay: 1.1 }}><Button size="lg" onClick={() => document.getElementById('join-roster')?.scrollIntoView({ behavior: 'smooth' })}>{hero.cta}</Button></motion.div>
+          <motion.h1 variants={heroTextReveal} initial="hidden" animate="show" className="display-xl text-glow-purple mb-6 whitespace-pre-line leading-[0.9]">{hero.heading}</motion.h1>
+          <motion.p variants={fadeUp} initial="hidden" animate="show" transition={{ delay: 0.9 }} className="body-lg text-muted max-w-xl mx-auto mb-10 text-sm sm:text-base lg:text-lg">{hero.subtext}</motion.p>
+          <motion.div variants={fadeUp} initial="hidden" animate="show" transition={{ delay: 1.1 }}><Button size="lg" className="w-full sm:w-auto" onClick={() => document.getElementById('join-roster')?.scrollIntoView({ behavior: 'smooth' })}>{hero.cta}</Button></motion.div>
         </div>
       </section>
 
-      <section className="bg-surface py-32 px-6 lg:px-12 relative" style={{ clipPath: 'polygon(0 40px, 100% 0, 100% 100%, 0 100%)' }}>
+      <section className="bg-surface py-20 lg:py-32 px-6 lg:px-12 relative" style={{ clipPath: 'polygon(0 30px, 100% 0, 100% 100%, 0 100%)' }}>
         <div className="max-w-screen-2xl mx-auto">
-          <SectionHeading label={servicesContent.label} title={servicesContent.heading} subtitle={servicesContent.subtitle} align="center" className="mb-20" />
-          <motion.div variants={staggerContainer} initial="hidden" whileInView="show" viewport={{ once: true }} className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          <SectionHeading label={servicesContent.label} title={servicesContent.heading} subtitle={servicesContent.subtitle} align="center" className="mb-12 lg:mb-20" />
+          <motion.div variants={staggerContainer} initial="hidden" whileInView="show" viewport={{ once: true }} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {services.map((s, i) => (
               <motion.div key={i} variants={scaleIn}>
                 <Card className="p-8 h-full group" glowColor={s.color}>
-                  <s.icon size={32} className={cn("mb-6 transition-transform group-hover:scale-110", s.color === 'gold' ? 'text-gold' : s.color === 'purple' ? 'text-purple' : 'text-cyan')} />
+                  <s.icon size={28} className={cn("mb-6 transition-transform group-hover:scale-110", s.color === 'gold' ? 'text-gold' : s.color === 'purple' ? 'text-purple' : 'text-cyan')} />
                   <h3 className="font-display text-[1.4rem] text-white uppercase tracking-wider mb-2">{s.title}</h3>
-                  <p className="body-md text-muted text-sm line-clamp-2">{s.desc}</p>
+                  <p className="body-md text-muted text-sm leading-relaxed">{s.desc}</p>
                 </Card>
               </motion.div>
             ))}
@@ -113,10 +113,10 @@ export default function ManagementPage() {
         </div>
       </section>
 
-      <section className="py-32 px-6 lg:px-12 bg-black">
+      <section className="py-20 lg:py-32 px-6 lg:px-12 bg-black">
         <div className="max-w-screen-2xl mx-auto">
-          <SectionHeading label="THE ROSTER" title="OUR TALENT" subtitle="The faces of AstroWave." align="center" className="mb-20" />
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 min-h-[400px]">
+          <SectionHeading label="THE ROSTER" title="OUR TALENT" subtitle="The faces of AstroWave." align="center" className="mb-12 lg:mb-20" />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 min-h-[300px]">
             {talentLoading ? [1, 2, 3].map(i => <div key={i} className="aspect-square bg-white/5 animate-pulse rounded-md border border-white/5" />) : talent && talent.length > 0 ? (
               <motion.div variants={staggerContainer} initial="hidden" whileInView="show" viewport={{ once: true }} className="contents">
                 {talent.map((item: any) => <motion.div key={item.id} variants={scaleIn}><TalentCard name={item.name} role={item.role as any} bio={item.bio} imageUrl={item.imageUrl || 'https://picsum.photos/seed/talent/400/400'} /></motion.div>)}
@@ -126,26 +126,26 @@ export default function ManagementPage() {
         </div>
       </section>
 
-      <section id="join-roster" className="py-32 px-6 lg:px-12 bg-black">
+      <section id="join-roster" className="py-20 lg:py-32 px-6 lg:px-12 bg-black">
         <div className="max-w-3xl mx-auto">
-          <motion.div variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }} className="text-center mb-16">
+          <motion.div variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }} className="text-center mb-12 lg:mb-16">
             <SectionLabel className="justify-center">{joinContent.label}</SectionLabel>
             <h2 className="display-md text-glow-purple mb-4">{joinContent.heading}</h2>
-            <p className="body-md text-muted">{joinContent.subtext}</p>
+            <p className="body-md text-muted text-sm sm:text-base">{joinContent.subtext}</p>
           </motion.div>
           <motion.div variants={scaleIn} initial="hidden" whileInView="show" viewport={{ once: true }}>
-            <Card className="p-8 md:p-12">
+            <Card className="p-6 md:p-12">
               <form onSubmit={handleFormSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <input required className="w-full bg-white/5 border border-border rounded-sm p-4 font-body text-white focus:outline-none focus:border-gold" placeholder="Full Name" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
-                  <input required className="w-full bg-white/5 border border-border rounded-sm p-4 font-body text-white focus:outline-none focus:border-gold" placeholder="Stage Name" value={formData.stageName} onChange={e => setFormData({...formData, stageName: e.target.value})} />
+                  <input required className="w-full bg-white/5 border border-border rounded-sm p-4 font-body text-white focus:outline-none focus:border-gold text-sm" placeholder="Full Name" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
+                  <input required className="w-full bg-white/5 border border-border rounded-sm p-4 font-body text-white focus:outline-none focus:border-gold text-sm" placeholder="Stage Name" value={formData.stageName} onChange={e => setFormData({...formData, stageName: e.target.value})} />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <select className="w-full bg-[#111118] border border-border rounded-sm p-4 font-body text-white focus:outline-none focus:border-gold" value={formData.role} onChange={e => setFormData({...formData, role: e.target.value})}><option value="DJ">DJ</option><option value="Artist">Artist</option><option value="Influencer">Influencer</option></select>
-                  <input required type="email" className="w-full bg-white/5 border border-border rounded-sm p-4 font-body text-white focus:outline-none focus:border-gold" placeholder="Email Address" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} />
+                  <select className="w-full bg-[#111118] border border-border rounded-sm p-4 font-body text-white focus:outline-none focus:border-gold text-sm" value={formData.role} onChange={e => setFormData({...formData, role: e.target.value})}><option value="DJ">DJ</option><option value="Artist">Artist</option><option value="Influencer">Influencer</option></select>
+                  <input required type="email" className="w-full bg-white/5 border border-border rounded-sm p-4 font-body text-white focus:outline-none focus:border-gold text-sm" placeholder="Email Address" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} />
                 </div>
-                <textarea required rows={4} className="w-full bg-white/5 border border-border rounded-sm p-4 font-body text-white focus:outline-none focus:border-gold resize-none" placeholder="Describe your sound..." value={formData.bio} onChange={e => setFormData({...formData, bio: e.target.value})} />
-                <Button disabled={isSubmitting} type="submit" size="lg" className="w-full">{isSubmitting ? <Loader2 className="animate-spin" /> : 'SUBMIT APPLICATION'}</Button>
+                <textarea required rows={4} className="w-full bg-white/5 border border-border rounded-sm p-4 font-body text-white focus:outline-none focus:border-gold resize-none text-sm" placeholder="Describe your sound..." value={formData.bio} onChange={e => setFormData({...formData, bio: e.target.value})} />
+                <Button disabled={isSubmitting} type="submit" size="lg" className="w-full h-14">{isSubmitting ? <Loader2 className="animate-spin" /> : 'SUBMIT APPLICATION'}</Button>
               </form>
             </Card>
           </motion.div>
