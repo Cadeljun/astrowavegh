@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useCMSSettings } from '@/lib/cms/useCMS';
 import { DEFAULT_SETTINGS } from '@/lib/cms/definitions';
 
@@ -11,10 +12,12 @@ interface LogoProps {
   className?: string;
 }
 
+const AUTHORITATIVE_FALLBACK = 'https://res.cloudinary.com/dmd5bq3va/image/upload/v1779676928/h301f38brcdtgkdz8myk.png';
+
 /**
  * Standard AstroWave Logo component.
  * Dynamically resolves URLs from Cloud Firestore (cms_settings/global).
- * Uses aspect-ratio preservation to prevent squishing when logos vary.
+ * Ensures robust fallback to hardcoded brand URL to prevent display failure.
  */
 export default function Logo({
   variant = 'default',
@@ -26,6 +29,7 @@ export default function Logo({
   
   let logoSrc = '';
   
+  // Resolve source with multiple levels of fallback
   if (variant === 'dark') {
     logoSrc = settings?.logoDarkUrl || DEFAULT_SETTINGS.logoDarkUrl;
   } else if (variant === 'icon') {
@@ -34,9 +38,9 @@ export default function Logo({
     logoSrc = settings?.logoUrl || DEFAULT_SETTINGS.logoUrl;
   }
   
-  // Fallback to static brand URL if both setting and default fail (safety)
-  if (!logoSrc) {
-    logoSrc = 'https://res.cloudinary.com/dmd5bq3va/image/upload/v1779676928/h301f38brcdtgkdz8myk.png';
+  // Final safety check to ensure logoSrc is never empty
+  if (!logoSrc || logoSrc.trim() === '') {
+    logoSrc = AUTHORITATIVE_FALLBACK;
   }
 
   return (
@@ -45,14 +49,21 @@ export default function Logo({
       className={`inline-flex items-center select-none ${!linkTo ? 'pointer-events-none' : ''}`}
     >
       <div 
-        style={{ height: `${height}px` }} 
+        style={{ height: `${height}px`, width: 'auto' }} 
         className={`relative flex items-center ${className}`}
       >
         <img
           src={logoSrc}
           alt="AstroWave Logo"
           style={{ height: '100%', width: 'auto' }}
-          className="object-contain"
+          className="object-contain block"
+          onError={(e) => {
+            // If the resolved URL fails to load, force the authoritative fallback
+            const target = e.target as HTMLImageElement;
+            if (target.src !== AUTHORITATIVE_FALLBACK) {
+              target.src = AUTHORITATIVE_FALLBACK;
+            }
+          }}
         />
       </div>
     </Link>
