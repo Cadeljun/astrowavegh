@@ -1,57 +1,69 @@
 import * as admin from 'firebase-admin';
 
+let firebaseApp: admin.app.App | null = null;
+
 /**
- * Initializes the Firebase Admin SDK lazily to avoid build-time errors
- * when environment variables are not present during page data collection.
+ * Initializes the Firebase Admin SDK lazily to avoid build-time errors.
+ * Returns null if the service account is not configured correctly.
  */
-function getAdminApp() {
+function getFirebaseApp() {
+  if (firebaseApp) return firebaseApp;
+
+  // Check if an app is already initialized (handles dev environment hot-reloads)
   if (admin.apps.length > 0) {
-    return admin.apps[0];
+    firebaseApp = admin.apps[0];
+    return firebaseApp;
   }
 
-  const serviceAccountVar = process.env.FIREBASE_SERVICE_ACCOUNT;
-  
-  if (!serviceAccountVar) {
+  const saEnv = process.env.FIREBASE_SERVICE_ACCOUNT;
+  if (!saEnv) {
+    console.warn('FIREBASE_SERVICE_ACCOUNT environment variable is missing.');
     return null;
   }
 
   try {
-    const serviceAccount = JSON.parse(serviceAccountVar);
+    const serviceAccount = JSON.parse(saEnv);
 
-    // Explicitly validate project_id to prevent "Service account object must contain a string 'project_id' property" error
     if (!serviceAccount || typeof serviceAccount.project_id !== 'string') {
+      console.error('Service account JSON must include a string "project_id" property.');
       return null;
     }
 
-    return admin.initializeApp({
+    firebaseApp = admin.initializeApp({
       credential: admin.credential.cert(serviceAccount),
     });
-  } catch (error) {
-    console.error('Firebase Admin lazy initialization failed:', error);
+
+    return firebaseApp;
+  } catch (err) {
+    console.error('Firebase Admin initialization error:', err);
     return null;
   }
 }
 
 export async function POST(req: Request) {
-  const app = getAdminApp();
+  const app = getFirebaseApp();
 
   if (!app) {
     return new Response(
-      JSON.stringify({ error: 'Server configuration error: Firebase Admin failed to initialize.' }),
+      JSON.stringify({ error: 'Internal Server Error: Firebase Admin not configured correctly.' }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }
     );
   }
 
   try {
     const { name, email, role, active } = await req.json();
+    const auth = admin.auth(app);
+    const db = admin.firestore(app);
 
-    const userRecord = await admin.auth(app).createUser({
+    // Create user in Firebase Authentication
+    const userRecord = await auth.createUser({
       email,
       emailVerified: true,
       displayName: name,
     });
 
-    await admin.firestore(app).collection('user_roles').doc(userRecord.uid).set({
+    // Store user role and status in Firestore
+    await db.collection('user_roles').doc(userRecord.uid).set({
       uid: userRecord.uid,
       email,
       name,
