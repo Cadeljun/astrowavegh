@@ -24,7 +24,7 @@ const bebasNeue = Bebas_Neue({
   display: 'swap',
 });
 
-// Fallback constant
+// Primary brand icon fallback
 const FAVICON_URL = 'https://res.cloudinary.com/dmd5bq3va/image/upload/v1779674858/ivzvmlaglz9l1hgevktn.png';
 
 export const viewport: Viewport = {

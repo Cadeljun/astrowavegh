@@ -15,7 +15,7 @@ interface LogoProps {
 /**
  * Standard AstroWave Logo component.
  * Dynamically resolves URLs from Cloud Firestore (cms_settings/global).
- * This ensures that changing the logo in the CMS updates the entire site instantly.
+ * Uses aspect-ratio preservation to prevent squishing when logos vary.
  */
 export default function Logo({
   variant = 'default',
@@ -40,26 +40,23 @@ export default function Logo({
     logoSrc = 'https://res.cloudinary.com/dmd5bq3va/image/upload/v1779676928/h301f38brcdtgkdz8myk.png';
   }
 
-  const logoWidth = variant === 'icon' 
-    ? height 
-    : height * 4.5;
-
-  const content = (
-    <Image
-      src={logoSrc}
-      alt="AstroWave Logo"
-      width={logoWidth}
-      height={height}
-      className={`object-contain ${className}`}
-      priority
-    />
-  );
-
-  if (!linkTo) return content;
-
+  // We use style with height and width auto to preserve aspect ratio regardless of logo dimensions
   return (
-    <Link href={linkTo} className="inline-flex items-center">
-      {content}
+    <Link 
+      href={linkTo || '/'} 
+      className={`inline-flex items-center select-none ${!linkTo ? 'pointer-events-none' : ''}`}
+    >
+      <div 
+        style={{ height: `${height}px` }} 
+        className={`relative flex items-center ${className}`}
+      >
+        <img
+          src={logoSrc}
+          alt="AstroWave Logo"
+          style={{ height: '100%', width: 'auto' }}
+          className="object-contain"
+        />
+      </div>
     </Link>
   );
 }
