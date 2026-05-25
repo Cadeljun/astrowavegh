@@ -1,4 +1,3 @@
-
 {
   "entities": {
     "User": {
@@ -19,6 +18,21 @@
         "lastLogin": { "type": "string", "format": "date-time" }
       },
       "required": ["uid", "email", "role"]
+    },
+    "GlobalSettings": {
+      "title": "Global Settings",
+      "description": "Global website configuration and brand assets.",
+      "type": "object",
+      "properties": {
+        "siteName": { "type": "string" },
+        "tagline": { "type": "string" },
+        "logoUrl": { "type": "string" },
+        "faviconUrl": { "type": "string" },
+        "heroVideoUrl": { "type": "string" },
+        "heroImageUrl": { "type": "string" },
+        "maintenanceMode": { "type": "boolean" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      }
     },
     "OrganizerProfile": {
       "title": "Organizer Profile",
@@ -168,6 +182,14 @@
     "/notifications/{id}": {
       "schema": "#/entities/Notification",
       "description": "User activity alerts."
+    },
+    "/cms_settings/{id}": {
+      "schema": "#/entities/GlobalSettings",
+      "description": "Global website settings and brand assets."
+    },
+    "/cms_content/{id}": {
+      "schema": { "type": "object" },
+      "description": "Page-specific content sections."
     }
   }
 }
