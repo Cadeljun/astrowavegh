@@ -1,6 +1,5 @@
 'use client';
 
-import Image from 'next/image';
 import Link from 'next/link';
 import { useCMSSettings } from '@/lib/cms/useCMS';
 import { DEFAULT_SETTINGS } from '@/lib/cms/definitions';
@@ -40,7 +39,6 @@ export default function Logo({
     logoSrc = 'https://res.cloudinary.com/dmd5bq3va/image/upload/v1779676928/h301f38brcdtgkdz8myk.png';
   }
 
-  // We use style with height and width auto to preserve aspect ratio regardless of logo dimensions
   return (
     <Link 
       href={linkTo || '/'} 
