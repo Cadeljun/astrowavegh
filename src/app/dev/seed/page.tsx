@@ -4,13 +4,12 @@ import React, { useState } from 'react';
 import { db } from '@/firebase';
 import { 
   collection, 
-  addDoc, 
-  serverTimestamp, 
-  deleteDoc, 
   getDocs, 
+  deleteDoc, 
   doc, 
   setDoc,
-  writeBatch
+  writeBatch,
+  serverTimestamp
 } from 'firebase/firestore';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -30,7 +29,7 @@ export default function DevSeedPage() {
 
   const seedCMS = async () => {
     setLoading(true);
-    addLog('🚀 INITIATING CMS SEED...');
+    addLog('🚀 INITIATING CMS HARD RESET...');
     try {
       const batch = writeBatch(db);
       
@@ -40,7 +39,7 @@ export default function DevSeedPage() {
         ...DEFAULT_SETTINGS,
         updatedAt: serverTimestamp()
       });
-      addLog('✓ Global settings initialized');
+      addLog('✓ Brand identity reset to authoritative defaults');
 
       // 2. Seed Page Content
       CMS_PAGES.forEach(page => {
@@ -63,8 +62,8 @@ export default function DevSeedPage() {
       });
 
       await batch.commit();
-      addLog('✨ CMS SEED COMPLETE');
-      toast({ title: 'CMS Defaults Seeded' });
+      addLog('✨ CMS RESET COMPLETE');
+      toast({ title: 'CMS Hard Reset Success' });
     } catch (e: any) {
       addLog(`❌ ERR: ${e.message}`);
     } finally {
@@ -76,30 +75,51 @@ export default function DevSeedPage() {
     setLoading(true);
     addLog('🚀 INITIATING PLATFORM SEED...');
     try {
-      const talentRef = collection(db, 'talent_profiles');
-      const talentPlaceholder = getPlaceholderById('dj-1');
+      const dj1 = getPlaceholderById('dj-1');
+      const art1 = getPlaceholderById('artist-1');
       
-      const testTalent = {
-        uid: 'test-talent-1',
-        displayName: 'Elias Koranteng',
-        stageName: 'DJ Horizon',
-        email: 'horizon@astrowave.dev',
-        category: 'DJ',
-        city: 'Accra',
-        waveScore: 4.8,
-        averageRating: 4.9,
-        ratingCount: 15,
-        eventCount: 42,
-        active: true,
-        available: true,
-        photoURL: talentPlaceholder?.imageUrl || '',
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp()
-      };
-      await setDoc(doc(talentRef, testTalent.uid), testTalent);
-      addLog(`✓ Seeded Talent: ${testTalent.stageName}`);
+      const talents = [
+        {
+          uid: 'test-talent-1',
+          displayName: 'Elias Koranteng',
+          stageName: 'DJ Horizon',
+          email: 'horizon@astrowave.dev',
+          category: 'DJ',
+          city: 'Accra',
+          waveScore: 4.8,
+          averageRating: 4.9,
+          ratingCount: 15,
+          eventCount: 42,
+          active: true,
+          available: true,
+          photoURL: dj1?.imageUrl || '',
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        },
+        {
+          uid: 'test-talent-2',
+          displayName: 'Uzy',
+          stageName: 'Uzy',
+          email: 'uzy@astrowave.dev',
+          category: 'Artist',
+          city: 'Accra',
+          waveScore: 4.5,
+          averageRating: 4.7,
+          ratingCount: 8,
+          eventCount: 12,
+          active: true,
+          available: true,
+          photoURL: art1?.imageUrl || '',
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        }
+      ];
 
-      const eventRef = collection(db, 'platform_events');
+      for (const t of talents) {
+        await setDoc(doc(db, 'talent_profiles', t.uid), t);
+        addLog(`✓ Seeded Talent: ${t.stageName}`);
+      }
+
       const testEvent = {
         organizerId: 'test-org-1',
         title: 'Midnight Mirage 2025',
@@ -112,7 +132,7 @@ export default function DevSeedPage() {
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
       };
-      await addDoc(eventRef, testEvent);
+      await setDoc(doc(collection(db, 'platform_events')), testEvent);
       addLog(`✓ Seeded Platform Event: ${testEvent.title}`);
 
       addLog('✨ PLATFORM SEED COMPLETE');
@@ -174,10 +194,10 @@ export default function DevSeedPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Button variant="secondary" className="h-16 justify-start px-6 group" onClick={seedCMS} disabled={loading}>
-                <Zap size={14} className="mr-2 group-hover:text-gold" /> SEED CMS & SETTINGS
+                <Zap size={14} className="mr-2 group-hover:text-gold" /> HARD RESET CMS
               </Button>
               <Button variant="secondary" className="h-16 justify-start px-6 group" onClick={seedPlatform} disabled={loading}>
-                <Zap size={14} className="mr-2 group-hover:text-purple" /> SEED ROSTER & EVENTS
+                <Zap size={14} className="mr-2 group-hover:text-purple" /> SEED DEMO DATA
               </Button>
             </div>
           </Card>

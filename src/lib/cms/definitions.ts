@@ -252,14 +252,6 @@ export interface GlobalSettings {
   faviconUrl: string
   faviconSvgCode: string
   ogImageUrl: string
-  ogImageHome: string
-  ogImageAbout: string
-  ogImageEvents: string
-  ogImageManagement: string
-  ogImageContact: string
-  ogImageRecords: string
-  ogImageCares: string
-  ogImagePlatform: string
   brandGreen: string
   brandBlue: string
   brandSky: string
@@ -274,10 +266,10 @@ export interface GlobalSettings {
   heroVideoUrl: string
   heroPosterUrl: string
   heroImageUrl: string
-  founderImageUrl: string
   defaultEventPoster: string
   defaultTalentPhoto: string
   defaultGalleryPhoto: string
+  maintenanceMode: boolean
   updatedAt?: any
 }
 
@@ -290,14 +282,6 @@ export const DEFAULT_SETTINGS: GlobalSettings = {
   faviconUrl: 'https://res.cloudinary.com/dmd5bq3va/image/upload/v1779674858/ivzvmlaglz9l1hgevktn.png',
   faviconSvgCode: '',
   ogImageUrl: '',
-  ogImageHome: '',
-  ogImageAbout: '',
-  ogImageEvents: '',
-  ogImageManagement: '',
-  ogImageContact: '',
-  ogImageRecords: '',
-  ogImageCares: '',
-  ogImagePlatform: '',
   brandGreen: '#00FF87',
   brandBlue: '#0EA5E9',
   brandSky: '#38BDF8',
@@ -312,8 +296,8 @@ export const DEFAULT_SETTINGS: GlobalSettings = {
   heroVideoUrl: '',
   heroPosterUrl: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=1200',
   heroImageUrl: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=1200',
-  founderImageUrl: '',
   defaultEventPoster: 'https://images.unsplash.com/photo-1514525253361-bee8a187449b?q=80&w=800',
   defaultTalentPhoto: 'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?q=80&w=400',
-  defaultGalleryPhoto: 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?q=80&w=800'
+  defaultGalleryPhoto: 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?q=80&w=800',
+  maintenanceMode: false
 }

@@ -24,7 +24,7 @@ const bebasNeue = Bebas_Neue({
   display: 'swap',
 });
 
-// Primary brand icon fallback
+// Primary brand icon
 const FAVICON_URL = 'https://res.cloudinary.com/dmd5bq3va/image/upload/v1779674858/ivzvmlaglz9l1hgevktn.png';
 
 export const viewport: Viewport = {
@@ -61,7 +61,6 @@ export const metadata: Metadata = {
       { url: FAVICON_URL, sizes: '180x180', type: 'image/png' },
     ],
   },
-  manifest: '/manifest.json',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

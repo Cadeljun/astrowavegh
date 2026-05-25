@@ -1,9 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import Image from 'next/image';
 import { useCMSSettings } from '@/lib/cms/useCMS';
 import { DEFAULT_SETTINGS } from '@/lib/cms/definitions';
+import { cn } from '@/lib/utils';
 
 interface LogoProps {
   variant?: 'default' | 'icon' | 'dark';
@@ -12,12 +12,12 @@ interface LogoProps {
   className?: string;
 }
 
-const AUTHORITATIVE_FALLBACK = 'https://res.cloudinary.com/dmd5bq3va/image/upload/v1779676928/h301f38brcdtgkdz8myk.png';
+const AUTHORITATIVE_LOGO = 'https://res.cloudinary.com/dmd5bq3va/image/upload/v1779676928/h301f38brcdtgkdz8myk.png';
+const AUTHORITATIVE_ICON = 'https://res.cloudinary.com/dmd5bq3va/image/upload/v1779674858/ivzvmlaglz9l1hgevktn.png';
 
 /**
- * Standard AstroWave Logo component.
- * Dynamically resolves URLs from Cloud Firestore (cms_settings/global).
- * Ensures robust fallback to hardcoded brand URL to prevent display failure.
+ * Robust Logo component for AstroWave.
+ * Handles dynamic Firestore values with authoritative hardcoded fallbacks to prevent display failure.
  */
 export default function Logo({
   variant = 'default',
@@ -29,43 +29,46 @@ export default function Logo({
   
   let logoSrc = '';
   
-  // Resolve source with multiple levels of fallback
-  if (variant === 'dark') {
-    logoSrc = settings?.logoDarkUrl || DEFAULT_SETTINGS.logoDarkUrl;
-  } else if (variant === 'icon') {
-    logoSrc = settings?.logoIconUrl || DEFAULT_SETTINGS.logoIconUrl;
+  // Resolve source based on variant with layered fallbacks
+  if (variant === 'icon') {
+    logoSrc = settings?.logoIconUrl || DEFAULT_SETTINGS.logoIconUrl || AUTHORITATIVE_ICON;
+  } else if (variant === 'dark') {
+    logoSrc = settings?.logoDarkUrl || DEFAULT_SETTINGS.logoDarkUrl || AUTHORITATIVE_LOGO;
   } else {
-    logoSrc = settings?.logoUrl || DEFAULT_SETTINGS.logoUrl;
+    logoSrc = settings?.logoUrl || DEFAULT_SETTINGS.logoUrl || AUTHORITATIVE_LOGO;
   }
   
-  // Final safety check to ensure logoSrc is never empty
+  // Final safety check
   if (!logoSrc || logoSrc.trim() === '') {
-    logoSrc = AUTHORITATIVE_FALLBACK;
+    logoSrc = variant === 'icon' ? AUTHORITATIVE_ICON : AUTHORITATIVE_LOGO;
   }
 
-  return (
-    <Link 
-      href={linkTo || '/'} 
-      className={`inline-flex items-center select-none ${!linkTo ? 'pointer-events-none' : ''}`}
+  const content = (
+    <div 
+      style={{ height: `${height}px`, width: 'auto' }} 
+      className={cn("relative flex items-center select-none", className)}
     >
-      <div 
-        style={{ height: `${height}px`, width: 'auto' }} 
-        className={`relative flex items-center ${className}`}
-      >
-        <img
-          src={logoSrc}
-          alt="AstroWave Logo"
-          style={{ height: '100%', width: 'auto' }}
-          className="object-contain block"
-          onError={(e) => {
-            // If the resolved URL fails to load, force the authoritative fallback
-            const target = e.target as HTMLImageElement;
-            if (target.src !== AUTHORITATIVE_FALLBACK) {
-              target.src = AUTHORITATIVE_FALLBACK;
-            }
-          }}
-        />
-      </div>
+      <img
+        src={logoSrc}
+        alt="AstroWave"
+        style={{ height: '100%', width: 'auto' }}
+        className="object-contain block max-w-full"
+        onError={(e) => {
+          const target = e.target as HTMLImageElement;
+          const fallback = variant === 'icon' ? AUTHORITATIVE_ICON : AUTHORITATIVE_LOGO;
+          if (target.src !== fallback) {
+            target.src = fallback;
+          }
+        }}
+      />
+    </div>
+  );
+
+  if (!linkTo) return content;
+
+  return (
+    <Link href={linkTo} className="inline-flex items-center">
+      {content}
     </Link>
   );
 }
