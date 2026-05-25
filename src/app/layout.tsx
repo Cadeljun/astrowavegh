@@ -1,5 +1,5 @@
 import React from 'react';
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Outfit, Bebas_Neue } from 'next/font/google';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
@@ -25,6 +25,12 @@ const bebasNeue = Bebas_Neue({
 
 const FAVICON_URL = 'https://res.cloudinary.com/dmd5bq3va/image/upload/v1779674858/ivzvmlaglz9l1hgevktn.png';
 
+export const viewport: Viewport = {
+  themeColor: '#020B18',
+  width: 'device-width',
+  initialScale: 1,
+};
+
 export const metadata: Metadata = {
   metadataBase: new URL('https://astrowave.com'),
   title: {
@@ -45,10 +51,15 @@ export const metadata: Metadata = {
   creator: 'AstroWave',
   publisher: 'AstroWave',
   icons: {
-    icon: FAVICON_URL,
+    icon: [
+      { url: FAVICON_URL, type: 'image/png' },
+    ],
     shortcut: FAVICON_URL,
-    apple: FAVICON_URL,
-  }
+    apple: [
+      { url: FAVICON_URL, sizes: '180x180', type: 'image/png' },
+    ],
+  },
+  manifest: '/manifest.json',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -57,10 +68,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link rel="icon" href={FAVICON_URL} />
+        {/* Explicitly defined head links to help some browsers override cache */}
+        <link rel="icon" href={FAVICON_URL} type="image/png" sizes="any" />
+        <link rel="shortcut icon" href={FAVICON_URL} type="image/png" />
         <link rel="apple-touch-icon" href={FAVICON_URL} />
-        <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#020B18" />
         
         <SchemaOrg
           schema={{
