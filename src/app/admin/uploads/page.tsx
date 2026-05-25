@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useMemo } from 'react';
@@ -16,9 +15,10 @@ import {
   Image as ImageIcon,
   FolderOpen,
   ExternalLink,
-  Plus
+  Plus,
+  Divider
 } from 'lucide-react';
-import { collection, query, orderBy, limit, doc, deleteDoc, addDoc, serverTimestamp, getDocs, where } from 'firebase/firestore';
+import { collection, query, orderBy, limit, doc, deleteDoc, addDoc, serverTimestamp } from 'firebase/firestore';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { Card } from '@/components/ui/Card';
@@ -26,24 +26,12 @@ import { Button } from '@/components/ui/Button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/Badge';
 import { cn } from '@/lib/utils';
-
-const FOLDERS = [
-  'Events/Mask Mirage',
-  'Events/Splash & Seduction',
-  'Events/General',
-  'Talent/DJs',
-  'Talent/Artist',
-  'Brand/Logos',
-  'Brand/Backgrounds',
-  'Videos/Hero',
-  'Videos/Events',
-  'Gallery/Past Events',
-];
+import { ALL_BRAND_PATHS } from '@/lib/cloudinary';
 
 export default function AdminUploadsPage() {
   const db = useFirestore();
   const { toast } = useToast();
-  const [selectedFolder, setSelectedFolder] = useState(FOLDERS[0]);
+  const [selectedFolder, setSelectedFolder] = useState(ALL_BRAND_PATHS[0]);
   const [uploadingFiles, setUploadingFiles] = useState<{ name: string; progress: number; status: 'waiting' | 'uploading' | 'complete' | 'failed' }[]>([]);
   const [activeTab, setActiveTab] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
@@ -72,7 +60,7 @@ export default function AdminUploadsPage() {
     const fd = new FormData();
     fd.append('file', file);
     fd.append('upload_preset', uploadPreset);
-    fd.append('folder', `astrowave/${selectedFolder.toLowerCase().replace(' ', '-')}`);
+    fd.append('folder', selectedFolder);
 
     const response = await fetch(endpoint, { method: 'POST', body: fd });
     if (!response.ok) throw new Error('Upload failed');
@@ -138,7 +126,6 @@ export default function AdminUploadsPage() {
   const deleteFile = async (asset: any) => {
     if (!window.confirm('Purge this asset from Cloudinary and Registry?')) return;
     try {
-      // 1. Cloudinary Delete
       const cloudRes = await fetch('/api/cloudinary/delete', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
@@ -148,7 +135,6 @@ export default function AdminUploadsPage() {
       const cloudData = await cloudRes.json();
       
       if (cloudData.success) {
-        // 2. Firestore Delete
         await deleteDoc(doc(db, 'uploads', asset.id));
         toast({ title: "Asset purged successfully" });
       } else {
@@ -163,7 +149,7 @@ export default function AdminUploadsPage() {
     <div className="space-y-10 pb-20">
       <div className="admin-page-header mb-0">
         <h1 className="admin-page-title">Digital Assets</h1>
-        <p className="admin-page-subtitle">Manage media assets and library content.</p>
+        <p className="admin-page-subtitle">Manage media assets and library content linked to schema folders.</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -182,14 +168,14 @@ export default function AdminUploadsPage() {
             <div className="pt-6 border-t border-white/5 space-y-4">
               <div className="flex items-center justify-center gap-3">
                 <FolderOpen size={16} className="text-muted" />
-                <span className="text-[0.6rem] admin-label m-0">Storage Destination</span>
+                <span className="text-[0.6rem] admin-label m-0">Schema Destination</span>
               </div>
               <select 
                 className="admin-input h-12 w-full max-w-xs mx-auto text-center"
                 value={selectedFolder}
                 onChange={e => setSelectedFolder(e.target.value)}
               >
-                {FOLDERS.map(f => <option key={f} value={f}>{f}</option>)}
+                {ALL_BRAND_PATHS.map(f => <option key={f} value={f}>{f}</option>)}
               </select>
             </div>
           </Card>
@@ -218,7 +204,7 @@ export default function AdminUploadsPage() {
 
         <div className="space-y-6">
           <Card className="p-8 space-y-6" glowColor="muted">
-            <h3 className="admin-label">Usage Metrics</h3>
+            <h3 className="admin-label">Registry Health</h3>
             <div className="space-y-4">
               <div className="flex justify-between items-end">
                 <span className="text-[0.7rem] text-muted">Cloud Status</span>
@@ -228,9 +214,9 @@ export default function AdminUploadsPage() {
                 <span className="text-[0.7rem] text-muted">Total Indexed</span>
                 <span className="text-lg font-display text-white">{uploads?.length || 0} Assets</span>
               </div>
-              <Divider className="my-2 opacity-10" />
+              <div className="h-px bg-white/5 my-2" />
               <p className="text-[0.65rem] text-muted leading-relaxed italic">
-                Media uploaded here is stored in Cloudinary with global CDN delivery. Deleting an asset removes it permanently from both the cloud and the site registry.
+                Media uploaded here is tagged with a strict folder path in Firestore. This allows the system to correctly identify which assets belong to specific platform sections.
               </p>
             </div>
           </Card>
@@ -288,7 +274,7 @@ export default function AdminUploadsPage() {
                 <div className="absolute inset-0 bg-black/90 opacity-0 group-hover:opacity-100 transition-opacity p-4 flex flex-col justify-between">
                   <div className="space-y-1">
                     <p className="text-[0.7rem] font-bold text-white truncate" title={asset.fileName}>{asset.fileName}</p>
-                    <p className="text-[0.55rem] text-gold uppercase font-mono tracking-tighter">{asset.folder}</p>
+                    <p className="text-[0.55rem] text-gold uppercase font-mono tracking-tighter truncate">{asset.folder}</p>
                   </div>
                   <div className="space-y-2">
                     <button 

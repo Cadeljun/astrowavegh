@@ -1,4 +1,3 @@
-
 'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
@@ -16,49 +15,7 @@ import { db } from '@/firebase'
 import { useToast } from '@/hooks/use-toast'
 import { useCollection, useMemoFirebase } from '@/firebase'
 import { cn } from '@/lib/utils'
-
-const ASTROWAVE_FOLDERS = [
-  {
-    name: 'astrowave',
-    path: 'astrowave',
-    children: [
-      {
-        name: 'events',
-        path: 'astrowave/events',
-        children: [
-          { name: 'mask-mirage', path: 'astrowave/events/mask-mirage', color: '#A855F7' },
-          { name: 'splash-and-seduction', path: 'astrowave/events/splash-and-seduction', color: '#06B6D4' },
-          { name: 'general', path: 'astrowave/events/general', color: '#FFD166' }
-        ]
-      },
-      {
-        name: 'talent',
-        path: 'astrowave/talent',
-        children: [
-          { name: 'djs', path: 'astrowave/talent/djs', color: '#A855F7' },
-          { name: 'artist', path: 'astrowave/talent/artist', color: '#FFD166' }
-        ]
-      },
-      {
-        name: 'brand',
-        path: 'astrowave/brand',
-        children: [
-          { name: 'logos', path: 'astrowave/brand/logos', color: '#FFD166' },
-          { name: 'backgrounds', path: 'astrowave/brand/backgrounds', color: '#06B6D4' },
-          { name: 'graphics', path: 'astrowave/brand/graphics', color: '#A855F7' }
-        ]
-      },
-      {
-        name: 'videos',
-        path: 'astrowave/videos',
-        children: [
-          { name: 'hero', path: 'astrowave/videos/hero', color: '#FFD166' },
-          { name: 'events', path: 'astrowave/videos/events', color: '#06B6D4' }
-        ]
-      }
-    ]
-  }
-]
+import { CLOUDINARY_DIRECTORY } from '@/lib/cloudinary'
 
 interface CloudinaryResource {
   public_id: string
@@ -90,7 +47,7 @@ function formatBytes(bytes: number): string {
 export default function CloudinaryDevPage() {
   const { toast } = useToast()
   const [viewMode, setViewViewMode] = useState<'cloud' | 'registry'>('cloud')
-  const [selectedFolder, setSelectedFolder] = useState<FolderNode>(ASTROWAVE_FOLDERS[0])
+  const [selectedFolder, setSelectedFolder] = useState<FolderNode>(CLOUDINARY_DIRECTORY[0])
   const [resources, setResources] = useState<CloudinaryResource[]>([])
   const [loading, setLoading] = useState(false)
   const [uploading, setUploading] = useState(false)
@@ -105,7 +62,7 @@ export default function CloudinaryDevPage() {
 
   // Fetch Firestore registry
   const registryQuery = useMemoFirebase(() => {
-    return query(collection(db, 'uploads'), orderBy('uploadedAt', 'desc'), limit(100))
+    return query(collection(db, 'uploads'), orderBy('uploadedAt', 'desc'), limit(200))
   }, [])
   const { data: registry, loading: registryLoading } = useCollection(registryQuery)
 
@@ -312,7 +269,7 @@ export default function CloudinaryDevPage() {
             <p className="font-mono text-[0.6rem] text-white/20 uppercase tracking-[0.2em] mb-2 font-bold flex items-center gap-2">
               <Filter size={10} /> DIRECTORY_MAP
             </p>
-            <FolderTree nodes={ASTROWAVE_FOLDERS} />
+            <FolderTree nodes={CLOUDINARY_DIRECTORY} />
           </div>
         )}
 

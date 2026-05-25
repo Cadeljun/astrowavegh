@@ -6,6 +6,69 @@
 export const CLOUDINARY_CLOUD_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || 'dmd5bq3va';
 
 /**
+ * Authoritative hierarchical list of brand-approved folders.
+ */
+export const CLOUDINARY_DIRECTORY = [
+  { 
+    name: 'Events', 
+    path: 'astrowave/events', 
+    color: '#00FF87',
+    children: [
+      { name: 'Mask Mirage', path: 'astrowave/events/mask-mirage' },
+      { name: 'Splash & Seduction', path: 'astrowave/events/splash-and-seduction' },
+      { name: 'General', path: 'astrowave/events/general' },
+    ]
+  },
+  { 
+    name: 'Talent', 
+    path: 'astrowave/talent', 
+    color: '#A855F7',
+    children: [
+      { name: 'DJs', path: 'astrowave/talent/djs' },
+      { name: 'Artists', path: 'astrowave/talent/artists' },
+      { name: 'Profiles', path: 'astrowave/talent/profiles' },
+    ]
+  },
+  { 
+    name: 'Brand', 
+    path: 'astrowave/brand', 
+    color: '#FFD166',
+    children: [
+      { name: 'Logos', path: 'astrowave/brand/logos' },
+      { name: 'Backgrounds', path: 'astrowave/brand/backgrounds' },
+      { name: 'Graphics', path: 'astrowave/brand/graphics' },
+      { name: 'Avatars', path: 'astrowave/brand/avatars' },
+    ]
+  },
+  { 
+    name: 'Videos', 
+    path: 'astrowave/videos', 
+    color: '#0EA5E9',
+    children: [
+      { name: 'Hero', path: 'astrowave/videos/hero' },
+      { name: 'Events', path: 'astrowave/videos/events' },
+      { name: 'Talent', path: 'astrowave/videos/talent' },
+    ]
+  },
+  { 
+    name: 'Gallery', 
+    path: 'astrowave/gallery', 
+    color: '#38BDF8',
+    children: [
+      { name: 'Past Events', path: 'astrowave/gallery/past-events' },
+    ]
+  }
+];
+
+/**
+ * Flat list of paths for dropdowns and validation.
+ */
+export const ALL_BRAND_PATHS = CLOUDINARY_DIRECTORY.flatMap(parent => [
+  parent.path,
+  ...(parent.children?.map(child => child.path) || [])
+]);
+
+/**
  * The authoritative map of Cloudinary folders and their Firestore counterparts.
  */
 export const MEDIA_SCHEMA = {
@@ -51,17 +114,6 @@ export const MEDIA_SCHEMA = {
     label: 'Gallery Archive',
     description: 'Historical event memories and fan photos.'
   }
-};
-
-/**
- * Legacy support for simple folder mapping.
- */
-export const CloudinaryFolders = {
-  events: MEDIA_SCHEMA.eventPosters.path,
-  talent: MEDIA_SCHEMA.talentPhotos.path,
-  brand: 'astrowave/brand',
-  videos: MEDIA_SCHEMA.heroVideos.path,
-  gallery: MEDIA_SCHEMA.gallery.path,
 };
 
 /**
