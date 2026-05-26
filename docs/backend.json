@@ -2,7 +2,7 @@
   "entities": {
     "User": {
       "title": "User",
-      "description": "Core authentication and role state for all platform users.",
+      "description": "Core identity and profile state for AstroWave participants.",
       "type": "object",
       "properties": {
         "uid": { "type": "string" },
@@ -11,99 +11,39 @@
         "photoURL": { "type": "string" },
         "role": { "type": "string", "enum": ["organizer", "talent", "both", null] },
         "onboarded": { "type": "boolean" },
-        "provider": { "type": "string", "enum": ["email", "google"] },
         "active": { "type": "boolean" },
-        "createdAt": { "type": "string", "format": "date-time" },
-        "updatedAt": { "type": "string", "format": "date-time" },
-        "lastLogin": { "type": "string", "format": "date-time" }
+        "createdAt": { "type": "string", "format": "date-time" }
       },
-      "required": ["uid", "email", "role"]
-    },
-    "GlobalSettings": {
-      "title": "Global Settings",
-      "description": "Global website configuration and brand assets.",
-      "type": "object",
-      "properties": {
-        "siteName": { "type": "string" },
-        "tagline": { "type": "string" },
-        "logoUrl": { "type": "string" },
-        "faviconUrl": { "type": "string" },
-        "heroVideoUrl": { "type": "string" },
-        "heroImageUrl": { "type": "string" },
-        "maintenanceMode": { "type": "boolean" },
-        "updatedAt": { "type": "string", "format": "date-time" }
-      }
-    },
-    "OrganizerProfile": {
-      "title": "Organizer Profile",
-      "description": "Professional metadata for event hosts and organizers.",
-      "type": "object",
-      "properties": {
-        "uid": { "type": "string" },
-        "displayName": { "type": "string" },
-        "email": { "type": "string" },
-        "phone": { "type": "string" },
-        "photoURL": { "type": "string" },
-        "bio": { "type": "string" },
-        "company": { "type": "string" },
-        "city": { "type": "string" },
-        "region": { "type": "string" },
-        "country": { "type": "string" },
-        "website": { "type": "string" },
-        "instagram": { "type": "string" },
-        "twitter": { "type": "string" },
-        "eventCount": { "type": "number" },
-        "totalSpent": { "type": "number" },
-        "verified": { "type": "boolean" },
-        "rating": { "type": "number" }
-      }
+      "required": ["uid", "email"]
     },
     "TalentProfile": {
       "title": "Talent Profile",
-      "description": "Artist/DJ professional profile and Wave Score metrics.",
+      "description": "Professional metrics and visibility state for creative talent.",
       "type": "object",
       "properties": {
         "uid": { "type": "string" },
-        "displayName": { "type": "string" },
         "stageName": { "type": "string" },
-        "email": { "type": "string" },
-        "phone": { "type": "string" },
-        "photoURL": { "type": "string" },
-        "bio": { "type": "string" },
         "category": { "type": "string", "enum": ["DJ", "MC", "Hypeman", "Singer", "Dancer", "Comedian", "Band", "Other"] },
-        "subcategory": { "type": "string" },
-        "skills": { "type": "array", "items": { "type": "string" } },
+        "bio": { "type": "string" },
         "city": { "type": "string" },
-        "region": { "type": "string" },
-        "country": { "type": "string" },
-        "basePrice": { "type": "number" },
-        "currency": { "type": "string", "enum": ["GHS", "USD"] },
-        "priceNegotiable": { "type": "boolean" },
-        "available": { "type": "boolean" },
         "waveScore": { "type": "number" },
         "averageRating": { "type": "number" },
-        "ratingCount": { "type": "number" },
         "eventCount": { "type": "number" },
-        "lastEventDate": { "type": "string", "format": "date-time" },
-        "recencyFactor": { "type": "number" },
-        "totalBookings": { "type": "number" },
-        "completedBookings": { "type": "number" },
-        "cancelledBookings": { "type": "number" },
-        "verified": { "type": "boolean" },
-        "featured": { "type": "boolean" },
-        "active": { "type": "boolean" }
+        "available": { "type": "boolean" },
+        "verified": { "type": "boolean" }
       }
     },
     "PlatformEvent": {
       "title": "Platform Event",
-      "description": "Event briefs posted on the platform for talent matching.",
+      "description": "An active event brief seeking talent matching.",
       "type": "object",
       "properties": {
         "organizerId": { "type": "string" },
         "title": { "type": "string" },
-        "category": { "type": "string", "enum": ["Party", "Concert", "Corporate", "Wedding", "Festival", "Conference", "Birthday", "Other"] },
+        "category": { "type": "string" },
         "date": { "type": "string", "format": "date-time" },
         "venue": { "type": "string" },
+        "city": { "type": "string" },
         "talentCategory": { "type": "string" },
         "talentBudget": { "type": "number" },
         "status": { "type": "string", "enum": ["open", "matched", "booked", "completed", "cancelled"] }
@@ -111,85 +51,26 @@
     },
     "Booking": {
       "title": "Booking",
-      "description": "A transactional record between an organizer and talent.",
+      "description": "A confirmed professional engagement record.",
       "type": "object",
       "properties": {
         "eventId": { "type": "string" },
+        "talentId": { "type": "string" },
         "organizerId": { "type": "string" },
-        "talentId": { "type": "string" },
-        "status": { "type": "string", "enum": ["pending", "accepted", "declined", "completed", "cancelled"] },
         "agreedPrice": { "type": "number" },
-        "ratingSubmitted": { "type": "boolean" }
-      }
-    },
-    "Rating": {
-      "title": "Rating",
-      "description": "Detailed post-event performance review.",
-      "type": "object",
-      "properties": {
-        "bookingId": { "type": "string" },
-        "talentId": { "type": "string" },
-        "overall": { "type": "number" },
-        "performance": { "type": "number" },
-        "professionalism": { "type": "number" },
-        "review": { "type": "string" }
-      }
-    },
-    "Notification": {
-      "title": "Notification",
-      "description": "User notification stream.",
-      "type": "object",
-      "properties": {
-        "userId": { "type": "string" },
-        "type": { "type": "string" },
-        "title": { "type": "string" },
-        "read": { "type": "boolean" }
+        "status": { "type": "string", "enum": ["pending", "accepted", "declined", "completed", "cancelled"] }
       }
     }
   },
   "auth": {
-    "providers": ["password", "google.com"]
+    "providers": ["google.com", "password"]
   },
   "firestore": {
-    "/users/{uid}": {
-      "schema": "#/entities/User",
-      "description": "All user platform accounts."
-    },
-    "/organizer_profiles/{uid}": {
-      "schema": "#/entities/OrganizerProfile",
-      "description": "Organizer metadata."
-    },
-    "/talent_profiles/{uid}": {
-      "schema": "#/entities/TalentProfile",
-      "description": "Talent professional profiles."
-    },
-    "/platform_events/{id}": {
-      "schema": "#/entities/PlatformEvent",
-      "description": "Active platform event briefs."
-    },
-    "/bookings/{id}": {
-      "schema": "#/entities/Booking",
-      "description": "Booking request records."
-    },
-    "/ratings/{id}": {
-      "schema": "#/entities/Rating",
-      "description": "Talent performance reviews."
-    },
-    "/matches/{eventId}": {
-      "schema": { "type": "object" },
-      "description": "Cached AI match results."
-    },
-    "/notifications/{id}": {
-      "schema": "#/entities/Notification",
-      "description": "User activity alerts."
-    },
-    "/cms_settings/{id}": {
-      "schema": "#/entities/GlobalSettings",
-      "description": "Global website settings and brand assets."
-    },
-    "/cms_content/{id}": {
-      "schema": { "type": "object" },
-      "description": "Page-specific content sections."
-    }
+    "/users/{uid}": { "schema": "#/entities/User", "description": "Global user accounts." },
+    "/talent_profiles/{uid}": { "schema": "#/entities/TalentProfile", "description": "Professional talent data." },
+    "/platform_events/{id}": { "schema": "#/entities/PlatformEvent", "description": "Active event briefs." },
+    "/bookings/{id}": { "schema": "#/entities/Booking", "description": "Transaction records." },
+    "/matches/{eventId}": { "schema": { "type": "object" }, "description": "Cached algorithmic match results." },
+    "/cms_settings/global": { "schema": { "type": "object" }, "description": "Global brand assets and system configuration." }
   }
 }

@@ -1,98 +1,52 @@
 'use client';
-import React from 'react';
+import * as React from 'react';
+import { Slot } from '@radix-ui/react-slot';
+import { cva, type VariantProps } from 'class-variance-authority';
+import { cn } from '@/lib/utils';
 
-interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'ghost';
-  size?: 'sm' | 'md' | 'lg';
-  loading?: boolean;
-  icon?: React.ReactNode;
-  className?: string;
-  children?: React.ReactNode;
-}
-
-const baseStyles = [
-  'inline-flex items-center justify-center gap-2',
-  'font-body font-semibold uppercase',
-  'tracking-widest cursor-pointer',
-  'border transition-all duration-200',
-  'disabled:opacity-50 disabled:cursor-not-allowed',
-  'focus:outline-none focus:ring-2',
-  'focus:ring-offset-2 focus:ring-offset-black',
-].join(' ');
-
-const variants = {
-  primary: [
-    'border-[var(--color-green)]',
-    'text-[var(--color-green)]',
-    'bg-transparent',
-    'hover:bg-[var(--color-green)]',
-    'hover:text-[var(--color-black)]',
-    'focus:ring-[var(--color-green)]',
-    'hover:shadow-[var(--glow-green)]',
-  ].join(' '),
-
-  secondary: [
-    'border-[var(--color-white)]',
-    'text-[var(--color-white)]',
-    'bg-transparent',
-    'hover:bg-[var(--color-white)]',
-    'hover:text-[var(--color-black)]',
-    'focus:ring-[var(--color-white)]',
-  ].join(' '),
-
-  ghost: [
-    'border-transparent',
-    'text-[var(--color-muted)]',
-    'bg-transparent',
-    'hover:text-[var(--color-green)]',
-    'focus:ring-[var(--color-green)]',
-  ].join(' '),
-};
-
-const sizes = {
-  sm: 'px-4 py-2 text-xs rounded-[var(--radius-sm)]',
-  md: 'px-6 py-3 text-sm rounded-[var(--radius-sm)]',
-  lg: 'px-8 py-4 text-base rounded-[var(--radius-sm)]',
-};
-
-const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  (
-    {
-      variant = 'primary',
-      size = 'md',
-      loading = false,
-      icon,
-      className = '',
-      children,
-      disabled,
-      ...props
+const buttonVariants = cva(
+  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm text-xs font-bold uppercase tracking-[0.2em] transition-all focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-green disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0',
+  {
+    variants: {
+      variant: {
+        primary: 'bg-green text-black hover:bg-white hover:shadow-[0_0_20px_rgba(0,255,135,0.4)]',
+        secondary: 'border border-blue text-blue hover:bg-blue hover:text-white',
+        outline: 'border border-white/10 text-white hover:bg-white/5',
+        ghost: 'text-muted hover:text-white',
+        link: 'text-green underline-offset-4 hover:underline',
+      },
+      size: {
+        sm: 'h-10 px-4',
+        md: 'h-12 px-6',
+        lg: 'h-14 px-10 text-sm',
+        icon: 'h-10 w-10',
+      },
     },
-    ref
-  ) => {
-    return (
-      <button
-        ref={ref}
-        disabled={disabled || loading}
-        className={[baseStyles, variants[variant], sizes[size], className].join(' ')}
-        {...props}
-      >
-        {loading ? (
-          <>
-            <span
-              className="animate-spin inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full"
-            />
-            <span>Loading...</span>
-          </>
-        ) : (
-          <>
-            {children}
-            {icon && <span className="transition-transform group-hover:translate-x-1">{icon}</span>}
-          </>
-        )}
-      </button>
-    );
+    defaultVariants: {
+      variant: 'primary',
+      size: 'md',
+    },
   }
 );
 
+export interface ButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+    VariantProps<typeof buttonVariants> {
+  asChild?: boolean;
+}
+
+const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+  ({ className, variant, size, asChild = false, ...props }, ref) => {
+    const Comp = asChild ? Slot : 'button';
+    return (
+      <Comp
+        className={cn(buttonVariants({ variant, size, className }))}
+        ref={ref}
+        {...props}
+      />
+    );
+  }
+);
 Button.displayName = 'Button';
-export { Button };
+
+export { Button, buttonVariants };

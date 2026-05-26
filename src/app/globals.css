@@ -4,39 +4,28 @@
 
 @layer base {
   :root {
-    /* Backgrounds — mixed dark + navy */
+    /* AstroWave Primary Palette */
     --color-black:        #020B18;
     --color-dark:         #041020;
     --color-surface:      #071428;
     --color-card:         #0A1A32;
     --color-border:       #0F2040;
 
-    /* Light surface (for mixed sections) */
-    --color-light:        #0D2244;
-    --color-light-card:   #112952;
-    --color-light-border: #1A3A6B;
-
-    /* Accent colors */
+    /* Accents */
     --color-green:        #00FF87;
     --color-green-dim:    rgba(0, 255, 135, 0.12);
     --color-blue:         #0EA5E9;
     --color-blue-dim:     rgba(14, 165, 233, 0.12);
     --color-sky:          #38BDF8;
-    --color-sky-dim:      rgba(56, 189, 248, 0.12);
     --color-gold:         #FFD166;
     --color-purple:       #A855F7;
     --color-cyan:         #06B6D4;
 
-    /* Text */
+    /* Neutrals */
     --color-white:        #F0F8FF;
     --color-muted:        #6B8CAE;
 
-    /* Glows */
-    --glow-green:  0 0 24px rgba(0, 255, 135, 0.45);
-    --glow-blue:   0 0 24px rgba(14, 165, 233, 0.45);
-    --glow-sky:    0 0 24px rgba(56, 189, 248, 0.45);
-
-    /* ShadCN Overrides */
+    /* Global UI vars */
     --background: 216 40% 5%;
     --foreground: 210 100% 97%;
     --primary: 152 100% 50%;
@@ -48,29 +37,17 @@
     --muted: 216 40% 12%;
     --muted-foreground: 210 25% 60%;
     --border: 216 40% 15%;
-    --radius: 6px;
+    --radius: 8px;
   }
 }
 
 @layer base {
-  * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-  }
-
-  html {
-    scroll-behavior: smooth;
-  }
-
   body {
     background-color: var(--color-black);
     color: var(--color-white);
     font-family: var(--font-body), sans-serif;
     font-weight: 300;
-    line-height: 1.6;
-    overflow-x: hidden;
-    @apply antialiased;
+    @apply antialiased overflow-x-hidden;
   }
 }
 
@@ -83,10 +60,10 @@
 }
 ::-webkit-scrollbar-thumb {
   background: var(--color-green);
-  border-radius: 9999px;
+  border-radius: 999px;
 }
 
-/* Typography Scale — Responsive Fluid Scaling */
+/* Fluid Typography */
 .display-2xl {
   font-family: var(--font-display);
   font-size: clamp(3rem, 10vw, 10rem);
@@ -99,13 +76,12 @@
   font-family: var(--font-display);
   font-size: clamp(2.5rem, 8vw, 7rem);
   line-height: 1;
-  letter-spacing: 0.02em;
   text-transform: uppercase;
 }
 
 .display-lg {
   font-family: var(--font-display);
-  font-size: clamp(2rem, 5vw, 4.5rem);
+  font-size: clamp(2rem, 6vw, 4.5rem);
   line-height: 1.05;
   text-transform: uppercase;
 }
@@ -121,7 +97,6 @@
   font-family: var(--font-body);
   font-size: clamp(1rem, 1.2vw, 1.2rem);
   font-weight: 300;
-  line-height: 1.6;
 }
 
 .label {
@@ -133,31 +108,15 @@
   color: var(--color-muted);
 }
 
-/* Neon Text */
-.text-glow-green {
-  text-shadow: 0 0 30px rgba(0, 255, 135, 0.6);
-}
-.text-glow-blue {
-  text-shadow: 0 0 30px rgba(14, 165, 233, 0.6);
-}
-.text-glow-gold {
-  text-shadow: 0 0 30px rgba(255, 209, 102, 0.6);
-}
-.text-glow-purple {
-  text-shadow: 0 0 30px rgba(168, 85, 247, 0.6);
-}
+/* Neon Glows */
+.text-glow-green { text-shadow: 0 0 30px rgba(0, 255, 135, 0.6); }
+.text-glow-blue { text-shadow: 0 0 30px rgba(14, 165, 233, 0.6); }
+.text-glow-gold { text-shadow: 0 0 30px rgba(255, 209, 102, 0.6); }
+.text-glow-purple { text-shadow: 0 0 30px rgba(168, 85, 247, 0.6); }
 
-/* Glassmorphism */
 .glass {
   background: rgba(4, 16, 32, 0.6);
   backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(14, 165, 233, 0.15);
-  border-radius: 12px;
-}
-
-/* Responsive Overrides */
-@media (max-width: 768px) {
-  .display-2xl { line-height: 1; }
-  .body-lg { line-height: 1.5; }
+  border-radius: var(--radius);
 }
