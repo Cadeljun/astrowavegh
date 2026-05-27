@@ -84,7 +84,6 @@ export function RoleProvider({ children }: { children: ReactNode }) {
         setRoleLoading(false);
       },
       (error) => {
-        console.error('Role fetch error:', error);
         setRole(null);
         setRoleLoading(false);
       }
@@ -132,8 +131,8 @@ export const ROLE_LABELS: Record<string, string> = {
 };
 
 export const ROLE_COLORS: Record<string, string> = {
-  SUPER_ADMIN: '#00FF87',
-  EDITOR:      '#0EA5E9',
-  VIEWER:      '#6B8CAE',
-  DEVELOPER:   '#38BDF8'
+  SUPER_ADMIN: '#00C96B',
+  EDITOR:      '#0582FF',
+  VIEWER:      '#4A6380',
+  DEVELOPER:   '#00D4FF'
 };

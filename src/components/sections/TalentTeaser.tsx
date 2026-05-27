@@ -4,60 +4,67 @@ import React from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { SectionHeading } from '@/components/ui/SectionHeading';
-import { Button } from '@/components/ui/Button';
-import TalentCard from '@/components/talent/TalentCard';
+import { Card } from '@/components/ui/Card';
+import { Badge } from '@/components/ui/Badge';
 import { staggerContainer, scaleIn } from '@/lib/animations';
-import { useCMSContent } from '@/lib/cms/useCMS';
-import { getPlaceholderById } from '@/app/lib/placeholder-images';
+import { MapPin, Star } from 'lucide-react';
 
 export default function TalentTeaser() {
-  const { content } = useCMSContent('home', 'talent', {
-    label: 'OUR ROSTER',
-    heading: 'THE TALENT',
-    subtitle: 'The faces behind the wave.'
-  });
-
-  const dj1 = getPlaceholderById('dj-1');
-  const dj2 = getPlaceholderById('dj-2');
-  const art1 = getPlaceholderById('artist-1');
-
-  const talent = [
-    { name: 'DJ Horizon', role: 'DJ' as const, bio: 'Accra-based DJ delivering high-energy sets across Ghana. Known for seamless Amapiano and Afrobeats mixes.', imageUrl: dj1?.imageUrl || '', aiHint: dj1?.imageHint },
-    { name: 'DJ Void', role: 'DJ' as const, bio: 'Pushing boundaries with futuristic house and electronic rhythms. A staple of the AstroWave night.', imageUrl: dj2?.imageUrl || '', aiHint: dj2?.imageHint },
-    { name: 'Uzy', role: 'Artist' as const, bio: 'The creative pulse of the brand. A fresh voice redefining the sound of modern African storytelling.', imageUrl: art1?.imageUrl || '', aiHint: art1?.imageHint }
+  const talents = [
+    { name: 'DJ Horizon', role: 'DJ', city: 'Accra', score: 4.8, img: 'https://images.unsplash.com/photo-1571266028243-e4733b0f0bb1?q=80&w=400&h=400&auto=format&fit=crop' },
+    { name: 'Uzy', role: 'Artist', city: 'Accra', score: 4.9, img: 'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?q=80&w=400&h=400&auto=format&fit=crop' },
+    { name: 'MC Flow', role: 'MC', city: 'Kumasi', score: 4.6, img: 'https://images.unsplash.com/photo-1516280440614-37939bbacd81?q=80&w=400&h=400&auto=format&fit=crop' }
   ];
 
   return (
-    <section 
-      className="bg-[var(--color-surface)] py-32 px-6 lg:px-12 relative"
-      style={{ clipPath: 'polygon(0 0, 100% 40px, 100% 100%, 0 100%)' }}
-    >
+    <section className="bg-light-bg py-32 px-6 lg:px-12">
       <div className="max-w-screen-2xl mx-auto">
         <SectionHeading 
-          label={content.label}
-          title={content.heading}
-          subtitle={content.subtitle}
+          theme="light"
           align="center"
+          label="Our Roster"
+          title="The Global Roster"
+          subtitle="Ghana's most elite creative talent, verified by the wave."
           className="mb-20"
         />
 
         <motion.div 
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-20"
           variants={staggerContainer}
           initial="hidden"
           whileInView="show"
-          viewport={{ once: true, amount: 0.1 }}
+          viewport={{ once: true }}
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 mb-20"
         >
-          {talent.map((item, i) => (
+          {talents.map((t, i) => (
             <motion.div key={i} variants={scaleIn}>
-              <TalentCard {...item} />
+              <Card theme="light" accentColor={t.role === 'DJ' ? 'green' : 'blue'} className="p-8 text-center group">
+                <div className="w-32 h-32 rounded-full overflow-hidden mx-auto mb-6 border-4 border-light-surface group-hover:border-green transition-all shadow-xl">
+                   <img src={t.img} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500" alt={t.name} />
+                </div>
+                <div className="space-y-4">
+                  <div className="space-y-1">
+                    <h3 className="font-display text-2xl text-light-text uppercase tracking-tight">{t.name}</h3>
+                    <div className="flex items-center justify-center gap-2">
+                       <Badge variant="active" theme="light" className={t.role === 'DJ' ? "bg-green-bg-light text-green-dark" : "bg-blue-bg-light text-blue"}>
+                         {t.role}
+                       </Badge>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-center gap-4 text-[0.8rem] text-light-subtext font-medium">
+                     <span className="flex items-center gap-1.5"><MapPin size={14} className="text-green-dark" /> {t.city}</span>
+                     <span className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-green-bg-light text-green-dark font-bold text-[0.65rem] border border-green/20">
+                        <Star size={10} fill="currentColor" /> {t.score}
+                     </span>
+                  </div>
+                </div>
+              </Card>
             </motion.div>
           ))}
         </motion.div>
 
-        <div className="flex justify-center">
+        <div className="text-center">
           <Link href="/management">
-            <Button variant="ghost" className="hover:text-green">MEET THE FULL ROSTER &rarr;</Button>
+            <Button variant="outline-light">DISCOVER ALL TALENT</Button>
           </Link>
         </div>
       </div>

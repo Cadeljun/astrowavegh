@@ -5,55 +5,55 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/Button';
 import { fadeUp } from '@/lib/animations';
-import { useCMSContent } from '@/lib/cms/useCMS';
 
-interface CTABannerProps {
-  overrideHeading?: string;
-  overrideSubtext?: string;
-}
-
-export default function CTABanner({ overrideHeading, overrideSubtext }: CTABannerProps) {
-  const { content } = useCMSContent('home', 'cta_banner', {
-    heading: 'READY TO WAVE?',
-    subtext: "Whether you're an artist, event lover, or brand — AstroWave has a space for you. Let's create something unforgettable.",
-    cta1: 'BOOK AN EVENT',
-    cta2: 'JOIN THE MOVEMENT'
-  });
-
-  const heading = overrideHeading || content.heading;
-  const subtext = overrideSubtext || content.subtext;
-
+export default function CTABanner() {
   return (
-    <section className="relative w-full py-20 lg:py-[var(--space-2xl)] px-6 lg:px-12 overflow-hidden bg-[var(--color-light)] border-y border-[var(--color-border)]">
-      <div className="absolute inset-0 z-0 pointer-events-none" style={{ 
-        background: 'linear-gradient(135deg, rgba(14, 165, 233, 0.1) 0%, rgba(2, 11, 24, 0.95) 40%, rgba(0, 255, 135, 0.07) 100%)' 
-      }} />
+    <section className="relative w-full py-32 px-6 lg:px-12 bg-dark-bg overflow-hidden border-t border-dark-border">
+      {/* Background Gradient */}
+      <div className="absolute inset-0 bg-[linear-gradient(135deg,#050E1A_0%,#081525_100%)] z-0" />
       
-      {/* Dynamic Background Glows */}
-      <div className="absolute top-1/2 left-0 -translate-y-1/2 w-[200px] lg:w-[400px] h-[200px] lg:h-[400px] bg-[var(--color-blue)] opacity-[0.1] blur-[80px] lg:blur-[120px] rounded-full z-0" />
-      <div className="absolute top-1/2 right-0 -translate-y-1/2 w-[200px] lg:w-[400px] h-[200px] lg:h-[400px] bg-[var(--color-green)] opacity-[0.1] blur-[80px] lg:blur-[120px] rounded-full z-0" />
+      {/* Accent line */}
+      <div className="absolute top-0 left-0 w-full h-[3px] bg-[linear-gradient(90deg,transparent_0%,var(--green)_30%,var(--cyan)_60%,transparent_100%)] z-10" />
 
-      <div className="absolute inset-0 flex items-center justify-center z-0 pointer-events-none select-none">
-        <span className="font-display text-[15vw] lg:text-[18rem] text-white opacity-[0.02] leading-none tracking-tighter">ASTROWAVE</span>
+      <div className="absolute inset-0 flex items-center justify-center z-0 pointer-events-none opacity-[0.03]">
+        <span className="font-display text-[20vw] leading-none tracking-tighter text-white">ASTROWAVE</span>
       </div>
 
-      <div className="relative z-10 max-w-4xl mx-auto text-center space-y-6 lg:space-y-8">
-        <motion.h2 className="display-xl text-green text-glow-green" variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }}>
-          {heading}
+      <div className="relative z-20 max-w-4xl mx-auto text-center space-y-10">
+        <motion.h2 
+          variants={fadeUp}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true }}
+          className="display-xl text-gradient"
+        >
+          Ready to Wave?
         </motion.h2>
-        <motion.p className="body-lg text-[var(--color-muted)] max-w-[560px] mx-auto text-sm sm:text-base lg:text-lg" variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }} transition={{ delay: 0.2 }}>
-          {subtext}
+        
+        <motion.p 
+          variants={fadeUp}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true }}
+          transition={{ delay: 0.2 }}
+          className="body-lg text-dark-subtext max-w-xl mx-auto"
+        >
+          Whether you're an artist, event lover, or brand — AstroWave has a space for you. Let's create something unforgettable.
         </motion.p>
-        <motion.div className="flex flex-col sm:flex-row items-center justify-center gap-4 lg:gap-6 pt-4" variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }} transition={{ delay: 0.4 }}>
-          <Link href="/contact" className="w-full sm:w-auto">
-            <Button variant="primary" size="lg" className="w-full min-w-[220px]">
-              {content.cta1}
-            </Button>
+
+        <motion.div 
+          variants={fadeUp}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true }}
+          transition={{ delay: 0.4 }}
+          className="flex flex-col sm:flex-row items-center justify-center gap-6"
+        >
+          <Link href="/organizer/post-event" className="w-full sm:w-auto">
+            <Button size="lg" className="w-full sm:min-w-[240px]">BOOK AN EVENT</Button>
           </Link>
           <Link href="/management" className="w-full sm:w-auto">
-            <Button variant="secondary" size="lg" className="w-full min-w-[220px]">
-              {content.cta2}
-            </Button>
+            <Button variant="outline-dark" size="lg" className="w-full sm:min-w-[240px]">JOIN THE MOVEMENT</Button>
           </Link>
         </motion.div>
       </div>

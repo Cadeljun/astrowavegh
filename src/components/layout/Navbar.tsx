@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, X, LayoutDashboard, User, LogOut } from 'lucide-react';
+import { Menu, X, LayoutDashboard, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/context/AuthContext';
@@ -24,15 +24,23 @@ export default function Navbar() {
   const { user, logout } = useAuth();
 
   useEffect(() => {
-    const handleScroll = () => setIsScrolled(window.scrollY > 50);
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 50);
+    };
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Determine if we should use dark or light nav based on scroll and page
+  // For MVP, we assume dark hero on most landing pages, transitioning to dark background nav
+  const isOverLight = false; // This would need advanced scroll tracking per section
+
   return (
     <nav className={cn(
-      "fixed top-0 left-0 w-full z-[1000] transition-all duration-300 px-6 lg:px-12",
-      isScrolled ? "h-16 bg-black/80 backdrop-blur-xl border-b border-white/5" : "h-24 bg-transparent"
+      "fixed top-0 left-0 w-full z-[1000] transition-all duration-[var(--transition-base)] px-6 lg:px-12",
+      isScrolled 
+        ? "h-20 bg-dark-bg/95 backdrop-blur-xl border-b border-dark-border shadow-md" 
+        : "h-28 bg-transparent"
     )}>
       <div className="max-w-screen-2xl mx-auto h-full flex items-center justify-between">
         <Logo height={32} />
@@ -44,8 +52,9 @@ export default function Navbar() {
               key={link.href} 
               href={link.href}
               className={cn(
-                "text-[0.7rem] font-bold uppercase tracking-[0.2em] transition-colors",
-                pathname === link.href ? "text-green" : "text-muted hover:text-white"
+                "text-[0.75rem] font-semibold uppercase tracking-[0.15em] transition-colors relative",
+                pathname === link.href ? "text-green" : "text-white/70 hover:text-white",
+                pathname === link.href && "after:absolute after:-bottom-2 after:left-0 after:w-full after:h-0.5 after:bg-green"
               )}
             >
               {link.name}
@@ -55,39 +64,44 @@ export default function Navbar() {
           {user ? (
             <div className="flex items-center gap-4 ml-6">
               <Link href={user.role === 'talent' ? '/talent/dashboard' : '/organizer/dashboard'}>
-                <Button variant="ghost" size="sm" className="h-10"><LayoutDashboard size={14} className="mr-2" /> DASHBOARD</Button>
+                <Button variant="outline-dark" size="sm" className="h-10">DASHBOARD</Button>
               </Link>
-              <button onClick={logout} className="text-red-400 hover:text-red-300 transition-colors"><LogOut size={18} /></button>
+              <button onClick={logout} className="text-dark-muted hover:text-red-400 transition-colors">
+                <LogOut size={18} />
+              </button>
             </div>
           ) : (
             <Link href="/auth/login" className="ml-6">
-              <Button size="sm" className="h-10 px-8">LOGIN</Button>
+              <Button size="sm" className="h-10 px-8">ACCESS PORTAL</Button>
             </Link>
           )}
         </div>
 
         {/* Mobile Toggle */}
-        <button onClick={() => setIsOpen(!isOpen)} className="lg:hidden text-white">
-          {isOpen ? <X size={24} /> : <Menu size={24} />}
+        <button onClick={() => setIsOpen(!isOpen)} className="lg:hidden text-white p-2">
+          {isOpen ? <X size={28} /> : <Menu size={28} />}
         </button>
       </div>
 
       {/* Mobile Menu */}
       {isOpen && (
-        <div className="lg:hidden fixed inset-0 top-[64px] bg-black z-[999] p-8 flex flex-col gap-8 animate-in slide-in-from-top-4">
+        <div className="lg:hidden fixed inset-0 top-0 bg-dark-bg z-[999] p-8 pt-32 flex flex-col gap-10 animate-in fade-in zoom-in-95">
+          <button onClick={() => setIsOpen(false)} className="absolute top-8 right-6 text-white"><X size={32} /></button>
           {links.map((link) => (
             <Link 
               key={link.href} 
               href={link.href}
               onClick={() => setIsOpen(false)}
-              className="text-2xl font-display uppercase tracking-widest text-white"
+              className="text-4xl font-display font-bold text-white hover:text-green transition-colors"
             >
               {link.name}
             </Link>
           ))}
-          <Link href="/auth/login" onClick={() => setIsOpen(false)}>
-            <Button className="w-full h-14">ACCESS PORTAL</Button>
-          </Link>
+          <div className="pt-10 border-t border-dark-border">
+            <Link href="/auth/login" onClick={() => setIsOpen(false)}>
+              <Button className="w-full h-16 text-lg">ACCESS PORTAL</Button>
+            </Link>
+          </div>
         </div>
       )}
     </nav>

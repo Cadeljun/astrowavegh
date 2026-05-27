@@ -6,24 +6,29 @@ interface BadgeProps {
   variant: 'active' | 'coming-soon' | 'live' | 'free';
   children: React.ReactNode;
   className?: string;
+  theme?: 'dark' | 'light';
 }
 
-const Badge = ({ variant, children, className }: BadgeProps) => {
-  const baseStyles = 'inline-flex items-center gap-1.5 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.15em] rounded-full border';
+const Badge = ({ variant, children, className, theme = 'dark' }: BadgeProps) => {
+  const baseStyles = 'inline-flex items-center gap-1.5 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.12em] rounded-full border transition-all';
   
   const variants = {
-    active: 'bg-green-dim text-green border-green/30',
-    'coming-soon': 'bg-card text-muted border-border-dark',
-    live: 'bg-green/10 text-green border-green/30',
-    free: 'bg-sky-dim text-sky border-sky/30',
+    active: theme === 'dark' 
+      ? 'bg-green-bg-dark text-green border-green-border' 
+      : 'bg-green-bg-light text-green-dark border-green-border',
+    'coming-soon': theme === 'dark'
+      ? 'bg-dark-card text-dark-muted border-dark-border'
+      : 'bg-light-surface text-light-muted border-light-border',
+    live: 'bg-green-bg-dark text-green border-green-border shadow-[0_0_12px_rgba(0,201,107,0.2)]',
+    free: 'bg-cyan-bg-dark text-cyan border-cyan/20',
   };
 
   return (
     <div className={cn(baseStyles, variants[variant], className)}>
       {variant === 'live' && (
-        <span className="relative flex h-2 w-2">
+        <span className="relative flex h-1.5 w-1.5">
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green opacity-75"></span>
-          <span className="relative inline-flex rounded-full h-2 w-2 bg-green"></span>
+          <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-green"></span>
         </span>
       )}
       {variant === 'coming-soon' && <Lock size={10} />}

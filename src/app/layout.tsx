@@ -1,6 +1,6 @@
 import React from 'react';
 import type { Metadata, Viewport } from 'next';
-import { Outfit, Bebas_Neue } from 'next/font/google';
+import { Plus_Jakarta_Sans, Inter } from 'next/font/google';
 import './globals.css';
 import { AuthProvider } from '@/context/AuthContext';
 import { RoleProvider } from '@/context/RoleContext';
@@ -8,20 +8,22 @@ import { FirebaseClientProvider } from '@/firebase/client-provider';
 import ClientLayout from '@/components/layout/ClientLayout';
 import { Toaster } from '@/components/ui/toaster';
 
-const outfit = Outfit({
+const plusJakarta = Plus_Jakarta_Sans({
+  subsets: ['latin'],
+  weight: ['600', '700', '800'],
+  variable: '--font-display',
+  display: 'swap'
+});
+
+const inter = Inter({
   subsets: ['latin'],
   weight: ['300', '400', '500', '600'],
   variable: '--font-body',
-});
-
-const bebasNeue = Bebas_Neue({
-  subsets: ['latin'],
-  weight: ['400'],
-  variable: '--font-display',
+  display: 'swap'
 });
 
 export const viewport: Viewport = {
-  themeColor: '#020B18',
+  themeColor: '#050E1A',
   width: 'device-width',
   initialScale: 1,
 };
@@ -36,8 +38,8 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${bebasNeue.variable} ${outfit.variable}`}>
-      <body className="antialiased bg-black text-white min-h-screen">
+    <html lang="en" className={`${plusJakarta.variable} ${inter.variable}`}>
+      <body className="antialiased bg-dark-bg text-dark-text min-h-screen selection:bg-green selection:text-white">
         <FirebaseClientProvider>
           <AuthProvider>
             <RoleProvider>

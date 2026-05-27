@@ -4,12 +4,15 @@ import { cn } from '@/lib/utils';
 interface SectionLabelProps {
   children: React.ReactNode;
   className?: string;
+  theme?: 'dark' | 'light';
 }
 
-const SectionLabel = ({ children, className }: SectionLabelProps) => {
+const SectionLabel = ({ children, className, theme = 'dark' }: SectionLabelProps) => {
+  const baseClass = theme === 'dark' ? 'section-label-dark' : 'section-label-light';
+  
   return (
-    <div className={cn('flex items-center gap-3 label mb-4 text-[var(--color-green)]', className)}>
-      <span className="h-[1px] w-12 bg-[var(--color-green)] shadow-[0_0_10px_var(--color-green)]"></span>
+    <div className={cn(baseClass, className)}>
+      <span className="w-1.5 h-1.5 rounded-full bg-green inline-block shadow-[0_0_8px_rgba(0,201,107,0.6)]" />
       {children}
     </div>
   );

@@ -1,50 +1,40 @@
 'use client';
 
-import React, { border, motion } from 'framer-motion';
-import { heroTextReveal, fadeIn } from '@/lib/animations';
+import React from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import Logo from './Logo';
 
 export default function LoadingScreen() {
   return (
-    <motion.div
-      initial={{ opacity: 1 }}
-      exit={{ opacity: 0, scale: 1.05 }}
-      transition={{ duration: 0.6, ease: 'easeIn' }}
-      className="fixed inset-0 z-[9998] bg-[var(--color-black)] flex flex-col items-center justify-center overflow-hidden"
-    >
-      {/* Grain Texture Overlay */}
-      <div className="absolute inset-0 pointer-events-none opacity-[0.035] bg-[url('data:image/svg+xml,%3Csvg viewBox=%220 0 256 256%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noise%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.9%22 numOctaves=%224%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noise)%22/%3E%3C/svg%3E')]" />
-
-      <div className="relative z-10 flex flex-col items-center">
+    <div className="fixed inset-0 z-[2000] bg-dark-bg flex flex-col items-center justify-center">
+      <div className="relative z-10 flex flex-col items-center gap-6">
         <motion.div
-          variants={heroTextReveal}
-          initial="hidden"
-          animate="show"
-          className="mb-8"
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.6 }}
         >
-          <Logo height={56} linkTo="" />
+          <Logo height={60} />
         </motion.div>
         
         <motion.p
-          variants={fadeIn}
-          initial="hidden"
-          animate="show"
-          transition={{ delay: 0.6 }}
-          className="font-body italic text-[1rem] text-[var(--color-muted)] mt-2"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.4 }}
+          className="font-body italic text-[0.95rem] text-dark-subtext tracking-wide"
         >
           "Vibes Beyond the Horizon."
         </motion.p>
       </div>
 
-      {/* Progress Bar */}
-      <div className="absolute bottom-0 left-0 w-full h-[2px] bg-white/5">
+      {/* Progress Bar at bottom */}
+      <div className="absolute bottom-0 left-0 w-full h-0.5 bg-white/5">
         <motion.div
           initial={{ width: 0 }}
           animate={{ width: '100%' }}
-          transition={{ duration: 2.5, ease: 'linear' }}
-          className="h-full bg-[var(--color-green)] shadow-[0_0_15px_var(--color-green)]"
+          transition={{ duration: 1.5, ease: 'easeInOut', repeat: Infinity }}
+          className="h-full bg-green shadow-[0_0_12px_rgba(0,201,107,0.6)]"
         />
       </div>
-    </motion.div>
+    </div>
   );
 }

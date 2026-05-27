@@ -2,128 +2,94 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { motion, useScroll, useTransform } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { ArrowRight, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import CloudinaryImage from '@/components/ui/CloudinaryImage';
+import { SectionLabel } from '@/components/ui/SectionLabel';
 import { heroTextReveal, fadeIn, fadeUp } from '@/lib/animations';
-import { useCMSContent, useCMSSettings } from '@/lib/cms/useCMS';
-import { CloudinaryPresets } from '@/lib/cloudinary/getUrl';
-import { NeonLine } from '@/components/ui/NeonLine';
 
 export default function HeroSection() {
-  const { scrollY } = useScroll();
-  const opacity = useTransform(scrollY, [0, 100], [1, 0]);
-  const { settings } = useCMSSettings();
-  
-  const { content } = useCMSContent('home', 'hero', {
-    label: "AFRICA'S CREATIVE POWERHOUSE",
-    heading: "ASTROWAVE",
-    tagline: "Vibes Beyond the Horizon.",
-    cta1: "EXPLORE EVENTS",
-    cta2: "OUR STORY"
-  });
-
   return (
-    <section className="relative h-screen w-full flex items-center justify-center overflow-hidden bg-[var(--color-black)] px-6 sm:px-12">
-      {/* Background Layer */}
-      <div className="absolute inset-0 z-0">
-        {settings?.heroVideoUrl ? (
-          <video
-            autoPlay
-            muted
-            loop
-            playsInline
-            poster={settings.heroPosterUrl ? CloudinaryPresets.heroBg(settings.heroPosterUrl) : ''}
-            className="absolute inset-0 w-full h-full object-cover"
-          >
-            <source src={settings.heroVideoUrl} type="video/mp4" />
-          </video>
-        ) : settings?.heroImageUrl ? (
-          <CloudinaryImage
-            src={settings.heroImageUrl}
-            alt="AstroWave hero background"
-            fill
-            priority
-            transforms={{
-              width: 1920,
-              height: 1080,
-              crop: 'fill',
-              quality: 'auto'
-            }}
-          />
-        ) : (
-          <div className="absolute inset-0 bg-gradient-to-br from-blue/20 via-black to-green/10" />
-        )}
-        
-        <div className="absolute inset-0 bg-black/65 z-10" />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/30 to-[var(--color-black)] z-20" />
-      </div>
+    <section className="relative min-h-screen w-full flex items-center justify-center overflow-hidden bg-dark-bg grain px-6">
+      {/* Floating Animated Orbs */}
+      <div className="absolute top-[-200px] right-[-100px] w-[600px] h-[600px] rounded-full bg-[radial-gradient(circle,rgba(0,201,107,0.12),transparent_70%)] animate-float-1 z-0 pointer-events-none" />
+      <div className="absolute bottom-[-100px] left-[-150px] w-[500px] h-[500px] rounded-full bg-[radial-gradient(circle,rgba(5,130,255,0.1),transparent_70%)] animate-float-2 z-0 pointer-events-none" />
 
-      <div className="relative z-30 text-center max-w-5xl">
-        <motion.div
+      <div className="relative z-10 text-center max-w-4xl space-y-10">
+        <motion.div variants={fadeIn} initial="hidden" animate="show">
+          <SectionLabel theme="dark">Africa's Creative Powerhouse</SectionLabel>
+        </motion.div>
+        
+        <div className="space-y-2">
+          <motion.h1 variants={heroTextReveal} initial="hidden" animate="show" className="display-2xl text-white">
+            Vibes Beyond
+          </motion.h1>
+          <motion.h1 variants={heroTextReveal} initial="hidden" animate="show" className="display-2xl text-gradient">
+            the Horizon.
+          </motion.h1>
+        </div>
+        
+        <motion.p 
+          variants={fadeUp} 
+          initial="hidden" 
+          animate="show" 
+          transition={{ delay: 0.8 }} 
+          className="body-lg text-dark-subtext max-w-2xl mx-auto"
+        >
+          AstroWave connects event organizers with Ghana's best talent through 
+          intelligent matching. Powered by the Wave Score algorithm.
+        </motion.p>
+
+        <motion.div 
+          variants={fadeUp} 
+          initial="hidden" 
+          animate="show" 
+          transition={{ delay: 1.1 }} 
+          className="flex flex-col sm:flex-row justify-center items-center gap-6 pt-6"
+        >
+          <Link href="/events" className="w-full sm:w-auto">
+            <Button size="lg" className="w-full sm:min-w-[200px]">EXPLORE EVENTS</Button>
+          </Link>
+          <Link href="/organizer/search" className="w-full sm:w-auto">
+            <Button variant="outline-dark" size="lg" className="w-full sm:min-w-[200px]">FIND TALENT</Button>
+          </Link>
+        </motion.div>
+
+        {/* Stats Row */}
+        <motion.div 
           variants={fadeIn}
           initial="hidden"
           animate="show"
-          transition={{ delay: 0.3 }}
-          className="flex items-center justify-center gap-3 sm:gap-4 mb-4 sm:mb-6"
+          transition={{ delay: 1.4 }}
+          className="pt-16 max-w-lg mx-auto"
         >
-          <NeonLine orientation="horizontal" color="blue" length="24px" className="opacity-50 sm:w-12" />
-          <span className="label text-[var(--color-green)] text-[0.6rem] sm:text-xs tracking-[0.3em] font-bold">
-            {content.label}
-          </span>
-          <NeonLine orientation="horizontal" color="sky" length="24px" className="opacity-50 sm:w-12" />
-        </motion.div>
-
-        <motion.h1
-          variants={heroTextReveal}
-          initial="hidden"
-          animate="show"
-          className="display-2xl text-green text-glow-green mb-4"
-        >
-          {content.heading}
-        </motion.h1>
-
-        <motion.p
-          variants={fadeUp}
-          initial="hidden"
-          animate="show"
-          transition={{ delay: 0.9 }}
-          className="font-body italic text-[0.95rem] sm:text-[1.1rem] md:text-[1.3rem] text-[var(--color-muted)] mb-10 sm:mb-12 px-4"
-        >
-          "{content.tagline}"
-        </motion.p>
-
-        <motion.div
-          variants={fadeUp}
-          initial="hidden"
-          animate="show"
-          transition={{ delay: 1.1 }}
-          className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6"
-        >
-          <Link href="/events" className="w-full sm:w-auto">
-            <Button size="lg" className="w-full sm:w-auto min-w-[200px]" icon={<ArrowRight className="w-4 h-4" />}>
-              {content.cta1}
-            </Button>
-          </Link>
-          <Link href="/about" className="w-full sm:w-auto">
-            <Button variant="ghost" size="lg" className="w-full sm:w-auto hover:text-green">
-              {content.cta2}
-            </Button>
-          </Link>
+          <div className="divider-dark mb-8" />
+          <div className="flex justify-between items-center px-4">
+             <div className="text-center">
+                <p className="font-display text-2xl text-green">250+</p>
+                <p className="text-[0.65rem] font-bold uppercase tracking-widest text-dark-muted">Talents</p>
+             </div>
+             <div className="w-px h-8 bg-dark-border" />
+             <div className="text-center">
+                <p className="font-display text-2xl text-green">180+</p>
+                <p className="text-[0.65rem] font-bold uppercase tracking-widest text-dark-muted">Events</p>
+             </div>
+             <div className="w-px h-8 bg-dark-border" />
+             <div className="text-center">
+                <p className="font-display text-2xl text-green">98%</p>
+                <p className="text-[0.65rem] font-bold uppercase tracking-widest text-dark-muted">Match Rate</p>
+             </div>
+          </div>
         </motion.div>
       </div>
 
-      <motion.div
-        style={{ opacity }}
-        className="absolute bottom-6 sm:bottom-8 left-1/2 -translate-x-1/2 z-30"
+      <motion.div 
+        animate={{ y: [0, 10, 0] }} 
+        transition={{ duration: 2, repeat: Infinity }}
+        className="absolute bottom-10 left-1/2 -translate-x-1/2 text-dark-muted opacity-40"
       >
-        <div className="animate-bounce">
-          <ChevronDown size={24} className="text-[var(--color-muted)] sm:w-7 sm:h-7" />
-        </div>
+        <ChevronDown size={32} />
       </motion.div>
-      
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full pointer-events-none z-10 opacity-10" style={{ background: 'radial-gradient(circle, #00FF87 0%, transparent 70%)' }} />
     </section>
   );
 }

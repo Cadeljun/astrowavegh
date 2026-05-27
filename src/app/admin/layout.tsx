@@ -13,15 +13,13 @@ export default function AdminLayout({
   const pathname = usePathname()
   const isLoginPage = pathname === '/admin/login'
 
-  // Login page has no sidebar or guard
   if (isLoginPage) {
-    return <>{children}</>
+    return <div className="bg-dark-bg min-h-screen">{children}</div>
   }
 
   return (
     <AdminGuard>
-      <div className="flex min-h-screen bg-[#050505]">
-        
+      <div className="flex min-h-screen bg-dark-bg grain">
         {/* Sidebar — desktop */}
         <div className="hidden lg:flex flex-shrink-0">
           <AdminSidebar />
@@ -29,23 +27,22 @@ export default function AdminLayout({
 
         {/* Main content */}
         <div className="flex-1 flex flex-col min-w-0">
-          
           {/* Mobile top bar */}
           <div className="flex lg:hidden 
             items-center justify-between
-            px-4 h-14 sticky top-0 z-50
-            bg-[#0A0A0F] 
-            border-b border-[#1E1E2E]">
+            px-6 h-16 sticky top-0 z-50
+            bg-dark-bg/95 backdrop-blur-md
+            border-b border-dark-border">
             <Logo height={24} linkTo="/admin/dashboard" />
-            <span className="font-body 
-              text-xs tracking-widest 
-              uppercase text-[#7B7B9A]">
-              Admin
+            <span className="font-body font-bold
+              text-[0.65rem] tracking-widest 
+              uppercase text-dark-muted">
+              Admin Node
             </span>
           </div>
 
           {/* Page content */}
-          <main className="flex-1 p-6 lg:p-8 overflow-auto">
+          <main className="flex-1 p-6 lg:p-12 overflow-auto">
             {children}
           </main>
         </div>
