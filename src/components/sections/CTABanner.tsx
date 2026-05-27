@@ -50,7 +50,7 @@ export default function CTABanner() {
           className="flex flex-col sm:flex-row items-center justify-center gap-6"
         >
           <Link href="/organizer/post-event" className="w-full sm:w-auto">
-            <Button size="lg" className="w-full sm:min-w-[240px]">BOOK AN EVENT</Button>
+            <Button variant="primary" size="lg" className="w-full sm:min-w-[240px]">BOOK AN EVENT</Button>
           </Link>
           <Link href="/management" className="w-full sm:w-auto">
             <Button variant="outline-dark" size="lg" className="w-full sm:min-w-[240px]">JOIN THE MOVEMENT</Button>

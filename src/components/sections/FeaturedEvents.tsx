@@ -54,7 +54,7 @@ export default function FeaturedEvents() {
                       </div>
                    </div>
                    <Link href="/events" className="inline-block w-full">
-                      <Button className="w-full h-12">SECURE TICKETS</Button>
+                      <Button variant="primary" className="w-full h-12">SECURE TICKETS</Button>
                    </Link>
                 </div>
               </Card>
