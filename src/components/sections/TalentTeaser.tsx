@@ -12,9 +12,9 @@ import { MapPin, Star } from 'lucide-react';
 
 export default function TalentTeaser() {
   const talents = [
-    { name: 'DJ Horizon', role: 'DJ', city: 'Accra', score: 4.8, img: 'https://picsum.photos/seed/talent-1/400/400' },
-    { name: 'Uzy', role: 'Artist', city: 'Accra', score: 4.9, img: 'https://picsum.photos/seed/talent-2/400/400' },
-    { name: 'MC Flow', role: 'MC', city: 'Kumasi', score: 4.6, img: 'https://picsum.photos/seed/talent-3/400/400' }
+    { name: 'DJ Horizon', role: 'DJ' as const, city: 'Accra', score: 4.8, img: 'https://picsum.photos/seed/talent-1/400/400' },
+    { name: 'Uzy', role: 'Artist' as const, city: 'Accra', score: 4.9, img: 'https://picsum.photos/seed/talent-2/400/400' },
+    { name: 'MC Flow', role: 'MC' as const, city: 'Kumasi', score: 4.6, img: 'https://picsum.photos/seed/talent-3/400/400' }
   ];
 
   return (
