@@ -38,7 +38,7 @@ const SectionHeading = ({
         {title}
       </h2>
       {subtitle && (
-        <p className="body-lg max-w-2xl"
+        <p className="body-lg"
           style={{
             color: theme === 'dark' ? 'var(--dark-subtext)' : 'var(--light-subtext)'
           }}>
