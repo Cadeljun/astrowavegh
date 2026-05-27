@@ -12,9 +12,9 @@ import { MapPin, Star } from 'lucide-react';
 
 export default function TalentTeaser() {
   const talents = [
-    { name: 'DJ Horizon', role: 'DJ', city: 'Accra', score: 4.8, img: 'https://images.unsplash.com/photo-1571266028243-e4733b0f0bb1?q=80&w=400&h=400&auto=format&fit=crop' },
-    { name: 'Uzy', role: 'Artist', city: 'Accra', score: 4.9, img: 'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?q=80&w=400&h=500&auto=format&fit=crop' },
-    { name: 'MC Flow', role: 'MC', city: 'Kumasi', score: 4.6, img: 'https://images.unsplash.com/photo-1516280440614-37939bbacd81?q=80&w=400&h=400&auto=format&fit=crop' }
+    { name: 'DJ Horizon', role: 'DJ', city: 'Accra', score: 4.8, img: 'https://picsum.photos/seed/talent-1/400/400' },
+    { name: 'Uzy', role: 'Artist', city: 'Accra', score: 4.9, img: 'https://picsum.photos/seed/talent-2/400/400' },
+    { name: 'MC Flow', role: 'MC', city: 'Kumasi', score: 4.6, img: 'https://picsum.photos/seed/talent-3/400/400' }
   ];
 
   return (
