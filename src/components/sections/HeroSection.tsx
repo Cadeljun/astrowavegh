@@ -48,10 +48,10 @@ export default function HeroSection() {
           className="flex flex-col sm:flex-row justify-center items-center gap-6 pt-6"
         >
           <Link href="/events" className="w-full sm:w-auto">
-            <Button size="lg" className="w-full sm:min-w-[200px]">EXPLORE EVENTS</Button>
+            <Button size="lg" className="w-full sm:min-w-[200px]">Explore Events</Button>
           </Link>
           <Link href="/organizer/search" className="w-full sm:w-auto">
-            <Button variant="outline-dark" size="lg" className="w-full sm:min-w-[200px]">FIND TALENT</Button>
+            <Button variant="outline-dark" size="lg" className="w-full sm:min-w-[200px]">Find Talent</Button>
           </Link>
         </motion.div>
 

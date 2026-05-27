@@ -65,7 +65,7 @@ export default function TalentTeaser() {
 
         <div className="text-center">
           <Link href="/management">
-            <Button variant="outline-light">DISCOVER ALL TALENT</Button>
+            <Button variant="outline-light">Discover All Talent</Button>
           </Link>
         </div>
       </div>

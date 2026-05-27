@@ -31,10 +31,6 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Determine if we should use dark or light nav based on scroll and page
-  // For MVP, we assume dark hero on most landing pages, transitioning to dark background nav
-  const isOverLight = false; // This would need advanced scroll tracking per section
-
   return (
     <nav className={cn(
       "fixed top-0 left-0 w-full z-[1000] transition-all duration-[var(--transition-base)] px-6 lg:px-12",
@@ -64,7 +60,7 @@ export default function Navbar() {
           {user ? (
             <div className="flex items-center gap-4 ml-6">
               <Link href={user.role === 'talent' ? '/talent/dashboard' : '/organizer/dashboard'}>
-                <Button variant="outline-dark" size="sm" className="h-10">DASHBOARD</Button>
+                <Button variant="outline-dark" size="sm" className="h-10">Dashboard</Button>
               </Link>
               <button onClick={logout} className="text-dark-muted hover:text-red-400 transition-colors">
                 <LogOut size={18} />
@@ -72,7 +68,7 @@ export default function Navbar() {
             </div>
           ) : (
             <Link href="/auth/login" className="ml-6">
-              <Button size="sm" className="h-10 px-8">ACCESS PORTAL</Button>
+              <Button size="sm" className="h-10 px-8">Access Portal</Button>
             </Link>
           )}
         </div>
@@ -99,7 +95,7 @@ export default function Navbar() {
           ))}
           <div className="pt-10 border-t border-dark-border">
             <Link href="/auth/login" onClick={() => setIsOpen(false)}>
-              <Button className="w-full h-16 text-lg">ACCESS PORTAL</Button>
+              <Button className="w-full h-16 text-lg">Access Portal</Button>
             </Link>
           </div>
         </div>

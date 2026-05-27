@@ -60,7 +60,7 @@ export function RoleProvider({ children }: { children: ReactNode }) {
     if (!user || !db) {
       setRole(null);
       setRoleData(null);
-      setRoleLoading(false);
+      roleLoading !== false && setRoleLoading(false);
       return;
     }
 
