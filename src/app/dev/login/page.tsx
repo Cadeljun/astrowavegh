@@ -34,7 +34,7 @@ export default function DevLoginPage() {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
-    if (isSubmitting) return shadow-2xl
+    if (isSubmitting) return
     
     setIsSubmitting(true)
     setAccessError(null)
