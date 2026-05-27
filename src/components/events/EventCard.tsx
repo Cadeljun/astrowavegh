@@ -43,7 +43,7 @@ export default function EventCard({
       initial="rest"
       whileHover="hover"
       className={cn(
-        'relative h-[320px] md:h-[480px] w-full rounded-lg overflow-hidden group border border-border',
+        'relative h-[320px] md:h-[480px] w-full rounded-lg overflow-hidden group border border-light-border shadow-card hover:shadow-card-hover transition-all duration-300 bg-white',
         className
       )}
     >
@@ -71,7 +71,7 @@ export default function EventCard({
       {/* Content Layer */}
       <div className="absolute inset-0 p-6 md:p-8 flex flex-col justify-between z-30">
         <div className="flex justify-start">
-          <Badge variant="active" className="bg-gold text-black border-none">
+          <Badge variant="active" theme="dark">
             {category}
           </Badge>
         </div>
@@ -81,19 +81,19 @@ export default function EventCard({
             <h3 className="font-display text-[2rem] md:text-[2.5rem] text-white leading-none">
               {name}
             </h3>
-            <div className="flex flex-wrap items-center gap-4 text-muted text-[0.85rem] font-body">
+            <div className="flex flex-wrap items-center gap-4 text-white/70 text-[0.85rem] font-body">
               <span className="flex items-center gap-1.5">
-                <Calendar size={14} className="text-gold" />
+                <Calendar size={14} className="text-green" />
                 {date}
               </span>
               <span className="flex items-center gap-1.5">
-                <MapPin size={14} className="text-gold" />
+                <MapPin size={14} className="text-green" />
                 {venue}
               </span>
             </div>
           </div>
 
-          <p className="font-body text-[0.9rem] text-muted line-clamp-2 max-w-[400px]">
+          <p className="font-body text-[0.9rem] text-white/60 line-clamp-2 max-w-[400px]">
             {description}
           </p>
 
