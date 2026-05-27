@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import { SectionHeading } from '@/components/ui/SectionHeading';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
+import { Button } from '@/components/ui/Button';
 import { staggerContainer, scaleIn } from '@/lib/animations';
 import { MapPin, Star } from 'lucide-react';
 
