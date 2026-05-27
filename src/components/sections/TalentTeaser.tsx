@@ -24,8 +24,8 @@ export default function TalentTeaser() {
           theme="light"
           align="center"
           label="Our Roster"
-          title="The Global Roster"
-          subtitle="Ghana's most elite creative talent, verified by the wave."
+          title="The Talent"
+          subtitle="The faces behind the wave."
           className="mb-20"
         />
 
