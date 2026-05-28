@@ -48,9 +48,15 @@ const platformItems = [
 export default function AdminSidebar() {
   const pathname = usePathname()
   const { logout } = useAuth()
-  const { isSuperAdmin, isDeveloper } = useRole()
+  const { isSuperAdmin, isDeveloper, canEditCMS } = useRole()
 
   const isActive = (href: string) => pathname === href || pathname.startsWith(href + '/')
+
+  // Simplified logic for this specific task
+  const filteredNavItems = navItems.filter(item => {
+    if (item.label === 'Media & Branding') return isSuperAdmin || canEditCMS;
+    return true;
+  });
 
   return (
     <aside className="w-[280px] min-h-screen flex flex-col bg-[#030B14] border-r border-dark-border sticky top-0">
@@ -65,7 +71,7 @@ export default function AdminSidebar() {
         <div>
           <p className="px-4 mb-4 font-body text-[0.65rem] text-dark-muted font-bold uppercase tracking-[0.2em]">Management</p>
           <div className="flex flex-col gap-1.5">
-            {navItems.filter(i => i.group === 'CORE' || i.group === 'MEDIA').map((item) => (
+            {filteredNavItems.filter(i => i.group === 'CORE' || i.group === 'MEDIA').map((item) => (
               <Link
                 key={item.href}
                 href={item.href}

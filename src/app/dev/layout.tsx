@@ -38,11 +38,11 @@ const navItems = [
   { label: 'Analytics', href: '/dev/analytics', icon: BarChart3, group: 'SYSTEM' },
   { label: 'Firestore Manager', href: '/dev/firestore', icon: TableProperties, group: 'SYSTEM' },
   { label: 'Cloudinary Browser', href: '/dev/cloudinary', icon: Cloud, group: 'SYSTEM' },
+  { label: 'CMS Editor', href: '/dev/cms', icon: Edit3, group: 'CONTENT' },
   { label: 'Media & Branding', href: '/dev/brand-assets', icon: ImageIcon, group: 'CONTENT' },
   { label: 'Media Map', href: '/dev/media-map', icon: Map, group: 'CONTENT' },
   { label: 'Wave Score', href: '/dev/wave-score', icon: Waves, group: 'SYSTEM' },
   { label: 'Match Engine', href: '/dev/match-engine', icon: Shuffle, group: 'SYSTEM' },
-  { label: 'CMS Editor', href: '/dev/cms', icon: Edit3, group: 'CONTENT' },
   { label: 'Seed Database', href: '/dev/seed', icon: Database, group: 'DATA' },
   { label: 'Page Previews', href: '/dev/previews', icon: Layout, group: 'PREVIEW' },
   { label: 'Permissions', href: '/dev/permissions', icon: ShieldCheck, group: 'SYSTEM' }
@@ -59,7 +59,7 @@ function SidebarUser() {
           <div className="w-2 h-2 rounded-full shadow-[0_0_8px_currentColor]" style={{ backgroundColor: (ROLE_COLORS as any)[role], color: (ROLE_COLORS as any)[role] }} />
           <div className="flex-1 min-w-0">
             <p className="font-mono text-[10px] font-bold tracking-tighter" style={{ color: (ROLE_COLORS as any)[role] }}>{(ROLE_LABELS as any)[role]}</p>
-            <p className="font-mono text-[9px] text-muted truncate">{user.email}</p>
+            <p className="font-mono text-[9px] text-dark-muted truncate">{user.email}</p>
           </div>
         </div>
       )}
@@ -79,34 +79,35 @@ export default function DevLayout({ children }: { children: React.ReactNode }) {
   const isActive = (href: string) => pathname === href || pathname.startsWith(href + '/')
   const filteredNavItems = navItems.filter(item => {
     if (item.label === 'CMS Editor') return canEditCMS;
-    if (item.label === 'Seed Database' || item.label === 'Firestore Manager' || item.label === 'Wave Score' || item.label === 'Match Engine' || item.label === 'Analytics' || item.label === 'Brand Assets' || item.label === 'Media & Branding') return isSuperAdmin;
+    if (item.label === 'Media & Branding') return canEditCMS || isSuperAdmin;
+    if (item.label === 'Seed Database' || item.label === 'Firestore Manager' || item.label === 'Wave Score' || item.label === 'Match Engine' || item.label === 'Analytics') return isSuperAdmin;
     return true;
   });
 
   return (
     <DevGuard>
-      <div className="flex min-h-screen bg-[#020B18] text-white">
+      <div className="flex min-h-screen bg-dark-bg text-white">
         <aside className="w-72 border-r border-white/5 flex flex-col sticky top-0 h-screen bg-[#041020] z-[100]">
           <div className="p-8 border-b border-white/5">
             <div className="flex items-center gap-3 mb-2">
               <Logo height={24} />
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-1.5 h-1.5 rounded-full bg-green animate-pulse" />
-              <p className="text-[0.6rem] font-mono text-green/60 tracking-[0.2em] uppercase font-bold">DEV COMMAND CENTER</p>
+              <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+              <p className="text-[0.6rem] font-mono text-green-500/60 tracking-[0.2em] uppercase font-bold">DEV COMMAND CENTER</p>
             </div>
           </div>
           <nav className="flex-1 p-4 overflow-y-auto space-y-1">
             {filteredNavItems.map((item) => (
-              <Link key={item.href} href={item.href} className={cn("flex items-center justify-between px-4 py-2.5 rounded-md font-mono text-[0.7rem] transition-all group uppercase tracking-wider", isActive(item.href) ? "bg-green/10 text-green border-l-2 border-green pl-[14px]" : "text-muted hover:text-white hover:bg-white/5 border-l-2 border-transparent")}>
-                <div className="flex items-center gap-3"><item.icon size={14} className={cn("transition-transform group-hover:scale-110", isActive(item.href) ? "text-green" : "text-muted")} />{item.label}</div>
-                {isActive(item.href) && <ChevronRight size={10} className="text-green" />}
+              <Link key={item.href} href={item.href} className={cn("flex items-center justify-between px-4 py-2.5 rounded-md font-mono text-[0.7rem] transition-all group uppercase tracking-wider", isActive(item.href) ? "bg-green-500/10 text-green-500 border-l-2 border-green-500 pl-[14px]" : "text-dark-muted hover:text-white hover:bg-white/5 border-l-2 border-transparent")}>
+                <div className="flex items-center gap-3"><item.icon size={14} className={cn("transition-transform group-hover:scale-110", isActive(item.href) ? "text-green-500" : "text-dark-muted")} />{item.label}</div>
+                {isActive(item.href) && <ChevronRight size={10} className="text-green-500" />}
               </Link>
             ))}
           </nav>
           <div className="p-6 border-t border-white/5 bg-black/40"><SidebarUser /></div>
         </aside>
-        <main className="flex-1 overflow-auto bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(0,255,135,0.05),transparent)]">
+        <main className="flex-1 overflow-auto bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(0,201,107,0.05),transparent)]">
           <div className="max-w-7xl mx-auto p-12">{children}</div>
         </main>
       </div>

@@ -16,7 +16,8 @@ import {
   Music,
   MapPin,
   Eye,
-  X
+  X,
+  Zap
 } from 'lucide-react';
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/firebase';
@@ -136,8 +137,8 @@ export default function BrandAssetsPage() {
 
   if (loading) {
     return (
-      <div className="flex h-[calc(100vh-64px)] items-center justify-center">
-        <Loader2 className="animate-spin text-green" size={32} />
+      <div className="flex h-[calc(100vh-64px)] items-center justify-center bg-dark-bg">
+        <Loader2 className="animate-spin text-green-500" size={32} />
       </div>
     );
   }
@@ -146,40 +147,41 @@ export default function BrandAssetsPage() {
     <div className="flex flex-col h-full bg-[#050E1A]">
       <div className="p-6 border-b border-white/5">
         <p className="text-sm font-bold text-white uppercase tracking-widest">Live Preview</p>
-        <p className="text-[0.65rem] text-muted mt-1">This is how your changes will appear on the site.</p>
+        <p className="text-[0.65rem] text-dark-subtext mt-1">This is how your changes will appear on the site.</p>
       </div>
 
       <div className="flex-1 overflow-y-auto p-6 space-y-10 scrollbar-hide">
         {/* Navbar Preview */}
         <div className="space-y-3">
-          <p className="text-[0.6rem] font-bold text-muted uppercase tracking-[0.2em]">Navigation Mockup</p>
-          <div className="bg-[#0C1E35] rounded-t-xl border border-white/5 h-12 px-4 flex items-center justify-between shadow-lg">
+          <p className="text-[0.6rem] font-bold text-dark-muted uppercase tracking-[0.2em]">Navigation Mockup</p>
+          <div className="bg-dark-card rounded-t-xl border border-white/5 h-12 px-4 flex items-center justify-between shadow-lg">
             {effectiveAssets.logoUrl ? (
               <img src={effectiveAssets.logoUrl} className="h-5 object-contain" alt="" />
             ) : (
-              <span className="font-display text-xs text-green font-bold tracking-widest uppercase">ASTROWAVE</span>
+              <span className="font-display text-xs text-green-500 font-bold tracking-widest uppercase">ASTROWAVE</span>
             )}
-            <Menu size={16} className="text-muted" />
+            <Menu size={16} className="text-dark-muted" />
           </div>
           <div className="h-0.5 bg-dark-border" />
         </div>
 
         {/* Hero Preview */}
         <div className="space-y-3">
-          <p className="text-[0.6rem] font-bold text-muted uppercase tracking-[0.2em]">Hero Display</p>
+          <p className="text-[0.6rem] font-bold text-dark-muted uppercase tracking-[0.2em]">Hero Display</p>
           <div className="aspect-video relative rounded-md overflow-hidden bg-black border border-white/5 shadow-2xl">
             {effectiveAssets.heroVideoUrl ? (
-              <video src={effectiveAssets.heroVideoUrl} className="w-full h-full object-cover opacity-50" muted loop autoPlay />
+              <video src={effectiveAssets.heroVideoUrl} className="w-full h-full object-cover opacity-50" muted loop autoPlay playsInline />
             ) : effectiveAssets.heroImageUrl ? (
               <img src={effectiveAssets.heroImageUrl} className="w-full h-full object-cover opacity-50" alt="" />
             ) : (
               <div className="w-full h-full bg-dark-surface" />
             )}
+            <div className="absolute inset-0 bg-[#050E1A]/55" />
             <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-4 space-y-2">
                <p className="text-[0.5rem] font-bold text-white uppercase tracking-[0.3em]">EXPERIENCE</p>
-               <h3 className="font-display text-xl text-green leading-none">THE WAVE.</h3>
-               <p className="text-[0.45rem] text-white/60 max-w-[120px] leading-tight">A movement of culture, music, and unforgettable experiences.</p>
-               <div className="bg-green px-3 py-1.5 rounded-sm text-[0.45rem] font-bold text-white uppercase">Explore Events →</div>
+               <h3 className="font-display text-xl text-green-500 leading-none">THE WAVE.</h3>
+               <p className="text-[0.45rem] text-white/60 max-w-[120px] leading-tight">AstroWave is more than events. It's a movement of culture, music, and unforgettable experiences.</p>
+               <div className="bg-green-500 px-3 py-1.5 rounded-sm text-[0.45rem] font-bold text-white uppercase">Explore Events →</div>
             </div>
           </div>
         </div>
@@ -187,39 +189,39 @@ export default function BrandAssetsPage() {
         {/* Events Preview */}
         <div className="space-y-3">
           <div className="flex justify-between items-center">
-            <p className="text-[0.6rem] font-bold text-muted uppercase tracking-[0.2em]">Upcoming Events</p>
-            <span className="text-[0.5rem] text-green font-bold uppercase">View All</span>
+            <p className="text-[0.6rem] font-bold text-dark-muted uppercase tracking-[0.2em]">Upcoming Events</p>
+            <span className="text-[0.5rem] text-green-500 font-bold uppercase">View All</span>
           </div>
           <div className="bg-dark-card p-3 rounded-lg border border-white/5 flex gap-3 shadow-xl">
-             <div className="w-10 h-12 bg-green rounded-sm flex flex-col items-center justify-center text-white shrink-0">
+             <div className="w-10 h-12 bg-green-500 rounded-sm flex flex-col items-center justify-center text-white shrink-0">
                <span className="text-sm font-bold leading-none">28</span>
                <span className="text-[0.45rem] font-bold uppercase">DEC</span>
              </div>
              <div className="space-y-0.5">
-               <p className="text-[0.45rem] text-muted uppercase font-bold tracking-widest">AstroWave</p>
+               <p className="text-[0.45rem] text-dark-muted uppercase font-bold tracking-widest">AstroWave</p>
                <p className="text-[0.65rem] font-bold text-white uppercase">All-Day Rave</p>
-               <p className="text-[0.45rem] text-muted flex items-center gap-1">📍 Accra, Ghana</p>
+               <p className="text-[0.45rem] text-dark-muted flex items-center gap-1">📍 Accra, Ghana</p>
              </div>
           </div>
         </div>
 
         {/* Footer Preview */}
         <div className="space-y-3">
-          <p className="text-[0.6rem] font-bold text-muted uppercase tracking-[0.2em]">Footer Identity</p>
+          <p className="text-[0.6rem] font-bold text-dark-muted uppercase tracking-[0.2em]">Footer Identity</p>
           <div className="bg-[#030B14] p-5 rounded-lg border border-white/5 space-y-5 shadow-2xl">
              <div className="flex justify-center">
               {effectiveAssets.logoDarkUrl || effectiveAssets.logoUrl ? (
                 <img src={effectiveAssets.logoDarkUrl || effectiveAssets.logoUrl} className="h-6 object-contain" alt="" />
               ) : (
-                <span className="font-display text-[10px] text-green tracking-widest uppercase">ASTROWAVE</span>
+                <span className="font-display text-[10px] text-green-500 tracking-widest uppercase">ASTROWAVE</span>
               )}
              </div>
-             <div className="flex justify-between px-2 text-muted">
+             <div className="flex justify-between px-2 text-dark-muted">
                {[Instagram, Facebook, Twitter, Music, Youtube].map((Icon, i) => (
                  <Icon key={i} size={14} className="opacity-40" />
                ))}
              </div>
-             <p className="text-[0.45rem] text-muted text-center opacity-30 uppercase tracking-widest">© 2026 AstroWave. All rights reserved.</p>
+             <p className="text-[0.45rem] text-dark-muted text-center opacity-30 uppercase tracking-widest">© 2026 AstroWave. All rights reserved.</p>
           </div>
         </div>
       </div>
@@ -227,26 +229,26 @@ export default function BrandAssetsPage() {
   );
 
   return (
-    <div className="flex h-[calc(100vh-64px)] overflow-hidden -m-8 lg:-m-12">
+    <div className="flex h-[calc(100vh-64px)] overflow-hidden -m-12">
       {/* CENTER — Main scrollable content */}
-      <div className="flex-1 overflow-y-auto p-10 lg:p-14 border-r border-white/5 bg-[#020B18]">
+      <div className="flex-1 overflow-y-auto p-10 lg:p-14 border-r border-white/5 bg-dark-bg">
         <div className="max-w-4xl mx-auto space-y-12">
           {/* Header */}
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-8 border-b border-white/5">
             <div className="space-y-2">
               <h1 className="font-display text-4xl text-white uppercase tracking-tight">Media & Branding</h1>
-              <p className="text-sm text-muted">Manage logos, hero images, and other media used across the AstroWave platform.</p>
+              <p className="text-sm text-dark-subtext">Manage logos, hero images, and other media used across the AstroWave platform.</p>
             </div>
             <div className="flex items-center gap-3">
               <button 
                 onClick={() => window.open('/', '_blank')}
-                className="lg:hidden h-10 px-4 flex items-center gap-2 border border-white/10 rounded-sm text-muted hover:text-white transition-all text-xs font-semibold uppercase"
+                className="lg:hidden h-10 px-4 flex items-center gap-2 border border-white/10 rounded-sm text-dark-muted hover:text-white transition-all text-xs font-semibold uppercase"
               >
                 <ExternalLink size={14} /> View Site
               </button>
               <button 
                 onClick={() => setIsPreviewModalOpen(true)}
-                className="xl:hidden h-10 px-4 flex items-center gap-2 border border-white/10 rounded-sm text-muted hover:text-white transition-all text-xs font-semibold uppercase"
+                className="xl:hidden h-10 px-4 flex items-center gap-2 border border-white/10 rounded-sm text-dark-muted hover:text-white transition-all text-xs font-semibold uppercase"
               >
                 <Eye size={14} /> Preview
               </button>
@@ -261,7 +263,7 @@ export default function BrandAssetsPage() {
               <Button 
                 disabled={pendingCount === 0 || saving}
                 size="sm" 
-                className="h-10 px-6"
+                className="h-10 px-6 bg-green-500 text-white hover:bg-green-600 border-none"
                 onClick={handleSave}
               >
                 {saving ? (
@@ -292,12 +294,12 @@ export default function BrandAssetsPage() {
 
           {/* Important Notes */}
           <div className="pt-10">
-            <Card className="p-8 border-l-[3px] border-l-blue bg-[#0C1E35]/40" noHover>
+            <Card className="p-8 border-l-[3px] border-l-blue-500 bg-dark-card" noHover>
               <div className="flex items-start gap-4">
-                <Shield className="text-blue shrink-0" size={24} />
+                <Shield className="text-blue-500 shrink-0" size={24} />
                 <div className="space-y-4">
                   <p className="font-bold text-white uppercase tracking-widest text-sm">Important Notes</p>
-                  <ul className="space-y-2 text-xs text-muted leading-relaxed list-disc pl-4">
+                  <ul className="space-y-2 text-xs text-dark-subtext leading-relaxed list-disc pl-4">
                     <li>Use high quality images for the best results across all devices.</li>
                     <li>All changes will be instantly reflected on the website via real-time sync.</li>
                     <li>Clear your browser cache if you don't see changes immediately due to CDN caching.</li>
