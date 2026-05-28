@@ -28,6 +28,7 @@ import { cn } from '@/lib/utils'
 const navItems = [
   { label: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard, group: 'CORE' },
   { label: 'CMS Content', href: '/admin/cms', icon: Edit3, group: 'CORE' },
+  { label: 'Media & Branding', href: '/dev/brand-assets', icon: ImageIcon, group: 'CORE' },
   { label: 'Gallery', href: '/admin/gallery', icon: ImageIcon, group: 'MEDIA' },
   { label: 'Uploads', href: '/admin/uploads', icon: Upload, group: 'MEDIA' },
   { label: 'Contacts', href: '/admin/contacts', icon: Mail, group: 'COMMUNITY' },

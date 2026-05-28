@@ -107,7 +107,7 @@ export default function DevLayout({ children }: { children: React.ReactNode }) {
           <div className="p-6 border-t border-white/5 bg-black/40"><SidebarUser /></div>
         </aside>
         <main className="flex-1 overflow-auto bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(0,255,135,0.05),transparent)]">
-          <div className="max-w-6xl mx-auto p-12">{children}</div>
+          <div className="max-w-7xl mx-auto p-12">{children}</div>
         </main>
       </div>
     </DevGuard>
