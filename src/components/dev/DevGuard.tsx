@@ -1,83 +1,96 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
-import { useRole } from '@/context/RoleContext'
-import { Terminal, Loader2 } from 'lucide-react'
+import { doc, getDoc } from 'firebase/firestore'
+import { db } from '@/firebase'
 
-interface DevGuardProps {
-  children: React.ReactNode
-  requireCMS?: boolean
-}
+const DEV_ROLES = [
+  'SUPER_ADMIN', 
+  'EDITOR', 
+  'DEVELOPER'
+]
 
 export default function DevGuard({
-  children,
-  requireCMS = false
-}: DevGuardProps) {
-  const { isAdmin, loading: authLoading } = 
-    useAuth()
-  const { 
-    canAccessDev, 
-    canEditCMS,
-    roleLoading,
-    role
-  } = useRole()
+  children
+}: {
+  children: React.ReactNode
+}) {
+  const { user, loading } = useAuth()
   const router = useRouter()
-
-  const isLoading = authLoading || roleLoading
+  const [checking, setChecking] = 
+    useState(true)
+  const [allowed, setAllowed] = 
+    useState(false)
 
   useEffect(() => {
-    if (isLoading) return
+    if (loading) return
 
-    // Not signed in → dev login
-    if (!isAdmin) {
+    if (!user) {
       router.replace('/dev/login')
+      setChecking(false)
       return
     }
 
-    // Signed in but no dev access
-    if (!canAccessDev) {
-      router.replace('/dev/no-access')
-      return
-    }
+    // Check role
+    getDoc(doc(db, 'user_roles', user.uid))
+      .then(snap => {
+        if (
+          snap.exists() &&
+          snap.data().active &&
+          DEV_ROLES.includes(snap.data().role)
+        ) {
+          setAllowed(true)
+        } else {
+          router.replace('/dev/login')
+        }
+      })
+      .catch(() => {
+        router.replace('/dev/login')
+      })
+      .finally(() => {
+        setChecking(false)
+      })
+  }, [user, loading, router])
 
-    // Needs CMS access but doesn't have it
-    if (requireCMS && !canEditCMS) {
-      router.replace('/dev/no-access')
-      return
-    }
-  }, [
-    isLoading, isAdmin, 
-    canAccessDev, canEditCMS,
-    requireCMS, router
-  ])
-
-  // Loading state
-  if (isLoading) {
+  if (loading || checking) {
     return (
-      <div className="min-h-screen 
-        bg-[#050505] flex items-center 
-        justify-center">
-        <div className="flex flex-col 
-          items-center gap-4">
-          <Loader2 size={28} 
-            className="text-[#06B6D4] 
-              animate-spin" 
-          />
-          <p className="font-mono text-xs 
-            text-white/30 tracking-widest 
-            uppercase">
-            Verifying access...
-          </p>
-        </div>
+      <div style={{
+        minHeight: '100vh',
+        background: '#050E1A',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '16px'
+      }}>
+        <style>{`
+          @keyframes spin {
+            to { transform: rotate(360deg); }
+          }
+        `}</style>
+        <div style={{
+          width: '32px', height: '32px',
+          borderRadius: '50%',
+          border: '2px solid #00D4FF',
+          borderTopColor: 'transparent',
+          animation: 'spin 0.8s linear infinite'
+        }} />
+        <p style={{
+          fontFamily: 'Inter, sans-serif',
+          fontSize: '0.75rem',
+          color: '#4A6380',
+          letterSpacing: '0.1em',
+          textTransform: 'uppercase'
+        }}>
+          Verifying access...
+        </p>
       </div>
     )
   }
 
-  // No access states
-  if (!isAdmin || !canAccessDev) return null
-  if (requireCMS && !canEditCMS) return null
+  if (!allowed) return null
 
   return <>{children}</>
 }

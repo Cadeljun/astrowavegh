@@ -1,178 +1,407 @@
 'use client'
 
-import { useState, FormEvent, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '@/context/AuthContext'
-import { useRole } from '@/context/RoleContext'
 import { useRouter } from 'next/navigation'
-import { Eye, EyeOff, Terminal, AlertCircle, ArrowLeft, Loader2, ShieldCheck } from 'lucide-react'
-import { ROLE_LABELS } from '@/context/RoleContext'
-import Link from 'next/link'
-import { motion, AnimatePresence } from 'framer-motion'
-import Logo from '@/components/ui/Logo'
+import { 
+  Terminal, AlertCircle, 
+  ShieldX, Loader2 
+} from 'lucide-react'
+import { doc, getDoc } from 'firebase/firestore'
+import { db } from '@/firebase'
 
-/**
- * DevLoginPage
- * Specialized authorization portal for internal developer tools.
- */
+// Google SVG icon
+function GoogleIcon({ size = 20 }: 
+  { size?: number }) {
+  return (
+    <svg width={size} height={size}
+      viewBox="0 0 24 24">
+      <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+      <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+      <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+      <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+    </svg>
+  )
+}
+
+const DEV_ALLOWED_ROLES = [
+  'SUPER_ADMIN', 
+  'EDITOR', 
+  'DEVELOPER'
+]
+
+const ROLE_INFO: Record<string, { color: string, label: string, access: string }> = {
+  SUPER_ADMIN: { 
+    color: '#00C96B', 
+    label: 'Super Admin',
+    access: 'Full dev panel access'
+  },
+  EDITOR: { 
+    color: '#0582FF', 
+    label: 'Editor',
+    access: 'CMS editor access'
+  },
+  DEVELOPER: { 
+    color: '#00D4FF', 
+    label: 'Developer',
+    access: 'Technical tools access'
+  },
+  VIEWER: { 
+    color: '#4A6380', 
+    label: 'Viewer',
+    access: 'No dev panel access'
+  }
+}
+
 export default function DevLoginPage() {
-  const { login, error: authError, isAdmin, loading: authLoading, clearError } = useAuth()
-  const { role, roleLoading, canAccessDev } = useRole()
+  const { 
+    user, loading, 
+    signInWithGoogle, error,
+    clearError
+  } = useAuth()
   const router = useRouter()
-  
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [accessError, setAccessError] = useState<string | null>(null)
+  const [signing, setSigning] = 
+    useState(false)
+  const [checkingRole, setCheckingRole] = 
+    useState(false)
+  const [accessError, setAccessError] = 
+    useState<string | null>(null)
 
-  // Automatic redirect if already authorized
+  // If already logged in check role
   useEffect(() => {
-    if (!authLoading && !roleLoading && isAdmin && canAccessDev) {
-      router.replace('/dev/components')
-    }
-  }, [isAdmin, canAccessDev, authLoading, roleLoading, router])
+    if (loading || !user) return
+    checkUserRole(user.uid)
+  }, [user, loading])
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault()
-    if (isSubmitting) return
-    
-    setIsSubmitting(true)
-    setAccessError(null)
-    
+  const checkUserRole = async (uid: string) => {
+    setCheckingRole(true)
     try {
-      await login(email, password)
-    } catch (err) {
-      // Error handled by AuthContext
+      const snap = await getDoc(
+        doc(db, 'user_roles', uid)
+      )
+      if (snap.exists()) {
+        const data = snap.data()
+        const role = data.role
+        const active = data.active
+        
+        if (!active) {
+          setAccessError(
+            'Your account has been deactivated.'
+          )
+          return
+        }
+        
+        if (DEV_ALLOWED_ROLES.includes(role)) {
+          router.replace('/dev')
+        } else {
+          setAccessError(
+            `Your role (${
+              ROLE_INFO[role]?.label || role
+            }) does not have access to the dev panel.`
+          )
+        }
+      } else {
+        setAccessError(
+          'No role assigned to your account. Contact Super Admin.'
+        )
+      }
+    } catch (e) {
+      setAccessError(
+        'Failed to verify access. Try again.'
+      )
     } finally {
-      setIsSubmitting(false)
+      setCheckingRole(false)
     }
   }
 
-  // Monitor role clearance
-  useEffect(() => {
-    if (isAdmin && !roleLoading && role && !canAccessDev) {
-      setAccessError(`CRITICAL: Identity [${(ROLE_LABELS as any)[role]}] lacks operator clearance.`)
+  const handleGoogleSignIn = async () => {
+    setSigning(true)
+    setAccessError(null)
+    clearError()
+    try {
+      await signInWithGoogle()
+      // Role check happens in useEffect
+    } catch {
+      // error handled in context
+    } finally {
+      setSigning(false)
     }
-  }, [isAdmin, role, roleLoading, canAccessDev])
-
-  if (authLoading || (isAdmin && roleLoading)) {
-    return (
-      <div className="min-h-screen bg-black flex flex-col items-center justify-center gap-6">
-        <Loader2 className="animate-spin text-cyan-400" size={48} />
-        <p className="font-mono text-[0.6rem] text-cyan-500/60 uppercase tracking-[0.3em]">Synchronizing Security Tokens...</p>
-      </div>
-    )
   }
+
+  const isLoading = loading || 
+    checkingRole || signing
 
   return (
-    <div className="min-h-screen bg-[#020B18] flex items-center justify-center p-6 relative overflow-hidden font-mono">
-      {/* Terminal Grid Background */}
-      <div className="absolute inset-0 z-0 pointer-events-none">
-        <div 
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full opacity-[0.05]"
-          style={{ backgroundImage: `radial-gradient(ellipse 60% 40% at 50% 50%, #38BDF8, transparent 70%)` }}
-        />
-        <div className="absolute inset-0 opacity-[0.1] bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] z-10 pointer-events-none" style={{ backgroundSize: '100% 2px, 3px 100%' }} />
-      </div>
+    <div style={{
+      minHeight: '100vh',
+      background: '#050E1A',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '16px',
+      position: 'relative',
+      overflow: 'hidden'
+    }}>
 
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="relative z-20 w-full max-w-[440px]"
-      >
-        <div className="bg-[#08080C] border-t-[3px] border-t-sky border border-white/5 p-10 md:p-12 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
-          <div className="flex flex-col items-center mb-12">
-            <div className="w-20 h-20 rounded-xl bg-sky/5 border border-sky/20 flex items-center justify-center mb-6 shadow-[0_0_30px_rgba(56,189,248,0.1)]">
-              <Terminal size={40} className="text-sky" />
-            </div>
-            <Logo height={40} className="mx-auto" />
-            <div className="flex items-center justify-center gap-3 text-sky/40 uppercase tracking-[0.3em] text-[0.6rem] font-bold mt-4">
-              <div className="w-1.5 h-1.5 rounded-full bg-sky animate-pulse" />
-              Secure Authorization
-            </div>
+      <style>{`
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+        @keyframes float1 {
+          0%,100% { transform: translate(0,0); }
+          50% { transform: translate(25px,-35px); }
+        }
+        @keyframes float2 {
+          0%,100% { transform: translate(0,0); }
+          50% { transform: translate(-20px,25px); }
+        }
+        .dev-google-btn:hover {
+          background: rgba(240,248,255,0.92) !important;
+          transform: translateY(-1px);
+          box-shadow: 0 4px 20px 
+            rgba(0,212,255,0.2) !important;
+        }
+        .dev-google-btn:active {
+          transform: translateY(0) !important;
+        }
+      `}</style>
+
+      {/* Cyan orb top right */}
+      <div style={{
+        position: 'absolute',
+        top: '-120px', right: '-80px',
+        width: '420px', height: '420px',
+        borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(0,212,255,0.07), transparent 70%)',
+        animation: 'float1 9s ease-in-out infinite',
+        pointerEvents: 'none'
+      }} />
+      {/* Blue orb bottom left */}
+      <div style={{
+        position: 'absolute',
+        bottom: '-80px', left: '-120px',
+        width: '380px', height: '380px',
+        borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(5,130,255,0.07), transparent 70%)',
+        animation: 'float2 11s ease-in-out infinite',
+        pointerEvents: 'none'
+      }} />
+
+      {/* Card */}
+      <div style={{
+        width: '100%',
+        maxWidth: '420px',
+        background: 'rgba(12,30,53,0.88)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        border: '1px solid #142440',
+        borderTop: '3px solid #00D4FF',
+        borderRadius: '16px',
+        padding: '40px',
+        position: 'relative',
+        zIndex: 10
+      }}>
+
+        {/* Header */}
+        <div style={{
+          textAlign: 'center',
+          marginBottom: '28px'
+        }}>
+          <div style={{
+            width: '56px', height: '56px',
+            borderRadius: '14px',
+            background: 'rgba(0,212,255,0.1)',
+            border: '1px solid rgba(0,212,255,0.2)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            margin: '0 auto 16px'
+          }}>
+            <Terminal 
+              size={24} 
+              color="#00D4FF" 
+            />
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-8">
-            <div className="space-y-3">
-              <label className="text-[0.65rem] font-bold text-white/30 uppercase tracking-[0.2em]">OPERATOR_ID</label>
-              <input
-                type="email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                required
-                onFocus={clearError}
-                placeholder="identity@astrowave.dev"
-                className="w-full h-14 bg-white/[0.02] border border-white/10 rounded-sm px-5 text-sm text-sky/50 placeholder:text-white/5 focus:border-sky focus:bg-sky/[0.03] focus:outline-none transition-all"
-              />
-            </div>
+          <h1 style={{
+            fontFamily: 'Plus Jakarta Sans, sans-serif',
+            fontSize: '1.75rem',
+            fontWeight: 800,
+            color: '#FFFFFF',
+            letterSpacing: '-0.02em',
+            marginBottom: '6px'
+          }}>
+            Dev Panel
+          </h1>
+          <p style={{
+            fontFamily: 'Inter, sans-serif',
+            fontSize: '0.875rem',
+            color: '#8BA4BE'
+          }}>
+            AstroWave Internal Tools
+          </p>
+        </div>
 
-            <div className="space-y-3">
-              <label className="text-[0.65rem] font-bold text-white/30 uppercase tracking-[0.2em]">SECURITY_KEY</label>
-              <div className="relative">
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                  required
-                  onFocus={clearError}
-                  placeholder="••••••••"
-                  className="w-full h-14 bg-white/[0.02] border border-white/10 rounded-sm px-5 text-sm text-sky/50 placeholder:text-white/5 focus:border-sky focus:bg-sky/[0.03] focus:outline-none transition-all pr-14"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-white/10 hover:text-sky transition-colors"
-                >
-                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                </button>
-              </div>
-            </div>
+        {/* Divider */}
+        <div style={{
+          height: '1px',
+          background: 'linear-gradient(90deg, transparent, rgba(0,212,255,0.3), transparent)',
+          marginBottom: '24px'
+        }} />
 
-            <AnimatePresence mode="wait">
-              {(authError || accessError) && (
-                <motion.div 
-                  initial={{ opacity: 0, scale: 0.98 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.98 }}
-                  className="bg-red-500/5 border border-red-500/20 rounded-sm p-4 flex gap-4 text-red-400"
-                >
-                  <AlertCircle size={20} className="shrink-0" />
-                  <p className="text-[0.65rem] font-bold leading-relaxed uppercase tracking-[0.1em]">{authError || accessError}</p>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full h-16 bg-transparent border border-sky text-sky text-xs font-bold tracking-[0.4em] uppercase hover:bg-sky hover:text-black hover:shadow-[0_0_30px_rgba(56,189,248,0.3)] disabled:opacity-20 transition-all flex items-center justify-center gap-3"
-            >
-              {isSubmitting ? (
-                <Loader2 className="animate-spin h-6 w-6" />
-              ) : (
-                <>
-                  <ShieldCheck size={18} />
-                  Initialize Link
-                </>
-              )}
-            </button>
-          </form>
-
-          <div className="mt-12 pt-10 border-t border-white/5">
-            <Link 
-              href="/"
-              className="flex items-center justify-center gap-3 text-[0.6rem] font-bold uppercase tracking-[0.3em] text-white/10 hover:text-sky transition-colors group"
-            >
-              <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
-              Abort to Public Interface
-            </Link>
+        {/* Role access info */}
+        <div style={{
+          padding: '14px 16px',
+          background: 'rgba(0,212,255,0.05)',
+          border: '1px solid rgba(0,212,255,0.12)',
+          borderRadius: '10px',
+          marginBottom: '24px'
+        }}>
+          <p style={{
+            fontFamily: 'Inter, sans-serif',
+            fontSize: '0.75rem',
+            color: '#8BA4BE',
+            marginBottom: '10px'
+          }}>
+            Access requires one of these roles:
+          </p>
+          <div style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: '8px'
+          }}>
+            {Object.entries(ROLE_INFO)
+              .filter(([r]) => 
+                DEV_ALLOWED_ROLES.includes(r)
+              )
+              .map(([role, info]) => (
+              <span key={role} style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px',
+                padding: '3px 10px',
+                borderRadius: '100px',
+                background: `${info.color}15`,
+                border: `1px solid ${info.color}30`,
+                fontFamily: 'Inter, sans-serif',
+                fontSize: '0.7rem',
+                fontWeight: 600,
+                color: info.color
+              }}>
+                <span style={{
+                  width: '6px', height: '6px',
+                  borderRadius: '50%',
+                  background: info.color,
+                  display: 'inline-block'
+                }} />
+                {info.label}
+              </span>
+            ))}
           </div>
         </div>
-        
-        <p className="text-center mt-8 text-[0.5rem] text-white/5 uppercase tracking-[0.5em]">
-          Internal Protocol // Node: 9129689546-ca9f2
+
+        {/* Auth errors */}
+        {(error || accessError) && (
+          <div style={{
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: '10px',
+            padding: '12px 14px',
+            background: 'rgba(239,68,68,0.08)',
+            border: '1px solid rgba(239,68,68,0.2)',
+            borderRadius: '10px',
+            marginBottom: '20px'
+          }}>
+            {accessError
+              ? <ShieldX size={15} 
+                  color="#ef4444"
+                  style={{ 
+                    flexShrink: 0, 
+                    marginTop: 1 
+                  }} />
+              : <AlertCircle size={15}
+                  color="#ef4444"
+                  style={{ 
+                    flexShrink: 0, 
+                    marginTop: 1 
+                  }} />
+            }
+            <p style={{
+              fontFamily: 'Inter, sans-serif',
+              fontSize: '0.85rem',
+              color: '#ef4444',
+              margin: 0
+            }}>
+              {accessError || error}
+            </p>
+          </div>
+        )}
+
+        {/* Google Sign In Button */}
+        <button
+          className="dev-google-btn"
+          onClick={handleGoogleSignIn}
+          disabled={isLoading}
+          style={{
+            width: '100%',
+            padding: '13px 24px',
+            background: isLoading
+              ? 'rgba(240,248,255,0.7)'
+              : '#F0F8FF',
+            border: 'none',
+            borderRadius: '10px',
+            fontFamily: 'Inter, sans-serif',
+            fontSize: '0.9rem',
+            fontWeight: 600,
+            color: '#050E1A',
+            cursor: isLoading
+              ? 'not-allowed'
+              : 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '10px',
+            transition: 'all 0.18s ease',
+            opacity: isLoading ? 0.7 : 1
+          }}
+        >
+          {isLoading ? (
+            <>
+              <span style={{
+                width: '18px',
+                height: '18px',
+                borderRadius: '50%',
+                border: '2px solid #050E1A',
+                borderTopColor: 'transparent',
+                animation: 
+                  'spin 0.8s linear infinite',
+                display: 'inline-block'
+              }} />
+              {checkingRole
+                ? 'Checking access...'
+                : 'Signing in...'
+              }
+            </>
+          ) : (
+            <>
+              <GoogleIcon size={20} />
+              Continue with Google
+            </>
+          )}
+        </button>
+
+        {/* Footer */}
+        <p style={{
+          textAlign: 'center',
+          fontFamily: 'Inter, sans-serif',
+          fontSize: '0.72rem',
+          color: '#4A6380',
+          marginTop: '24px'
+        }}>
+          AstroWave Internal · 
+          Authorised Personnel Only
         </p>
-      </motion.div>
+      </div>
     </div>
   )
 }
