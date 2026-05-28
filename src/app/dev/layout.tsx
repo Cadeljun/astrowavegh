@@ -36,9 +36,9 @@ const navItems = [
   { label: 'Typography', href: '/dev/typography', icon: Type, group: 'LIBRARY' },
   { label: 'Animations', href: '/dev/animations', icon: Zap, group: 'LIBRARY' },
   { label: 'Analytics', href: '/dev/analytics', icon: BarChart3, group: 'SYSTEM' },
-  { label: 'Brand Assets', href: '/dev/brand-assets', icon: ImageIcon, group: 'SYSTEM' },
   { label: 'Firestore Manager', href: '/dev/firestore', icon: TableProperties, group: 'SYSTEM' },
   { label: 'Cloudinary Browser', href: '/dev/cloudinary', icon: Cloud, group: 'SYSTEM' },
+  { label: 'Media & Branding', href: '/dev/brand-assets', icon: ImageIcon, group: 'CONTENT' },
   { label: 'Media Map', href: '/dev/media-map', icon: Map, group: 'CONTENT' },
   { label: 'Wave Score', href: '/dev/wave-score', icon: Waves, group: 'SYSTEM' },
   { label: 'Match Engine', href: '/dev/match-engine', icon: Shuffle, group: 'SYSTEM' },
@@ -79,7 +79,7 @@ export default function DevLayout({ children }: { children: React.ReactNode }) {
   const isActive = (href: string) => pathname === href || pathname.startsWith(href + '/')
   const filteredNavItems = navItems.filter(item => {
     if (item.label === 'CMS Editor') return canEditCMS;
-    if (item.label === 'Seed Database' || item.label === 'Firestore Manager' || item.label === 'Wave Score' || item.label === 'Match Engine' || item.label === 'Analytics' || item.label === 'Brand Assets') return isSuperAdmin;
+    if (item.label === 'Seed Database' || item.label === 'Firestore Manager' || item.label === 'Wave Score' || item.label === 'Match Engine' || item.label === 'Analytics' || item.label === 'Brand Assets' || item.label === 'Media & Branding') return isSuperAdmin;
     return true;
   });
 

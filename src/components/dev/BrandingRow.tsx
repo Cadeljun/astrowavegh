@@ -3,6 +3,7 @@
 import React, { useState, useRef } from 'react';
 import { UploadCloud, X, RefreshCw, Loader2, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/Button';
 
 interface BrandingRowProps {
   name: string;
@@ -34,9 +35,16 @@ export default function BrandingRow({
   const [isDragging, setIsDragging] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [uploaded, setUploaded] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleUpload = async (file: File) => {
+    // Validation
+    if (field === 'heroVideoUrl' && !file.type.startsWith('video/')) {
+      alert('Please select a valid video file.');
+      return;
+    }
+
     setUploading(true);
     setProgress(10);
     
@@ -61,11 +69,14 @@ export default function BrandingRow({
       
       if (data.url) {
         setProgress(100);
+        setUploaded(true);
         onUpload(data.url);
+        
         setTimeout(() => {
           setUploading(false);
+          setUploaded(false);
           setProgress(0);
-        }, 1000);
+        }, 2000);
       } else {
         throw new Error(data.error || 'Upload failed');
       }
@@ -92,11 +103,11 @@ export default function BrandingRow({
 
   return (
     <div className={cn(
-      "grid grid-cols-1 md:grid-cols-[240px_1fr_220px] gap-8 py-10 border-b border-white/5 items-start relative transition-colors",
+      "grid grid-cols-1 lg:grid-cols-[240px_1fr_220px] gap-6 lg:gap-10 py-10 border-b border-white/5 items-start relative transition-colors",
       isPending && "bg-green/5"
     )}>
       {isPending && (
-        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-12 bg-green rounded-r-full shadow-[0_0_10px_var(--color-green)]" />
+        <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-green shadow-[0_0_10px_var(--color-green)]" />
       )}
 
       {/* LEFT — Info */}
@@ -105,7 +116,9 @@ export default function BrandingRow({
           <p className="text-sm font-bold text-white uppercase tracking-tight">{name}</p>
           {isPending && <span className="w-1.5 h-1.5 rounded-full bg-green animate-pulse" />}
         </div>
-        <p className="text-[0.7rem] text-muted leading-relaxed max-w-[200px]">{description}</p>
+        <p className="text-[0.7rem] text-muted leading-relaxed">
+          {description}
+        </p>
         <div className="pt-2">
           <p className="text-[0.65rem] text-muted/60 font-mono whitespace-pre-line leading-tight">
             {specs}
@@ -116,7 +129,7 @@ export default function BrandingRow({
       {/* CENTER — Drop Zone */}
       <div 
         className={cn(
-          "relative h-32 rounded-lg border-2 border-dashed flex flex-col items-center justify-center gap-2 transition-all group cursor-pointer",
+          "relative h-40 rounded-lg border-2 border-dashed flex flex-col items-center justify-center gap-3 transition-all group cursor-pointer",
           isDragging ? "border-green bg-green/5" : "border-white/10 hover:border-white/20 bg-black/20",
           uploading && "pointer-events-none"
         )}
@@ -126,24 +139,35 @@ export default function BrandingRow({
         onClick={() => fileInputRef.current?.click()}
       >
         {uploading ? (
-          <div className="flex flex-col items-center gap-3 w-full px-12">
-            <Loader2 className="animate-spin text-green" size={24} />
-            <div className="w-full space-y-1">
-              <div className="flex justify-between text-[0.6rem] font-bold text-muted uppercase">
-                <span>Uploading...</span>
-                <span>{progress}%</span>
-              </div>
-              <div className="h-1 bg-white/5 rounded-full overflow-hidden">
-                <div className="h-full bg-green transition-all duration-300" style={{ width: `${progress}%` }} />
-              </div>
-            </div>
+          <div className="flex flex-col items-center gap-4 w-full px-12">
+            {uploaded ? (
+              <motion.div initial={{ scale: 0.5 }} animate={{ scale: 1 }} className="flex flex-col items-center gap-2">
+                <div className="w-10 h-10 rounded-full bg-green flex items-center justify-center text-white">
+                  <Check size={20} strokeWidth={3} />
+                </div>
+                <p className="text-xs font-bold text-green uppercase tracking-widest">Uploaded ✓</p>
+              </motion.div>
+            ) : (
+              <>
+                <Loader2 className="animate-spin text-green" size={24} />
+                <div className="w-full space-y-2">
+                  <div className="flex justify-between text-[0.6rem] font-bold text-muted uppercase">
+                    <span>Uploading...</span>
+                    <span>{progress}%</span>
+                  </div>
+                  <div className="h-1 bg-white/5 rounded-full overflow-hidden">
+                    <div className="h-full bg-green transition-all duration-300" style={{ width: `${progress}%` }} />
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         ) : (
           <>
             <UploadCloud className={cn("transition-colors", isDragging ? "text-green" : "text-muted")} size={32} />
             <div className="text-center">
               <p className="text-sm text-white font-medium">{dropText}</p>
-              <p className="text-[0.7rem] text-green font-bold uppercase tracking-widest mt-0.5 group-hover:underline">or click to browse</p>
+              <p className="text-[0.7rem] text-green font-bold uppercase tracking-widest mt-1 group-hover:underline">or click to browse</p>
             </div>
           </>
         )}
@@ -163,8 +187,8 @@ export default function BrandingRow({
             field.includes('Video') ? (
               <div className="relative w-full h-full">
                 <video src={currentUrl} className="w-full h-full object-cover" muted loop autoPlay />
-                <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                  <RefreshCw className="text-white/50" size={24} />
+                <div className="absolute inset-0 bg-black/40 flex items-center justify-center pointer-events-none">
+                  <RefreshCw className="text-white/50 animate-spin-slow" size={24} />
                 </div>
               </div>
             ) : (
@@ -179,9 +203,9 @@ export default function BrandingRow({
         
         <div className="flex gap-2">
           <Button 
-            variant="ghost" 
+            variant="outline-dark" 
             size="sm" 
-            className="flex-1 h-9 text-[0.65rem] border border-white/10"
+            className="flex-1 h-9 text-[0.65rem] border-white/10"
             onClick={() => fileInputRef.current?.click()}
           >
             CHANGE
@@ -190,7 +214,7 @@ export default function BrandingRow({
             variant="ghost" 
             size="sm" 
             className="flex-1 h-9 text-[0.65rem] border border-red-500/20 text-red-400 hover:bg-red-500/10"
-            onClick={onRemove}
+            onClick={(e) => { e.stopPropagation(); onRemove(); }}
             disabled={!currentUrl}
           >
             REMOVE
@@ -209,7 +233,7 @@ function ImageIcon({ size }: { size: number }) {
       viewBox="0 0 24 24" 
       fill="none" 
       stroke="currentColor" 
-      strokeWidth="2" 
+      strokeWidth="1.5" 
       strokeLinecap="round" 
       strokeLinejoin="round"
     >
