@@ -38,7 +38,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${plusJakarta.variable} ${inter.variable}`}>
+    <html lang="en" className={`${plusJakarta.variable} ${inter.variable}`} suppressHydrationWarning>
       <body className="antialiased bg-dark-bg text-dark-text min-h-screen selection:bg-green selection:text-white">
         <FirebaseClientProvider>
           <AuthProvider>
