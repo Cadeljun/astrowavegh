@@ -9,10 +9,11 @@ import {
 } from 'react';
 import {
   User,
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
   GoogleAuthProvider,
   signInWithPopup,
-  signOut,
-  onAuthStateChanged
+  signOut
 } from 'firebase/auth';
 import { auth } from '@/firebase';
 import { useRouter } from 'next/navigation';
@@ -28,6 +29,7 @@ interface AuthContextType {
   platformLoading: boolean;
   isAdmin: boolean;
   needsOnboarding: boolean;
+  login: (email: string, password: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
   error: string | null;
@@ -72,6 +74,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     );
     return () => unsubscribe();
   }, []);
+
+  const login = async (email: string, password: string) => {
+    setError(null);
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      router.push('/admin/dashboard');
+    } catch (err: any) {
+      const msgs: Record<string, string> = {
+        'auth/invalid-credential': 'Invalid email or password.',
+        'auth/user-not-found': 'No account found with this email.',
+        'auth/wrong-password': 'Incorrect password.',
+        'auth/too-many-requests': 'Too many attempts. Try again later.',
+        'auth/invalid-email': 'Please enter a valid email address.',
+        'auth/user-disabled': 'This account has been disabled.'
+      };
+      setError(msgs[err.code] || 'Sign in failed. Please try again.');
+      throw err;
+    }
+  };
 
   const signInWithGoogle = async () => {
     setError(null);
@@ -137,6 +158,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       platformLoading,
       isAdmin,
       needsOnboarding,
+      login,
       signInWithGoogle,
       logout,
       error,

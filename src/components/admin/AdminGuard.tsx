@@ -4,10 +4,10 @@ import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
 
-export default function AdminGuard({ 
-  children 
-}: { 
-  children: React.ReactNode 
+export default function AdminGuard({
+  children
+}: {
+  children: React.ReactNode
 }) {
   const { isAdmin, loading } = useAuth()
   const router = useRouter()
@@ -18,33 +18,30 @@ export default function AdminGuard({
     }
   }, [isAdmin, loading, router])
 
-  // Show loading spinner while checking auth
-  if (loading) {
-    return (
-      <div className="min-h-screen 
-        bg-[#050505] flex items-center 
-        justify-center">
-        <div className="flex flex-col 
-          items-center gap-4">
-          <div className="w-10 h-10 
-            rounded-full border-2 
-            border-[#FFD166] 
-            border-t-transparent 
-            animate-spin" 
-          />
-          <p className="font-body text-sm 
-            tracking-widest uppercase 
-            text-[#7B7B9A]">
-            Verifying access...
-          </p>
-        </div>
-      </div>
-    )
-  }
+  if (loading) return (
+    <div style={{
+      minHeight: '100vh',
+      background: '#050E1A',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center'
+    }}>
+      <div style={{
+        width: 32, height: 32,
+        borderRadius: '50%',
+        border: '2px solid #00C96B',
+        borderTopColor: 'transparent',
+        animation: 'spin 0.8s linear infinite'
+      }} />
+      <style>{`
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
+    </div>
+  )
 
-  // Redirect happening, show nothing
   if (!isAdmin) return null
 
-  // Authenticated — render children
   return <>{children}</>
 }

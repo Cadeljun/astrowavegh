@@ -1,206 +1,351 @@
-'use client';
+'use client'
 
-import { useState, FormEvent, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuth } from '@/context/AuthContext';
-import { Eye, EyeOff, Lock, Loader2, AlertCircle, Database, Sparkles } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Button } from '@/components/ui/Button';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
-import { auth as firebaseAuth, db } from '@/firebase';
-import Logo from '@/components/ui/Logo';
+import { useState, FormEvent, useEffect } from 'react'
+import { useAuth } from '@/context/AuthContext'
+import { useRouter } from 'next/navigation'
+import { Eye, EyeOff, Lock, AlertCircle } from 'lucide-react'
 
 export default function AdminLoginPage() {
-  const { login, error, isAdmin, loading: authLoading, clearError } = useAuth();
-  const router = useRouter();
-  
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSettingUp, setIsSettingUp] = useState(false);
-  const [setupMessage, setSetupMessage] = useState<string | null>(null);
+  const { login, error, loading, isAdmin, clearError } = useAuth()
+  const router = useRouter()
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [showPass, setShowPass] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
 
+  // Already logged in → go to dashboard
   useEffect(() => {
-    if (!authLoading && isAdmin) {
-      router.replace('/admin/dashboard');
+    if (!loading && isAdmin) {
+      router.replace('/admin/dashboard')
     }
-  }, [isAdmin, authLoading, router]);
+  }, [loading, isAdmin, router])
+
+  // Clear error when user types
+  useEffect(() => {
+    if (email || password) clearError()
+  }, [email, password, clearError])
 
   const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    if (isSubmitting) return;
-    
-    setIsSubmitting(true);
+    e.preventDefault()
+    if (submitting) return
+    setSubmitting(true)
     try {
-      await login(email, password);
-    } catch (err) {
-      // Error handled by AuthContext
+      await login(email, password)
+    } catch {
+      // error handled in context
     } finally {
-      setIsSubmitting(false);
+      setSubmitting(false)
     }
-  };
-
-  const handleInitialSetup = async () => {
-    if (typeof window === 'undefined' || !firebaseAuth) return;
-    if (!window.confirm('Initialize Horizon Admin (junioraquils143@gmail.com)?')) return;
-    
-    setIsSettingUp(true);
-    setSetupMessage(null);
-    
-    try {
-      const userCred = await createUserWithEmailAndPassword(
-        firebaseAuth, 
-        'junioraquils143@gmail.com', 
-        'AstroWave2025!'
-      );
-      
-      await setDoc(doc(db, 'user_roles', userCred.user.uid), {
-        uid: userCred.user.uid,
-        email: 'junioraquils143@gmail.com',
-        name: 'Lead Developer',
-        role: 'SUPER_ADMIN',
-        active: true,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-        lastLogin: null
-      });
-
-      setSetupMessage('Admin provisioned successfully! You can now sign in.');
-      setEmail('junioraquils143@gmail.com');
-      setPassword('AstroWave2025!');
-    } catch (err: any) {
-      if (err.code === 'auth/email-already-in-use') {
-        setSetupMessage('Account exists. Proceed with sign in.');
-        setEmail('junioraquils143@gmail.com');
-      } else {
-        setSetupMessage(`Setup Failed: ${err.message}`);
-      }
-    } finally {
-      setIsSettingUp(false);
-    }
-  };
-
-  if (authLoading) {
-    return (
-      <div className="min-h-screen bg-black flex flex-col items-center justify-center gap-6">
-        <Loader2 className="animate-spin text-green" size={48} />
-        <p className="label text-green tracking-[0.4em] animate-pulse">Establishing Connection...</p>
-      </div>
-    );
   }
 
-  return (
-    <div className="min-h-screen bg-[#020B18] flex items-center justify-center p-6 relative overflow-hidden">
-      <div className="absolute inset-0 z-0 pointer-events-none">
-        <div 
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full opacity-[0.05]"
-          style={{ backgroundImage: `radial-gradient(ellipse 60% 40% at 50% 50%, #00FF87, transparent 70%)` }}
-        />
-      </div>
-
-      <motion.div 
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="relative z-20 w-full max-w-[440px]"
-      >
-        <div className="glass border-t-2 border-t-green p-10 md:p-12 shadow-2xl backdrop-blur-3xl bg-white/[0.01]">
-          <div className="text-center mb-12">
-            <motion.div 
-              initial={{ y: -10, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.2 }}
-              className="inline-flex items-center justify-center p-3 rounded-full bg-green/5 border border-green/20 mb-6"
-            >
-              <Sparkles className="text-green" size={24} />
-            </motion.div>
-            <Logo height={44} className="mx-auto" />
-            <div className="flex items-center justify-center gap-2 text-[#6B8CAE] uppercase tracking-[0.3em] text-[0.6rem] font-bold mt-4">
-              <Lock size={12} className="text-green" />
-              Horizon Portal
-            </div>
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-2">
-              <label className="admin-label m-0 text-[0.6rem] tracking-[0.2em]">IDENTITY</label>
-              <input
-                type="email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                required
-                onFocus={clearError}
-                placeholder="admin@astrowave.live"
-                className="admin-input h-14 bg-white/5 border-white/10 focus:border-green"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="admin-label m-0 text-[0.6rem] tracking-[0.2em]">ACCESS KEY</label>
-              <div className="relative">
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                  required
-                  onFocus={clearError}
-                  placeholder="••••••••"
-                  className="admin-input h-14 bg-white/5 border-white/10 focus:border-green pr-14"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-muted hover:text-white transition-colors"
-                >
-                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                </button>
-              </div>
-            </div>
-
-            <AnimatePresence mode="wait">
-              {(error || setupMessage) && (
-                <motion.div 
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  className={`border rounded-sm p-4 flex gap-4 ${error ? 'bg-red-500/10 border-red-500/20 text-red-400' : 'bg-green-100 border-green-200 text-green-700'}`}
-                >
-                  <AlertCircle size={20} className="shrink-0 mt-0.5" />
-                  <p className="text-xs font-medium leading-relaxed uppercase tracking-wider">{error || setupMessage}</p>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            <Button
-              type="submit"
-              disabled={isSubmitting || isSettingUp}
-              className="w-full h-16 text-sm font-bold tracking-[0.3em] uppercase border-green text-green hover:bg-green hover:text-black"
-            >
-              {isSubmitting ? (
-                <Loader2 className="animate-spin" size={24} />
-              ) : (
-                'Initialize Session'
-              )}
-            </Button>
-          </form>
-
-          <div className="mt-10 pt-10 border-t border-white/5">
-            <button
-              onClick={handleInitialSetup}
-              disabled={isSubmitting || isSettingUp}
-              className="w-full flex items-center justify-center gap-3 text-[0.55rem] font-bold uppercase tracking-[0.3em] text-muted hover:text-green transition-all disabled:opacity-30"
-            >
-              {isSettingUp ? <Loader2 size={12} className="animate-spin" /> : <Database size={12} />}
-              System Bootstrap (Lead Dev)
-            </button>
-          </div>
-        </div>
-        
-        <p className="text-center mt-8 text-[0.5rem] text-muted/30 uppercase tracking-[0.4em]">
-          &copy; 2025 ASTROWAVE GHANA // PROTECTED RESOURCE
-        </p>
-      </motion.div>
+  if (loading) return (
+    <div style={{
+      minHeight: '100vh',
+      background: '#050E1A',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center'
+    }}>
+      <div style={{
+        width: 32, height: 32,
+        borderRadius: '50%',
+        border: '2px solid #00C96B',
+        borderTopColor: 'transparent',
+        animation: 'spin 0.8s linear infinite'
+      }} />
     </div>
-  );
+  )
+
+  return (
+    <div style={{
+      minHeight: '100vh',
+      background: '#050E1A',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '16px',
+      position: 'relative',
+      overflow: 'hidden'
+    }}>
+
+      {/* Styles */}
+      <style>{`
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+        @keyframes float1 {
+          0%,100% { transform: translate(0,0); }
+          50% { transform: translate(20px,-30px); }
+        }
+        @keyframes float2 {
+          0%,100% { transform: translate(0,0); }
+          50% { transform: translate(-15px,20px); }
+        }
+        .admin-input:focus {
+          border-color: #00C96B !important;
+          box-shadow: 0 0 0 3px rgba(0,201,107,0.12) !important;
+          outline: none;
+        }
+      `}</style>
+
+      {/* Background orbs */}
+      <div style={{
+        position: 'absolute',
+        top: '-100px', right: '-100px',
+        width: '400px', height: '400px',
+        borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(0,201,107,0.08), transparent 70%)',
+        animation: 'float1 8s ease-in-out infinite',
+        pointerEvents: 'none'
+      }} />
+      <div style={{
+        position: 'absolute',
+        bottom: '-100px', left: '-100px',
+        width: '350px', height: '350px',
+        borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(5,130,255,0.07), transparent 70%)',
+        animation: 'float2 10s ease-in-out infinite',
+        pointerEvents: 'none'
+      }} />
+
+      {/* Card */}
+      <div style={{
+        width: '100%',
+        maxWidth: '420px',
+        background: 'rgba(12,30,53,0.85)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        border: '1px solid #142440',
+        borderTop: '3px solid #00C96B',
+        borderRadius: '16px',
+        padding: '40px',
+        position: 'relative',
+        zIndex: 10
+      }}>
+
+        {/* Header */}
+        <div style={{
+          textAlign: 'center',
+          marginBottom: '32px'
+        }}>
+          {/* Lock icon */}
+          <div style={{
+            width: '56px', height: '56px',
+            borderRadius: '14px',
+            background: 'rgba(0,201,107,0.1)',
+            border: '1px solid rgba(0,201,107,0.2)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            margin: '0 auto 16px'
+          }}>
+            <Lock size={24} color="#00C96B" />
+          </div>
+
+          <h1 style={{
+            fontFamily: 'var(--font-display), Plus Jakarta Sans, sans-serif',
+            fontSize: '1.75rem',
+            fontWeight: 800,
+            color: '#FFFFFF',
+            letterSpacing: '-0.02em',
+            marginBottom: '6px'
+          }}>
+            Admin Access
+          </h1>
+          <p style={{
+            fontFamily: 'var(--font-body), Inter, sans-serif',
+            fontSize: '0.875rem',
+            color: '#8BA4BE'
+          }}>
+            Sign in to the AstroWave admin panel
+          </p>
+        </div>
+
+        {/* Divider */}
+        <div style={{
+          height: '1px',
+          background: 'linear-gradient(90deg, transparent, #142440, transparent)',
+          marginBottom: '28px'
+        }} />
+
+        {/* Form */}
+        <form onSubmit={handleSubmit}>
+
+          {/* Email */}
+          <div style={{ marginBottom: '16px' }}>
+            <label style={{
+              display: 'block',
+              fontFamily: 'Inter, sans-serif',
+              fontSize: '0.7rem',
+              fontWeight: 600,
+              letterSpacing: '0.1em',
+              textTransform: 'uppercase',
+              color: '#8BA4BE',
+              marginBottom: '8px'
+            }}>
+              Email Address
+            </label>
+            <input
+              type="email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              required
+              placeholder="admin@astrowave.com"
+              className="admin-input"
+              style={{
+                width: '100%',
+                padding: '12px 16px',
+                background: 'rgba(255,255,255,0.04)',
+                border: '1px solid #142440',
+                borderRadius: '10px',
+                fontFamily: 'Inter, sans-serif',
+                fontSize: '0.9rem',
+                color: '#FFFFFF',
+                boxSizing: 'border-box',
+                transition: 'all 0.18s ease'
+              }}
+            />
+          </div>
+
+          {/* Password */}
+          <div style={{ marginBottom: '24px' }}>
+            <label style={{
+              display: 'block',
+              fontFamily: 'Inter, sans-serif',
+              fontSize: '0.7rem',
+              fontWeight: 600,
+              letterSpacing: '0.1em',
+              textTransform: 'uppercase',
+              color: '#8BA4BE',
+              marginBottom: '8px'
+            }}>
+              Password
+            </label>
+            <div style={{ position: 'relative' }}>
+              <input
+                type={showPass ? 'text' : 'password'}
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                required
+                placeholder="••••••••••"
+                className="admin-input"
+                style={{
+                  width: '100%',
+                  padding: '12px 44px 12px 16px',
+                  background: 'rgba(255,255,255,0.04)',
+                  border: '1px solid #142440',
+                  borderRadius: '10px',
+                  fontFamily: 'Inter, sans-serif',
+                  fontSize: '0.9rem',
+                  color: '#FFFFFF',
+                  boxSizing: 'border-box',
+                  transition: 'all 0.18s ease'
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPass(!showPass)}
+                style={{
+                  position: 'absolute',
+                  right: '12px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: '#8BA4BE',
+                  display: 'flex',
+                  padding: '4px'
+                }}
+              >
+                {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
+          </div>
+
+          {/* Error */}
+          {error && (
+            <div style={{
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: '10px',
+              padding: '12px 14px',
+              background: 'rgba(239,68,68,0.08)',
+              border: '1px solid rgba(239,68,68,0.2)',
+              borderRadius: '10px',
+              marginBottom: '20px'
+            }}>
+              <AlertCircle
+                size={15}
+                color="#ef4444"
+                style={{ flexShrink: 0, marginTop: 1 }}
+              />
+              <p style={{
+                fontFamily: 'Inter, sans-serif',
+                fontSize: '0.85rem',
+                color: '#ef4444',
+                margin: 0
+              }}>
+                {error}
+              </p>
+            </div>
+          )}
+
+          {/* Submit */}
+          <button
+            type="submit"
+            disabled={submitting || !email || !password}
+            style={{
+              width: '100%',
+              padding: '13px 24px',
+              background: submitting ? 'rgba(0,201,107,0.6)' : '#00C96B',
+              border: 'none',
+              borderRadius: '10px',
+              fontFamily: 'Inter, sans-serif',
+              fontSize: '0.875rem',
+              fontWeight: 600,
+              letterSpacing: '0.06em',
+              textTransform: 'uppercase',
+              color: '#FFFFFF',
+              cursor: submitting || !email || !password ? 'not-allowed' : 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              transition: 'all 0.18s ease',
+              opacity: !email || !password ? 0.5 : 1
+            }}
+          >
+            {submitting ? (
+              <>
+                <span style={{
+                  width: '16px',
+                  height: '16px',
+                  borderRadius: '50%',
+                  border: '2px solid rgba(255,255,255,0.4)',
+                  borderTopColor: '#fff',
+                  animation: 'spin 0.8s linear infinite',
+                  display: 'inline-block'
+                }} />
+                Signing In...
+              </>
+            ) : (
+              'Sign In'
+            )}
+          </button>
+        </form>
+
+        {/* Footer */}
+        <p style={{
+          textAlign: 'center',
+          fontFamily: 'Inter, sans-serif',
+          fontSize: '0.75rem',
+          color: '#4A6380',
+          marginTop: '24px'
+        }}>
+          AstroWave Admin · Restricted Access Only
+        </p>
+      </div>
+    </div>
+  )
 }
