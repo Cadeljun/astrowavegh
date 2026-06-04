@@ -1,272 +1,269 @@
-'use client'
+'use client';
 
-import { useEffect, useState } from 'react'
-import Link from 'next/link'
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { motion } from 'framer-motion';
 import {
-  Zap, Users, Mail, Bell,
-  FileText, CalendarCheck,
-  Plus, UserPlus, Upload,
-  ExternalLink, Star, Clock, 
-  BarChart2, Award
-} from 'lucide-react'
-import {
-  getCollection,
-  getRecentDocuments,
-  getDocumentsSince,
-  formatTimestamp,
-  countDocuments
-} from '@/lib/firebase/helpers'
-import { orderBy, where, collection, getDocs, limit } from 'firebase/firestore'
-import { db } from '@/firebase'
-import { Badge } from '@/components/ui/Badge'
-import Logo from '@/components/ui/Logo'
+  Users, Calendar, Mail, Bell, Zap, Star,
+  BookOpen, TrendingUp, ArrowRight, Activity,
+  Eye, Plus, Mic, BarChart3, Clock, CheckCircle
+} from 'lucide-react';
+import { collection, query, orderBy, limit, onSnapshot, getCountFromServer, where } from 'firebase/firestore';
+import { useFirestore } from '@/firebase';
+import { useAuth } from '@/context/AuthContext';
+import { useRole } from '@/context/RoleContext';
+import { cn } from '@/lib/utils';
+import { formatDistanceToNow } from 'date-fns';
 
-interface StatCardProps {
-  icon: React.ReactNode
-  value: number | string
-  label: string
-  accentColor: string
-  loading: boolean
+function StatCard({ label, value, icon: Icon, color, href, loading }: any) {
+  return (
+    <Link href={href || '#'}>
+      <motion.div
+        whileHover={{ y: -2 }}
+        className="relative overflow-hidden rounded-xl border border-white/5 bg-[#0A1020] p-6 group hover:border-white/10 transition-all duration-300 cursor-pointer"
+      >
+        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+          style={{ background: `radial-gradient(circle at 0% 100%, ${color}08, transparent 70%)` }} />
+        <div className="flex items-start justify-between mb-4">
+          <div className="w-10 h-10 rounded-lg flex items-center justify-center"
+            style={{ backgroundColor: `${color}15`, color }}>
+            <Icon size={18} />
+          </div>
+          <ArrowRight size={14} className="text-muted/30 group-hover:text-muted/70 transition-colors" />
+        </div>
+        <p className="font-display text-4xl text-white leading-none mb-1">
+          {loading ? <span className="inline-block w-12 h-8 bg-white/5 rounded animate-pulse" /> : value}
+        </p>
+        <p className="text-[0.6rem] font-bold text-muted uppercase tracking-[0.2em]">{label}</p>
+        <div className="absolute bottom-0 left-0 right-0 h-[1px] opacity-0 group-hover:opacity-100 transition-opacity"
+          style={{ backgroundColor: color }} />
+      </motion.div>
+    </Link>
+  );
 }
 
-function StatCard({ 
-  icon, value, label, 
-  accentColor, loading 
-}: StatCardProps) {
-  if (loading) {
-    return (
-      <div className="bg-[#16161F] border border-[#1E1E2E] rounded-xl p-5 animate-pulse">
-        <div className="w-8 h-8 bg-[#1E1E2E] rounded mb-3" />
-        <div className="w-16 h-8 bg-[#1E1E2E] rounded mb-2" />
-        <div className="w-24 h-3 bg-[#1E1E2E] rounded" />
-      </div>
-    )
-  }
-
+function ActivityRow({ item, index }: { item: any; index: number }) {
   return (
-    <div 
-      className="bg-[#0A1A32] border border-[#0F2040] rounded-xl p-5 hover:border-opacity-60 transition-all duration-200 group"
-      style={{ borderBottomColor: accentColor, borderBottomWidth: '2px' }}
+    <motion.div
+      initial={{ opacity: 0, x: -10 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ delay: index * 0.05 }}
+      className="flex items-center gap-4 py-3 border-b border-white/[0.04] last:border-0 group hover:bg-white/[0.02] -mx-4 px-4 rounded-lg transition-colors"
     >
-      <div className="mb-3" style={{ color: accentColor }}>
-        {icon}
+      <div className="w-8 h-8 rounded-full overflow-hidden border border-white/10 shrink-0 bg-white/5 flex items-center justify-center">
+        {item.photoURL
+          ? <img src={item.photoURL} alt="" className="w-full h-full object-cover" />
+          : <span className="text-[0.55rem] font-bold text-muted uppercase">{item.name?.[0] ?? '?'}</span>}
       </div>
-      <p className="font-display text-4xl text-[#F0F8FF] leading-none mb-1">
-        {value}
-      </p>
-      <p className="font-body text-xs tracking-[0.15em] uppercase text-[#6B8CAE]">
-        {label}
-      </p>
-    </div>
-  )
+      <div className="flex-1 min-w-0">
+        <p className="text-sm text-white truncate">{item.name || item.stageName || item.email || 'Unknown'}</p>
+        <p className="text-[0.6rem] text-muted uppercase tracking-widest">{item.type}</p>
+      </div>
+      <div className="text-[0.6rem] text-muted/50 shrink-0">
+        {item.createdAt
+          ? formatDistanceToNow(item.createdAt?.toDate?.() ?? new Date(item.createdAt), { addSuffix: true })
+          : '—'}
+      </div>
+    </motion.div>
+  );
 }
 
-function RecentTable({
-  title,
-  items,
-  columns,
-  viewAllHref,
-  loading,
-  emptyMessage
-}: {
-  title: string
-  items: any[]
-  columns: { 
-    key: string
-    label: string
-    render?: (item: any) => React.ReactNode
-  }[]
-  viewAllHref: string
-  loading: boolean
-  emptyMessage: string
-}) {
-  return (
-    <div className="bg-[#0A1A32] border border-[#0F2040] rounded-xl overflow-hidden h-full">
-      <div className="px-5 py-4 border-b border-[#0F2040] flex items-center justify-between">
-        <h3 className="font-body text-sm font-semibold tracking-[0.1em] uppercase text-[#6B8CAE]">
-          {title}
-        </h3>
-        <Link href={viewAllHref} className="font-body text-xs text-[#00FF87] hover:underline tracking-wider uppercase">
-          View All →
-        </Link>
-      </div>
-      {loading ? (
-        <div className="p-5 space-y-3">
-          {[...Array(3)].map((_, i) => (
-            <div key={i} className="h-10 bg-[#0F2040] rounded animate-pulse" />
-          ))}
-        </div>
-      ) : items.length === 0 ? (
-        <div className="p-8 text-center">
-          <p className="font-body text-sm text-[#6B8CAE]">{emptyMessage}</p>
-        </div>
-      ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-[#0F2040]">
-                {columns.map(col => (
-                  <th key={col.key} className="px-5 py-3 text-left font-body text-xs font-semibold tracking-[0.15em] uppercase text-[#6B8CAE]">
-                    {col.label}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {items.map((item, i) => (
-                <tr key={item.id || i} className="border-b border-[rgba(255,255,255,0.04)] hover:bg-[rgba(255,255,255,0.02)] transition-colors">
-                  {columns.map(col => (
-                    <td key={col.key} className="px-5 py-3.5 font-body text-sm text-[#F0F8FF]">
-                      {col.render ? col.render(item) : item[col.key] ?? '—'}
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </div>
-  )
-}
+export default function AdminDashboardPage() {
+  const db = useFirestore();
+  const { user } = useAuth();
+  const { isSuperAdmin } = useRole();
 
-export default function AdminDashboard() {
-  const [stats, setStats] = useState({
-    totalEvents: 0,
-    platformUsers: 0,
-    activePlatformEvents: 0,
-    pendingBookings: 0,
-    avgWaveScore: 0,
-    newContacts: 0
-  })
-  const [loading, setLoading] = useState(true)
-  const [recentEvents, setRecentEvents] = useState<any[]>([])
-  const [recentBookings, setRecentBookings] = useState<any[]>([])
-  const [currentTime, setCurrentTime] = useState<Date | null>(null)
+  const [counts, setCounts] = useState({ contacts: 0, waitlist: 0, talent: 0, events: 0, bookings: 0, users: 0 });
+  const [loading, setLoading] = useState(true);
+  const [activity, setActivity] = useState<any[]>([]);
+  const [unreadContacts, setUnreadContacts] = useState(0);
 
-  // Prevent hydration mismatch by deferring clock start
+  // Load aggregate counts
   useEffect(() => {
-    setCurrentTime(new Date())
-    const interval = setInterval(() => setCurrentTime(new Date()), 1000)
-    return () => clearInterval(interval)
-  }, [])
-
-  useEffect(() => {
-    async function loadDashboard() {
+    async function load() {
       try {
-        const [
-          uCount,
-          eCount,
-          bCount,
-          cCount,
-          talentSnap
-        ] = await Promise.all([
-          countDocuments('users'),
-          countDocuments('platform_events'),
-          getCollection('bookings', [where('status', '==', 'pending')]),
-          getDocumentsSince('contacts', 7).catch(() => []),
-          getDocs(collection(db, 'talent_profiles'))
-        ])
-
-        const talents = talentSnap.docs.map(d => d.data())
-        const avgWS = talents.length > 0 ? talents.reduce((acc, t) => acc + (t.waveScore || 0), 0) / talents.length : 0
-
-        setStats({
-          platformUsers: uCount,
-          totalEvents: eCount,
-          activePlatformEvents: eCount, 
-          pendingBookings: bCount.length,
-          avgWaveScore: Number(avgWS.toFixed(2)),
-          newContacts: cCount.length
-        })
-
-        const [events, bookings] = await Promise.all([
-           getRecentDocuments('platform_events', 5),
-           getRecentDocuments('bookings', 5)
-        ])
-        setRecentEvents(events)
-        setRecentBookings(bookings)
-
-      } catch (error) {
-        console.error('Dashboard Load Error:', error)
-      } finally {
-        setLoading(false)
-      }
+        const [contacts, waitlist, talent, events, bookings, users] = await Promise.all([
+          getCountFromServer(collection(db, 'contacts')),
+          getCountFromServer(collection(db, 'waitlist')),
+          getCountFromServer(collection(db, 'talent_profiles')),
+          getCountFromServer(collection(db, 'events')),
+          getCountFromServer(collection(db, 'bookings')),
+          getCountFromServer(collection(db, 'users')),
+        ]);
+        setCounts({
+          contacts: contacts.data().count,
+          waitlist: waitlist.data().count,
+          talent: talent.data().count,
+          events: events.data().count,
+          bookings: bookings.data().count,
+          users: users.data().count,
+        });
+      } catch (e) { console.error(e); }
+      finally { setLoading(false); }
     }
-    loadDashboard()
-  }, [])
+    load();
+  }, [db]);
 
-  const formatDate = (date: Date) => new Intl.DateTimeFormat('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(date)
-  const formatTime = (date: Date) => new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).format(date)
+  // Unread contacts count
+  useEffect(() => {
+    const q = query(collection(db, 'contacts'), where('read', '==', false));
+    return onSnapshot(q, snap => setUnreadContacts(snap.size), () => {});
+  }, [db]);
+
+  // Recent activity feed — merge contacts + waitlist signups
+  useEffect(() => {
+    const unsubs: (() => void)[] = [];
+
+    const contactsQ = query(collection(db, 'contacts'), orderBy('timestamp', 'desc'), limit(5));
+    unsubs.push(onSnapshot(contactsQ, snap => {
+      const items = snap.docs.map(d => ({ id: d.id, type: 'Contact Inquiry', ...d.data(), createdAt: d.data().timestamp }));
+      setActivity(prev => {
+        const others = prev.filter(a => a.type !== 'Contact Inquiry');
+        return [...items, ...others].sort((a, b) => {
+          const ta = a.createdAt?.toDate?.()?.getTime() ?? 0;
+          const tb = b.createdAt?.toDate?.()?.getTime() ?? 0;
+          return tb - ta;
+        }).slice(0, 8);
+      });
+    }, () => {}));
+
+    const waitlistQ = query(collection(db, 'waitlist'), orderBy('createdAt', 'desc'), limit(5));
+    unsubs.push(onSnapshot(waitlistQ, snap => {
+      const items = snap.docs.map(d => ({ id: d.id, type: 'Waitlist Signup', ...d.data() }));
+      setActivity(prev => {
+        const others = prev.filter(a => a.type !== 'Waitlist Signup');
+        return [...items, ...others].sort((a, b) => {
+          const ta = a.createdAt?.toDate?.()?.getTime() ?? 0;
+          const tb = b.createdAt?.toDate?.()?.getTime() ?? 0;
+          return tb - ta;
+        }).slice(0, 8);
+      });
+    }, () => {}));
+
+    return () => unsubs.forEach(u => u());
+  }, [db]);
+
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+  const firstName = user?.displayName?.split(' ')[0] ?? 'Admin';
+
+  const STATS = [
+    { label: 'Contacts',    value: counts.contacts,  icon: Mail,      color: '#FFD166', href: '/admin/contacts' },
+    { label: 'Waitlist',    value: counts.waitlist,  icon: Bell,      color: '#A855F7', href: '/admin/waitlist' },
+    { label: 'Talent',      value: counts.talent,    icon: Mic,       color: '#06B6D4', href: '/admin/platform/talent' },
+    { label: 'Events',      value: counts.events,    icon: Calendar,  color: '#00FF87', href: '/admin/platform/events' },
+    { label: 'Bookings',    value: counts.bookings,  icon: BookOpen,  color: '#F97316', href: '/admin/platform/bookings' },
+    { label: 'Users',       value: counts.users,     icon: Users,     color: '#EC4899', href: '/admin/platform/users' },
+  ];
+
+  const QUICK_ACTIONS = [
+    { label: 'New Event',   href: '/admin/events/new',    icon: Plus,      color: '#FFD166' },
+    { label: 'Add Talent',  href: '/admin/talent/new',    icon: Mic,       color: '#06B6D4' },
+    { label: 'View Contacts', href: '/admin/contacts',   icon: Mail,      color: '#A855F7' },
+    { label: 'Dev Panel',   href: '/dev',                 icon: Activity,  color: '#00FF87' },
+  ];
 
   return (
-    <div className="max-w-7xl mx-auto pb-10">
-      <div className="flex items-start justify-between mb-8 flex-wrap gap-4 border-b border-[#0F2040] pb-8">
+    <div className="space-y-10 max-w-7xl">
+
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <h1 className="font-display text-4xl text-[#F0F8FF] uppercase">Dashboard</h1>
-          <p className="font-body text-sm text-[#6B8CAE] mt-1">Horizon Core Intelligence · System Node Live</p>
+          <p className="text-[0.65rem] font-bold text-muted uppercase tracking-[0.25em] mb-1">{greeting}</p>
+          <h1 className="font-display text-4xl lg:text-5xl text-white uppercase tracking-wider">{firstName}</h1>
+          <p className="text-sm text-muted/60 mt-1">AstroWave Admin Dashboard</p>
         </div>
-        <div className="text-right">
-          {currentTime && (
-            <>
-              <p className="font-display text-2xl text-[#00FF87]">{formatTime(currentTime)}</p>
-              <p className="font-body text-xs text-[#6B8CAE] mt-0.5">{formatDate(currentTime)}</p>
-            </>
+        <div className="flex items-center gap-3">
+          {unreadContacts > 0 && (
+            <Link href="/admin/contacts"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-yellow-400/10 border border-yellow-400/20 text-yellow-400 text-[0.65rem] font-bold uppercase tracking-widest hover:bg-yellow-400/15 transition-all">
+              <Mail size={13} />
+              {unreadContacts} unread
+            </Link>
           )}
+          <Link href="/" target="_blank"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-white/10 text-muted text-[0.65rem] font-bold uppercase tracking-widest hover:text-white hover:border-white/25 transition-all">
+            <Eye size={13} />
+            Live Site
+          </Link>
         </div>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
-        <StatCard icon={<Users size={22} />} value={stats.platformUsers} label="Platform Users" accentColor="#38BDF8" loading={loading} />
-        <StatCard icon={<CalendarCheck size={22} />} value={stats.activePlatformEvents} label="Active Events" accentColor="#00FF87" loading={loading} />
-        <StatCard icon={<Clock size={22} />} value={stats.pendingBookings} label="Pending Gigs" accentColor="#0EA5E9" loading={loading} />
-        <StatCard icon={<Star size={22} />} value={stats.avgWaveScore} label="Avg Wave Score" accentColor="#00FF87" loading={loading} />
-        <StatCard icon={<Mail size={22} />} value={stats.newContacts} label="New Contacts" accentColor="#0EA5E9" loading={loading} />
-        <StatCard icon={<Bell size={22} />} value={stats.totalEvents} label="Event Briefs" accentColor="#38BDF8" loading={loading} />
-      </div>
-
-      {/* Quick Actions */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        {[
-          { label: 'Platform Analytics', href: '/admin/platform/analytics', icon: <BarChart2 size={20} />, color: '#38BDF8' },
-          { label: 'Manage Talent', href: '/admin/platform/talent', icon: <Award size={20} />, color: '#0EA5E9' },
-          { label: 'Moderate Content', href: '/admin/platform/ratings', icon: <Star size={20} />, color: '#00FF87' },
-          { label: 'System Control', href: '/dev', icon: <Zap size={20} />, color: '#6B8CAE' }
-        ].map((action) => (
-          <Link key={action.href} href={action.href} className="bg-[#0A1A32] border border-[#0F2040] rounded-xl p-5 flex items-center gap-3 hover:border-opacity-60 hover:bg-[rgba(255,255,255,0.02)] hover:border-[#00FF87] transition-all duration-200 group">
-            <span style={{ color: action.color }}>{action.icon}</span>
-            <span className="font-body text-sm font-semibold tracking-wider uppercase text-[#6B8CAE] group-hover:text-[#F0F8FF] transition-colors">{action.label}</span>
-          </Link>
+      {/* Stats grid */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+        {STATS.map((s, i) => (
+          <motion.div key={s.label} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}>
+            <StatCard {...s} loading={loading} />
+          </motion.div>
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <RecentTable
-          title="Recent Platform Events"
-          items={recentEvents}
-          loading={loading}
-          viewAllHref="/admin/platform/events"
-          emptyMessage="No platform events yet."
-          columns={[
-            { key: 'title', label: 'Event' },
-            { key: 'organizerName', label: 'Host' },
-            { key: 'status', label: 'Status', render: (item) => <Badge variant={item.status === 'open' ? 'live' : 'active'}>{item.status}</Badge> }
-          ]}
-        />
-        <RecentTable
-          title="Recent Bookings"
-          items={recentBookings}
-          loading={loading}
-          viewAllHref="/admin/platform/bookings"
-          emptyMessage="No bookings yet."
-          columns={[
-            { key: 'eventTitle', label: 'Gig' },
-            { key: 'talentStageName', label: 'Artist' },
-            { key: 'status', label: 'State', render: (item) => <span className="text-xs uppercase font-bold text-[#00FF87]">{item.status}</span> }
-          ]}
-        />
+      {/* Main content: activity + quick actions */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        {/* Recent Activity */}
+        <div className="lg:col-span-2 rounded-2xl border border-white/5 bg-[#0A1020] p-6 space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-green-500/10 flex items-center justify-center">
+                <Activity size={15} className="text-green-400" />
+              </div>
+              <h2 className="font-display text-xl text-white uppercase tracking-wider">Recent Activity</h2>
+            </div>
+            <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+          </div>
+
+          <div className="space-y-0">
+            {activity.length > 0
+              ? activity.map((item, i) => <ActivityRow key={item.id} item={item} index={i} />)
+              : Array.from({ length: 5 }).map((_, i) => (
+                  <div key={i} className="h-12 rounded-lg bg-white/[0.03] animate-pulse my-2" />
+                ))
+            }
+          </div>
+        </div>
+
+        {/* Quick Actions */}
+        <div className="space-y-4">
+          <div className="rounded-2xl border border-white/5 bg-[#0A1020] p-6 space-y-4">
+            <h2 className="font-display text-xl text-white uppercase tracking-wider">Quick Actions</h2>
+            <div className="grid grid-cols-2 gap-3">
+              {QUICK_ACTIONS.map((a, i) => (
+                <motion.div key={a.label} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.3 + i * 0.06 }}>
+                  <Link href={a.href}
+                    className="flex flex-col gap-3 p-4 rounded-xl border border-white/5 hover:border-white/12 bg-[#070F1F] transition-all group hover:shadow-[0_4px_20px_rgba(0,0,0,0.3)]">
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center"
+                      style={{ backgroundColor: `${a.color}15`, color: a.color }}>
+                      <a.icon size={16} />
+                    </div>
+                    <p className="text-[0.65rem] font-bold text-white/70 group-hover:text-white uppercase tracking-widest transition-colors leading-tight">
+                      {a.label}
+                    </p>
+                  </Link>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+
+          {/* System status */}
+          <div className="rounded-2xl border border-white/5 bg-[#0A1020] p-6 space-y-3">
+            <h2 className="font-display text-lg text-white uppercase tracking-wider">System</h2>
+            {[
+              { label: 'Firebase',   status: 'Online',  color: '#00FF87' },
+              { label: 'Cloudinary', status: 'Online',  color: '#00FF87' },
+              { label: 'Auth',       status: 'Active',  color: '#00FF87' },
+            ].map(s => (
+              <div key={s.label} className="flex items-center justify-between">
+                <span className="text-[0.65rem] font-bold text-muted uppercase tracking-widest">{s.label}</span>
+                <div className="flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: s.color }} />
+                  <span className="text-[0.6rem] font-bold uppercase tracking-widest" style={{ color: s.color }}>{s.status}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
-  )
+  );
 }
