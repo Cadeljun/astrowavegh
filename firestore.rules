@@ -1,9 +1,8 @@
-
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // ─── HELPER FUNCTIONS ───────────
+    // ─── HELPER FUNCTIONS ────────────────────────────────────────────
 
     function isSignedIn() {
       return request.auth != null;
@@ -14,102 +13,182 @@ service cloud.firestore {
     }
 
     function isSuperAdmin() {
-      return isSignedIn() && 
-        (request.auth.token.email == 'junioraquils143@gmail.com' || 
-         exists(/databases/$(database)/documents/user_roles/$(request.auth.uid)) && 
-         get(/databases/$(database)/documents/user_roles/$(request.auth.uid)).data.role == 'SUPER_ADMIN');
+      return isSignedIn() &&
+        (request.auth.token.email == 'junioraquils143@gmail.com' ||
+         (exists(/databases/$(database)/documents/user_roles/$(request.auth.uid)) &&
+          get(/databases/$(database)/documents/user_roles/$(request.auth.uid)).data.role == 'SUPER_ADMIN'));
     }
 
-    // ─── CORE USERS ──────────────────
+    function isDeveloper() {
+      return isSignedIn() &&
+        (isSuperAdmin() ||
+         (exists(/databases/$(database)/documents/user_roles/$(request.auth.uid)) &&
+          get(/databases/$(database)/documents/user_roles/$(request.auth.uid)).data.role in ['DEVELOPER', 'SUPER_ADMIN']));
+    }
+
+    function canEditCMS() {
+      return isSignedIn() &&
+        (isSuperAdmin() ||
+         (exists(/databases/$(database)/documents/user_roles/$(request.auth.uid)) &&
+          get(/databases/$(database)/documents/user_roles/$(request.auth.uid)).data.role in ['CMS_EDITOR', 'DEVELOPER', 'SUPER_ADMIN']));
+    }
+
+    // ─── ROLES ────────────────────────────────────────────────────────
+
     match /user_roles/{uid} {
       allow read: if isOwner(uid) || isSuperAdmin();
       allow write: if isSuperAdmin();
     }
 
+    // ─── USERS ────────────────────────────────────────────────────────
+
     match /users/{uid} {
-      allow read: if isSignedIn();
+      allow read:   if isSignedIn();
       allow create: if request.auth.uid == uid;
       allow update: if request.auth.uid == uid || isSuperAdmin();
       allow delete: if isSuperAdmin();
     }
 
-    // ─── PLATFORM PROFILES ───────────
+    // ─── PLATFORM PROFILES ────────────────────────────────────────────
+
     match /organizer_profiles/{uid} {
-      allow read: if isSignedIn();
+      allow read:   if isSignedIn();
       allow create: if request.auth.uid == uid;
       allow update: if request.auth.uid == uid || isSuperAdmin();
       allow delete: if isSuperAdmin();
     }
 
+    // talent_profiles: public read (used on /platform and home page hero)
     match /talent_profiles/{uid} {
-      allow read: if true;
+      allow read:   if true;
       allow create: if request.auth.uid == uid;
       allow update: if request.auth.uid == uid || isSuperAdmin();
       allow delete: if isSuperAdmin();
     }
 
-    // ─── PLATFORM EVENTS ─────────────
+    // talent: legacy collection used by admin talent manager
+    match /talent/{id} {
+      allow read:   if isSignedIn();
+      allow create: if isSuperAdmin();
+      allow update: if isSuperAdmin();
+      allow delete: if isSuperAdmin();
+    }
+
+    // ─── PUBLIC EVENTS ────────────────────────────────────────────────
+    // Used by /events page (public), admin events page, and home page feed.
+    // Public read required — only active==true docs shown via query filter.
+
+    match /events/{id} {
+      allow read:   if true;
+      allow create: if isSuperAdmin();
+      allow update: if isSuperAdmin();
+      allow delete: if isSuperAdmin();
+    }
+
+    // ─── PLATFORM EVENTS ──────────────────────────────────────────────
+
     match /platform_events/{id} {
-      allow read: if true;
+      allow read:   if true;
       allow create: if isSignedIn();
-      allow update: if isSignedIn() && (resource.data.organizerId == request.auth.uid || isSuperAdmin());
+      allow update: if isSignedIn() &&
+        (resource.data.organizerId == request.auth.uid || isSuperAdmin());
       allow delete: if isSuperAdmin();
     }
 
-    // ─── BOOKINGS ────────────────────
+    // ─── BOOKINGS ─────────────────────────────────────────────────────
+    // Individual reads scoped to participants.
+    // List/count by superAdmin allowed for dashboard aggregate counts.
+
     match /bookings/{id} {
-      allow read: if isSignedIn() && (resource.data.organizerId == request.auth.uid || resource.data.talentId == request.auth.uid || isSuperAdmin());
+      allow read: if isSignedIn() &&
+        (resource.data.organizerId == request.auth.uid ||
+         resource.data.talentId == request.auth.uid ||
+         isSuperAdmin());
       allow create: if isSignedIn();
-      allow update: if isSignedIn() && (resource.data.organizerId == request.auth.uid || resource.data.talentId == request.auth.uid || isSuperAdmin());
+      allow update: if isSignedIn() &&
+        (resource.data.organizerId == request.auth.uid ||
+         resource.data.talentId == request.auth.uid ||
+         isSuperAdmin());
       allow delete: if isSuperAdmin();
     }
 
-    // ─── RATINGS ─────────────────────
+    // ─── RATINGS ──────────────────────────────────────────────────────
+
     match /ratings/{id} {
-      allow read: if true;
+      allow read:   if true;
       allow create: if isSignedIn();
       allow update: if isSuperAdmin();
       allow delete: if isSuperAdmin();
     }
 
-    // ─── MATCHES ─────────────────────
+    // ─── MATCHES ──────────────────────────────────────────────────────
+
     match /matches/{eventId} {
-      allow read: if isSignedIn();
+      allow read:  if isSignedIn();
       allow write: if isSignedIn();
     }
 
-    // ─── NOTIFICATIONS ───────────────
+    // ─── NOTIFICATIONS ────────────────────────────────────────────────
+
     match /notifications/{id} {
-      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow read:   if isSignedIn() && resource.data.userId == request.auth.uid;
       allow create: if isSignedIn();
       allow update: if isSignedIn() && resource.data.userId == request.auth.uid;
       allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
     }
 
-    // ─── MARKETING COLLECTIONS ──────
+    // ─── MARKETING / CMS ──────────────────────────────────────────────
+
     match /contacts/{id} {
-      allow create: if true;
-      allow read: if isSuperAdmin();
+      allow create: if true;                   // public contact form
+      allow read:   if isSuperAdmin();
+      allow update: if isSuperAdmin();         // mark as read
+      allow delete: if isSuperAdmin();
     }
+
     match /waitlist/{id} {
-      allow create: if true;
-      allow read: if isSuperAdmin();
+      allow create: if true;                   // public signup
+      allow read:   if isSuperAdmin();
+      allow delete: if isSuperAdmin();
     }
+
+    match /talent_inquiries/{id} {
+      allow create: if true;                   // public talent inquiry form
+      allow read:   if isSuperAdmin();
+      allow update: if isSuperAdmin();
+      allow delete: if isSuperAdmin();
+    }
+
     match /gallery/{id} {
-      allow read: if true;
+      allow read:  if true;
       allow write: if isSuperAdmin();
     }
+
     match /uploads/{id} {
-      allow read: if isSignedIn();
+      allow read:  if isSignedIn();
       allow write: if isSuperAdmin();
     }
+
     match /cms_content/{id} {
-      allow read: if true;
-      allow write: if isSuperAdmin();
+      allow read:  if true;
+      allow write: if canEditCMS();
     }
+
     match /cms_settings/{id} {
-      allow read: if true;
-      allow write: if isSuperAdmin();
+      allow read:  if true;
+      allow write: if canEditCMS();
+    }
+
+    // ─── DEV / SEED DATA ──────────────────────────────────────────────
+
+    match /seed_logs/{id} {
+      allow read:  if isDeveloper();
+      allow write: if isDeveloper();
+    }
+
+    match /analytics_events/{id} {
+      allow read:  if isDeveloper();
+      allow create: if true;                   // client-side event tracking
     }
   }
 }
