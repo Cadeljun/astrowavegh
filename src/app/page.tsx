@@ -5,8 +5,7 @@ import Link from 'next/link';
 import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
 import {
   ArrowRight, Zap, Star, Users, Music, Mic,
-  ChevronDown, Play, Shield, Clock, TrendingUp,
-  Award, Globe, Sparkles, Calendar
+  ChevronDown, Play, Shield, Clock, Globe, Calendar
 } from 'lucide-react';
 import {
   collection, query, where, orderBy,
@@ -15,7 +14,6 @@ import {
 import { useFirestore } from '@/firebase';
 import { Button } from '@/components/ui/Button';
 import { SectionLabel } from '@/components/ui/SectionLabel';
-import { useCMSContent } from '@/lib/cms/useCMS';
 import { getWaveRank } from '@/lib/algorithms/waveScore';
 import { cn } from '@/lib/utils';
 
@@ -28,7 +26,7 @@ function AnimatedNumber({ target, suffix = '' }: { target: number; suffix?: stri
 
   useEffect(() => {
     const observer = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting && !started) setStarted(true); },
+      ([e]) => { if (e.isIntersecting && !started) setStarted(true); },
       { threshold: 0.5 }
     );
     if (ref.current) observer.observe(ref.current);
@@ -37,7 +35,6 @@ function AnimatedNumber({ target, suffix = '' }: { target: number; suffix?: stri
 
   useEffect(() => {
     if (!started || target === 0) return;
-    const duration = 1600;
     const steps = 60;
     const increment = target / steps;
     let count = 0;
@@ -45,132 +42,33 @@ function AnimatedNumber({ target, suffix = '' }: { target: number; suffix?: stri
       count += increment;
       if (count >= target) { setCurrent(target); clearInterval(timer); }
       else setCurrent(Math.floor(count));
-    }, duration / steps);
+    }, 1600 / steps);
     return () => clearInterval(timer);
   }, [started, target]);
 
   return <span ref={ref}>{current}{suffix}</span>;
 }
 
-// ─── FEATURED TALENT CARD ────────────────────────────────────────────────────
-
-function TalentSpotlight({ talent }: { talent: any }) {
-  const rank = getWaveRank(talent.waveScore || 0);
-  return (
-    <div className="group relative overflow-hidden rounded-2xl border border-white/5 bg-[#070F1F] hover:border-white/12 transition-all duration-500 cursor-pointer hover:shadow-[0_0_40px_rgba(168,85,247,0.06)]">
-      <div className="relative aspect-[3/4] overflow-hidden">
-        <img
-          src={talent.photoURL || `https://picsum.photos/seed/${talent.id || 'talent'}/300/400`}
-          alt={talent.stageName}
-          className="w-full h-full object-cover grayscale-[50%] group-hover:grayscale-0 group-hover:scale-105 transition-all duration-700"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#070F1F] via-transparent to-transparent" />
-        <div className="absolute bottom-4 left-4 right-4 space-y-1">
-          <div className="flex items-center justify-between">
-            <p className="font-display text-xl text-white uppercase tracking-wider leading-tight">
-              {talent.stageName}
-            </p>
-            <span className="flex items-center gap-1 text-[0.6rem] font-bold px-2 py-1 rounded-full"
-              style={{ color: rank.color, backgroundColor: `${rank.color}18`, border: `1px solid ${rank.color}30` }}>
-              <Zap size={8} />{(talent.waveScore || 0).toFixed(1)}
-            </span>
-          </div>
-          <p className="text-[0.55rem] font-bold text-muted uppercase tracking-widest">{talent.category} · {talent.city}</p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─── STATS BAR ───────────────────────────────────────────────────────────────
-
-function StatsBar({ stats }: { stats: { talents: number; events: number; bookings: number } }) {
-  const items = [
-    { label: 'Verified Talent', value: stats.talents, suffix: '+', icon: Users, color: '#FFD166' },
-    { label: 'Events Hosted',   value: stats.events,   suffix: '+', icon: Calendar, color: '#A855F7' },
-    { label: 'Bookings Made',   value: stats.bookings, suffix: '+', icon: Zap, color: '#06B6D4' },
-    { label: 'Cities Covered',  value: 6,              suffix: '',  icon: Globe, color: '#00FF87' },
-  ];
-  return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-white/5 border border-white/5 rounded-2xl overflow-hidden">
-      {items.map((item, i) => (
-        <motion.div
-          key={item.label}
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ delay: i * 0.08 }}
-          className="relative group bg-[#050D1A] p-8 flex flex-col gap-3 hover:bg-[#070F1F] transition-colors"
-        >
-          <item.icon size={18} style={{ color: item.color, opacity: 0.5 }} />
-          <p className="font-display text-4xl lg:text-5xl text-white leading-none">
-            <AnimatedNumber target={item.value} suffix={item.suffix} />
-          </p>
-          <p className="text-[0.6rem] font-bold text-muted uppercase tracking-[0.2em]">{item.label}</p>
-          <div className="absolute bottom-0 left-0 right-0 h-[2px] opacity-0 group-hover:opacity-100 transition-opacity"
-            style={{ backgroundColor: item.color }} />
-        </motion.div>
-      ))}
-    </div>
-  );
-}
-
-// ─── FEATURE CARDS ───────────────────────────────────────────────────────────
-
-const FEATURES = [
-  {
-    icon: Zap,
-    title: 'WAVE SCORE ALGORITHM',
-    desc: 'Every artist is ranked by our proprietary AI score — combining ratings, gig count, and recency into a single trust index.',
-    color: '#FFD166',
-    href: '/platform',
-    cta: 'See How It Works',
-  },
-  {
-    icon: Users,
-    title: 'VIBE SYNC MATCHING',
-    desc: 'Post your event brief and our algorithm matches the perfect talent by location, category fit, and Wave Score instantly.',
-    color: '#A855F7',
-    href: '/platform',
-    cta: 'Find Talent Now',
-  },
-  {
-    icon: Shield,
-    title: 'VERIFIED PROFESSIONALS',
-    desc: 'Every performer on AstroWave is identity-verified, reviewed, and rated by real event organizers across Ghana.',
-    color: '#06B6D4',
-    href: '/about',
-    cta: 'About Our Standards',
-  },
-  {
-    icon: Star,
-    title: 'REAL-TIME BOOKINGS',
-    desc: 'Send booking requests, negotiate terms, confirm payments, and manage your full event roster — from one dashboard.',
-    color: '#00FF87',
-    href: '/platform',
-    cta: 'Open Platform',
-  },
-];
-
 // ─── MARQUEE ─────────────────────────────────────────────────────────────────
 
-const MARQUEE_ITEMS = ['DJ', 'MC', 'LIVE BAND', 'HYPEMAN', 'VOCALIST', 'DANCER', 'COMEDIAN', 'POET', 'SAXOPHONIST', 'PERCUSSIONIST'];
+const MARQUEE = ['DJ SET', 'LIVE BAND', 'MC HYPE', 'AFROBEATS', 'HIGHLIFE', 'AMAPIANO',
+  'SPOKEN WORD', 'COMEDIAN', 'DANCER', 'SAXOPHONIST', 'PERCUSSIONIST', 'VOCALIST'];
 
-function Marquee() {
-  const items = [...MARQUEE_ITEMS, ...MARQUEE_ITEMS];
+function Marquee({ reverse = false }: { reverse?: boolean }) {
+  const items = [...MARQUEE, ...MARQUEE];
   return (
-    <div className="relative overflow-hidden py-5 border-y border-white/5 bg-[#050D1A]">
-      <div className="absolute inset-y-0 left-0 w-24 bg-gradient-to-r from-[#050D1A] to-transparent z-10" />
-      <div className="absolute inset-y-0 right-0 w-24 bg-gradient-to-l from-[#050D1A] to-transparent z-10" />
+    <div className="overflow-hidden">
       <motion.div
-        animate={{ x: ['0%', '-50%'] }}
-        transition={{ duration: 30, repeat: Infinity, ease: 'linear' }}
-        className="flex items-center gap-8 whitespace-nowrap"
+        animate={{ x: reverse ? ['-50%', '0%'] : ['0%', '-50%'] }}
+        transition={{ duration: 25, repeat: Infinity, ease: 'linear' }}
+        className="flex items-center gap-0 whitespace-nowrap"
       >
         {items.map((item, i) => (
-          <span key={i} className="flex items-center gap-8 text-[0.6rem] font-bold tracking-[0.35em] uppercase text-muted/40">
-            {item}
-            <span className="text-gold/30">◆</span>
+          <span key={i} className="flex items-center">
+            <span className="px-6 py-2 font-display text-xl lg:text-2xl uppercase tracking-widest text-white/80">
+              {item}
+            </span>
+            <span className="text-[#FFD166] text-lg">✦</span>
           </span>
         ))}
       </motion.div>
@@ -178,36 +76,116 @@ function Marquee() {
   );
 }
 
-// ─── RECENT EVENTS STRIP ─────────────────────────────────────────────────────
+// ─── TALENT CARD ─────────────────────────────────────────────────────────────
 
-function RecentEvent({ event, index }: { event: any; index: number }) {
-  const startDate = event.startDate?.toDate?.() ?? (event.startDate ? new Date(event.startDate) : null);
+function TalentCard({ talent, index }: { talent: any; index: number }) {
+  const rank = getWaveRank(talent.waveScore || 0);
   return (
     <motion.div
-      initial={{ opacity: 0, x: 20 }}
+      initial={{ opacity: 0, y: 30 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ delay: index * 0.07, duration: 0.5 }}
+      className="group relative overflow-hidden rounded-2xl cursor-pointer"
+    >
+      <div className="relative aspect-[3/4] overflow-hidden">
+        <img
+          src={talent.photoURL || `https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&q=80`}
+          alt={talent.stageName}
+          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+        />
+        {/* Strong gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent" />
+
+        {/* Wave score top-right */}
+        <div className="absolute top-3 right-3 flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-black/70 backdrop-blur-sm border border-white/10">
+          <Zap size={10} style={{ color: rank.color }} />
+          <span className="font-display text-sm text-white">{(talent.waveScore || 0).toFixed(1)}</span>
+        </div>
+
+        {/* Available pill */}
+        {talent.available && (
+          <div className="absolute top-3 left-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-500/20 border border-green-500/40 backdrop-blur-sm">
+            <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+            <span className="text-[0.5rem] font-bold text-green-400 uppercase tracking-widest">Available</span>
+          </div>
+        )}
+
+        {/* Name overlay at bottom */}
+        <div className="absolute bottom-0 left-0 right-0 p-4">
+          <p className="font-display text-2xl text-white uppercase tracking-wider leading-tight">
+            {talent.stageName}
+          </p>
+          <div className="flex items-center justify-between mt-1">
+            <p className="text-[0.6rem] font-bold text-white/50 uppercase tracking-widest">
+              {talent.category} · {talent.city}
+            </p>
+            <span className="text-[0.55rem] font-bold px-2 py-0.5 rounded-full"
+              style={{ color: rank.color, backgroundColor: `${rank.color}20`, border: `1px solid ${rank.color}40` }}>
+              {rank.emoji} {rank.label}
+            </span>
+          </div>
+        </div>
+
+        {/* Hover overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-[#FFD166]/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+      </div>
+    </motion.div>
+  );
+}
+
+// ─── UPCOMING EVENT ROW ───────────────────────────────────────────────────────
+
+function EventRow({ event, index }: { event: any; index: number }) {
+  const startDate = event.startDate?.toDate?.() ?? (event.startDate ? new Date(event.startDate) : null);
+  const month = startDate ? new Intl.DateTimeFormat('en', { month: 'short' }).format(startDate).toUpperCase() : '—';
+  const day = startDate ? startDate.getDate() : '—';
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: -20 }}
       whileInView={{ opacity: 1, x: 0 }}
       viewport={{ once: true }}
-      transition={{ delay: index * 0.07 }}
-      className="group flex items-center gap-5 p-5 rounded-2xl border border-white/5 bg-[#070F1F] hover:border-white/12 transition-all duration-300 hover:shadow-[0_4px_24px_rgba(0,0,0,0.4)]"
+      transition={{ delay: index * 0.08 }}
+      className="group flex items-center gap-6 py-5 border-b border-white/[0.06] hover:border-white/20 transition-all cursor-pointer"
     >
-      <div className="w-16 h-16 rounded-xl overflow-hidden shrink-0">
+      {/* Date block */}
+      <div className="shrink-0 w-14 text-center">
+        <p className="font-display text-3xl text-white leading-none">{day}</p>
+        <p className="text-[0.55rem] font-bold text-[#FFD166] uppercase tracking-widest mt-0.5">{month}</p>
+      </div>
+
+      {/* Divider */}
+      <div className="w-px h-10 bg-white/10 shrink-0" />
+
+      {/* Image */}
+      <div className="w-14 h-14 rounded-xl overflow-hidden shrink-0">
         <img
-          src={event.coverImage || `https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=200&q=80`}
+          src={event.coverImage || 'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=200&q=80'}
           alt={event.title}
-          className="w-full h-full object-cover grayscale-[40%] group-hover:grayscale-0 transition-all duration-500"
+          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
         />
       </div>
+
+      {/* Info */}
       <div className="flex-1 min-w-0">
-        <p className="font-display text-base text-white uppercase tracking-wider truncate group-hover:text-gold transition-colors">
+        <p className="font-display text-xl lg:text-2xl text-white uppercase tracking-wider truncate group-hover:text-[#FFD166] transition-colors">
           {event.title}
         </p>
-        <p className="text-[0.6rem] font-bold text-muted uppercase tracking-widest mt-0.5">
-          {event.venue || 'TBA'} · {startDate ? new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short' }).format(startDate) : 'TBA'}
+        <p className="text-[0.65rem] font-bold text-white/40 uppercase tracking-widest mt-0.5 truncate">
+          {event.venue || 'TBA'}{event.city ? ` · ${event.city}` : ''}
         </p>
       </div>
-      <div className="shrink-0 flex items-center gap-2 text-[0.55rem] font-bold text-purple uppercase tracking-widest">
-        {event.category}
+
+      {/* Category */}
+      <div className="shrink-0 hidden md:block">
+        <span className="px-4 py-1.5 rounded-full border border-white/10 text-[0.6rem] font-bold text-white/50 uppercase tracking-widest">
+          {event.category || 'Event'}
+        </span>
       </div>
+
+      {/* Arrow */}
+      <ArrowRight size={18} className="text-white/20 group-hover:text-[#FFD166] group-hover:translate-x-1 transition-all shrink-0" />
     </motion.div>
   );
 }
@@ -216,161 +194,126 @@ function RecentEvent({ event, index }: { event: any; index: number }) {
 
 export default function HomePage() {
   const db = useFirestore();
-  const { content } = useCMSContent('home');
   const heroRef = useRef<HTMLElement>(null);
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] });
-  const bgY = useTransform(scrollYProgress, [0, 1], ['0%', '30%']);
-  const heroOpacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
+  const bgY = useTransform(scrollYProgress, [0, 1], ['0%', '25%']);
+  const textY = useTransform(scrollYProgress, [0, 1], ['0%', '15%']);
 
-  const [stats, setStats]       = useState({ talents: 0, events: 0, bookings: 0 });
-  const [talents, setTalents]   = useState<any[]>([]);
-  const [events, setEvents]     = useState<any[]>([]);
+  const [stats, setStats] = useState({ talents: 0, events: 0, bookings: 0 });
+  const [talents, setTalents] = useState<any[]>([]);
+  const [events, setEvents] = useState<any[]>([]);
   const [videoOpen, setVideoOpen] = useState(false);
 
-  // Live stats
   useEffect(() => {
-    async function loadStats() {
+    async function load() {
       try {
         const [t, e, b] = await Promise.all([
           getCountFromServer(collection(db, 'talent_profiles')),
-          getCountFromServer(collection(db, 'platform_events')),
+          getCountFromServer(collection(db, 'events')),
           getCountFromServer(collection(db, 'bookings')),
         ]);
         setStats({ talents: t.data().count, events: e.data().count, bookings: b.data().count });
-      } catch (err) {
-        console.error(err);
-      }
+      } catch (e) { console.error(e); }
     }
-    loadStats();
+    load();
   }, [db]);
 
-  // Featured talent (top 6 by wave score)
   useEffect(() => {
-    const q = query(
-      collection(db, 'talent_profiles'),
-      where('active', '==', true),
-      orderBy('waveScore', 'desc'),
-      limit(6)
-    );
+    const q = query(collection(db, 'talent_profiles'), where('active', '==', true), orderBy('waveScore', 'desc'), limit(6));
     return onSnapshot(q, snap => setTalents(snap.docs.map(d => ({ id: d.id, ...d.data() }))), () => {});
   }, [db]);
 
-  // Recent events (latest 4)
   useEffect(() => {
-    const q = query(
-      collection(db, 'events'),
-      where('active', '==', true),
-      orderBy('createdAt', 'desc'),
-      limit(4)
-    );
+    const q = query(collection(db, 'events'), where('active', '==', true), orderBy('createdAt', 'desc'), limit(5));
     return onSnapshot(q, snap => setEvents(snap.docs.map(d => ({ id: d.id, ...d.data() }))), () => {});
   }, [db]);
 
   return (
-    <main className="flex flex-col w-full min-h-screen overflow-x-hidden">
+    <main className="flex flex-col w-full min-h-screen overflow-x-hidden bg-black">
 
       {/* ── HERO ─────────────────────────────────────────────────────── */}
-      <section ref={heroRef} className="relative min-h-screen flex items-center justify-center overflow-hidden bg-black">
-        {/* Parallax background */}
-        <motion.div style={{ y: bgY }} className="absolute inset-0 z-0 scale-110">
+      <section ref={heroRef} className="relative min-h-screen flex items-end overflow-hidden">
+
+        {/* Full-bleed background photo */}
+        <motion.div style={{ y: bgY }} className="absolute inset-0 z-0 scale-[1.15]">
           <img
-            src="https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=1920&q=80"
+            src="https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=1920&q=90"
             alt=""
-            className="w-full h-full object-cover opacity-[0.15]"
+            className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/20 to-black" />
         </motion.div>
 
-        {/* Grid overlay */}
-        <div className="absolute inset-0 z-0 pointer-events-none"
-          style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.018) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.018) 1px, transparent 1px)', backgroundSize: '55px 55px' }}
-        />
+        {/* Strong dark gradient from bottom */}
+        <div className="absolute inset-0 z-[1]"
+          style={{ background: 'linear-gradient(to top, #000000 0%, rgba(0,0,0,0.85) 30%, rgba(0,0,0,0.3) 70%, rgba(0,0,0,0.5) 100%)' }} />
 
-        {/* Radial glows */}
-        <div className="absolute top-1/3 left-1/4 w-[500px] h-[500px] bg-gold/5 blur-[120px] rounded-full z-0 pointer-events-none" />
-        <div className="absolute bottom-1/3 right-1/4 w-[500px] h-[500px] bg-purple/5 blur-[120px] rounded-full z-0 pointer-events-none" />
+        {/* Neon colour splash */}
+        <div className="absolute bottom-0 left-0 w-[600px] h-[400px] z-[1] pointer-events-none"
+          style={{ background: 'radial-gradient(ellipse at 0% 100%, rgba(255,209,102,0.15) 0%, transparent 60%)' }} />
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] z-[1] pointer-events-none"
+          style={{ background: 'radial-gradient(ellipse at 100% 0%, rgba(168,85,247,0.15) 0%, transparent 60%)' }} />
 
-        <motion.div style={{ opacity: heroOpacity }} className="relative z-10 w-full max-w-screen-2xl mx-auto px-6 lg:px-12 py-24">
-          <div className="max-w-5xl space-y-8">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7 }}
-            >
-              <SectionLabel>Ghana's #1 Entertainment Platform</SectionLabel>
-            </motion.div>
+        {/* Content */}
+        <motion.div style={{ y: textY }} className="relative z-10 w-full max-w-screen-2xl mx-auto px-6 lg:px-16 pb-20 lg:pb-28">
+          <div className="max-w-4xl space-y-6">
 
-            <motion.h1
-              initial={{ opacity: 0, y: 32 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1], delay: 0.1 }}
-              className="font-display uppercase leading-[0.88] text-white"
-              style={{ fontSize: 'clamp(3.5rem, 11vw, 11rem)', letterSpacing: '0.01em' }}
-            >
-              RIDE THE
-              <span
-                className="block text-transparent bg-clip-text"
-                style={{ backgroundImage: 'linear-gradient(135deg, #FFD166 0%, #A855F7 100%)' }}
-              >
-                ASTROWAVE.
+            {/* Live badge */}
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-[#00FF87] animate-pulse" />
+              <span className="text-[0.65rem] font-bold text-[#00FF87] uppercase tracking-[0.35em]">
+                Ghana's #1 Entertainment Platform
               </span>
-            </motion.h1>
+            </div>
 
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-              className="text-white/45 text-lg lg:text-xl font-light leading-relaxed max-w-2xl"
-            >
-              {content?.hero?.subtitle ?? 'Connect Ghana\'s best DJs, MCs and live performers with the events that need them. Powered by AI. Trusted by thousands.'}
-            </motion.p>
+            {/* Headline */}
+            <h1 className="font-display uppercase leading-[0.85] text-white"
+              style={{ fontSize: 'clamp(4rem, 13vw, 13rem)', textShadow: '0 4px 60px rgba(0,0,0,0.5)' }}>
+              RIDE THE<br />
+              <span style={{ WebkitTextStroke: '2px #FFD166', color: 'transparent' }}>
+                ASTRO
+              </span>
+              <span className="text-[#FFD166]">WAVE.</span>
+            </h1>
 
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.3 }}
-              className="flex flex-col sm:flex-row items-start sm:items-center gap-4 pt-2"
-            >
+            <p className="text-white/60 text-lg lg:text-xl font-light leading-relaxed max-w-xl">
+              AI-powered talent matching for Ghana's biggest events. DJs, MCs, live bands and performers — found, booked and rated in minutes.
+            </p>
+
+            {/* CTAs */}
+            <div className="flex flex-wrap items-center gap-4 pt-2">
               <Link href="/platform">
-                <Button size="lg" className="h-16 px-14 text-sm font-bold tracking-[0.25em] shadow-[0_0_50px_rgba(255,209,102,0.18)] hover:shadow-[0_0_70px_rgba(255,209,102,0.3)] transition-shadow">
-                  FIND TALENT <ArrowRight size={16} className="ml-2" />
-                </Button>
+                <button className="flex items-center gap-3 h-16 px-10 rounded-xl font-bold text-sm tracking-[0.2em] uppercase text-black transition-all"
+                  style={{ background: 'linear-gradient(135deg, #FFD166, #F59E0B)', boxShadow: '0 0 40px rgba(255,209,102,0.4)' }}>
+                  <Zap size={18} fill="currentColor" /> FIND TALENT
+                </button>
               </Link>
               <Link href="/auth/register">
-                <Button variant="ghost" size="lg" className="h-16 px-14 text-sm border border-white/12 hover:border-white/30 text-white">
-                  JOIN AS ARTIST
-                </Button>
+                <button className="flex items-center gap-3 h-16 px-10 rounded-xl font-bold text-sm tracking-[0.2em] uppercase text-white border border-white/30 hover:border-white/60 backdrop-blur-sm transition-all hover:bg-white/5">
+                  <Mic size={18} /> JOIN AS ARTIST
+                </button>
               </Link>
-              <button
-                onClick={() => setVideoOpen(true)}
-                className="flex items-center gap-3 text-sm text-white/50 hover:text-white transition-colors group"
-              >
-                <span className="w-12 h-12 rounded-full border border-white/15 flex items-center justify-center group-hover:border-gold/40 group-hover:bg-gold/5 transition-all">
-                  <Play size={14} className="ml-0.5" />
+              <button onClick={() => setVideoOpen(true)}
+                className="flex items-center gap-3 text-sm text-white/50 hover:text-white transition-colors group">
+                <span className="w-12 h-12 rounded-full border border-white/20 flex items-center justify-center group-hover:border-[#FFD166]/50 group-hover:bg-[#FFD166]/5 transition-all">
+                  <Play size={16} className="ml-0.5 text-white/70" />
                 </span>
-                Watch the reel
+                Watch reel
               </button>
-            </motion.div>
+            </div>
 
-            {/* Trust indicators */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.5 }}
-              className="flex flex-wrap items-center gap-6 pt-4"
-            >
+            {/* Trust pills */}
+            <div className="flex flex-wrap gap-3 pt-2">
               {[
                 { icon: Shield, text: 'Verified Artists' },
-                { icon: Clock, text: '24hr Booking Response' },
-                { icon: TrendingUp, text: 'Real-Time Matching' },
-                { icon: Award, text: 'Wave Score Ranked' },
+                { icon: Clock, text: '24hr Response' },
+                { icon: Globe, text: '6 Cities' },
+                { icon: Star, text: 'Wave Score Ranked' },
               ].map(({ icon: Icon, text }) => (
-                <div key={text} className="flex items-center gap-2 text-[0.6rem] font-bold text-white/25 uppercase tracking-[0.2em]">
-                  <Icon size={11} className="text-gold/60" />
-                  {text}
+                <div key={text} className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/8 backdrop-blur-sm border border-white/10 text-[0.6rem] font-bold text-white/60 uppercase tracking-widest">
+                  <Icon size={11} className="text-[#FFD166]" /> {text}
                 </div>
               ))}
-            </motion.div>
+            </div>
           </div>
         </motion.div>
 
@@ -378,217 +321,172 @@ export default function HomePage() {
         <motion.div
           animate={{ y: [0, 8, 0] }}
           transition={{ duration: 2, repeat: Infinity }}
-          className="absolute bottom-10 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2 text-muted/40"
+          className="absolute bottom-8 right-12 z-10 flex flex-col items-center gap-2 text-white/30"
         >
           <span className="text-[0.5rem] font-bold uppercase tracking-[0.35em]">Scroll</span>
-          <ChevronDown size={14} />
+          <ChevronDown size={16} />
         </motion.div>
       </section>
 
-      {/* ── MARQUEE ──────────────────────────────────────────────────── */}
-      <Marquee />
+      {/* ── MARQUEE STRIP ─────────────────────────────────────────────── */}
+      <div className="bg-[#FFD166] py-4 overflow-hidden">
+        <Marquee />
+      </div>
+      <div className="bg-black border-b border-white/5 py-3 overflow-hidden">
+        <Marquee reverse />
+      </div>
 
-      {/* ── STATS ────────────────────────────────────────────────────── */}
-      <section className="bg-black py-16 lg:py-20 px-6 lg:px-12">
+      {/* ── LIVE STATS ────────────────────────────────────────────────── */}
+      <section className="bg-black py-20 px-6 lg:px-16">
         <div className="max-w-screen-2xl mx-auto">
-          <StatsBar stats={stats} />
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-white/5 rounded-2xl overflow-hidden border border-white/5">
+            {[
+              { label: 'Verified Talent', value: stats.talents, suffix: '+', color: '#FFD166' },
+              { label: 'Events Hosted',   value: stats.events,   suffix: '+', color: '#A855F7' },
+              { label: 'Bookings Made',   value: stats.bookings, suffix: '+', color: '#06B6D4' },
+              { label: 'Cities',          value: 6,              suffix: '',  color: '#00FF87' },
+            ].map((s, i) => (
+              <div key={s.label} className="bg-[#050D1A] p-10 text-center hover:bg-[#070F1F] transition-colors">
+                <p className="font-display text-white leading-none" style={{ fontSize: 'clamp(3rem, 6vw, 5rem)', color: s.color }}>
+                  <AnimatedNumber target={s.value} suffix={s.suffix} />
+                </p>
+                <p className="text-[0.65rem] font-bold text-white/30 uppercase tracking-[0.25em] mt-3">{s.label}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
       {/* ── FEATURED TALENT ──────────────────────────────────────────── */}
-      <section className="bg-[#050D1A] py-24 lg:py-32 px-6 lg:px-12">
-        <div className="max-w-screen-2xl mx-auto space-y-12">
+      <section className="bg-black py-20 lg:py-28 px-6 lg:px-16 border-t border-white/5">
+        <div className="max-w-screen-2xl mx-auto space-y-10">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-            <div className="space-y-3">
-              <SectionLabel>Top Rated on AstroWave</SectionLabel>
-              <h2 className="font-display text-white uppercase" style={{ fontSize: 'clamp(2rem, 5vw, 4.5rem)' }}>
-                FEATURED TALENT
+            <div>
+              <p className="text-[0.6rem] font-bold text-[#FFD166] uppercase tracking-[0.35em] mb-3">Top Ranked · Wave Score</p>
+              <h2 className="font-display text-white uppercase leading-none" style={{ fontSize: 'clamp(2.5rem, 6vw, 6rem)' }}>
+                FEATURED<br />TALENT
               </h2>
-              <p className="text-white/40 text-sm max-w-md">The highest Wave Score performers on the platform right now.</p>
             </div>
             <Link href="/platform">
-              <Button variant="ghost" className="border border-white/10 hover:border-gold/30 h-12 px-8 text-xs">
-                Full Roster <ArrowRight size={14} className="ml-2" />
-              </Button>
+              <button className="flex items-center gap-2 px-6 py-3 rounded-xl border border-white/15 text-white/60 text-sm font-bold uppercase tracking-widest hover:border-[#FFD166]/40 hover:text-[#FFD166] transition-all">
+                Full Roster <ArrowRight size={15} />
+              </button>
             </Link>
           </div>
 
           {talents.length > 0 ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-              {talents.map(t => <TalentSpotlight key={t.id} talent={t} />)}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+              {talents.map((t, i) => <TalentCard key={t.id} talent={t} index={i} />)}
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
               {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="aspect-[3/4] rounded-2xl bg-white/[0.03] animate-pulse border border-white/5" />
+                <div key={i} className="aspect-[3/4] rounded-2xl bg-white/[0.04] animate-pulse" />
               ))}
             </div>
           )}
         </div>
       </section>
 
-      {/* ── HOW IT WORKS / FEATURES ──────────────────────────────────── */}
-      <section className="bg-black py-24 lg:py-32 px-6 lg:px-12 border-t border-white/5">
-        <div className="max-w-screen-2xl mx-auto space-y-16">
-          <div className="text-center space-y-4">
-            <SectionLabel className="justify-center">Why AstroWave</SectionLabel>
-            <h2 className="font-display text-white uppercase" style={{ fontSize: 'clamp(2rem, 5vw, 4.5rem)' }}>
-              BUILT DIFFERENT
-            </h2>
-            <p className="text-white/40 text-sm max-w-lg mx-auto leading-relaxed">
-              Not a directory. Not a marketplace. A living ecosystem where talent and opportunity find each other automatically.
+      {/* ── UPCOMING EVENTS ───────────────────────────────────────────── */}
+      <section className="py-20 lg:py-28 px-6 lg:px-16 border-t border-white/5"
+        style={{ background: 'linear-gradient(to bottom, #000, #080818)' }}>
+        <div className="max-w-screen-2xl mx-auto space-y-10">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+            <div>
+              <p className="text-[0.6rem] font-bold text-[#A855F7] uppercase tracking-[0.35em] mb-3">Happening in Ghana</p>
+              <h2 className="font-display text-white uppercase leading-none" style={{ fontSize: 'clamp(2.5rem, 6vw, 6rem)' }}>
+                UPCOMING<br />EVENTS
+              </h2>
+            </div>
+            <Link href="/events">
+              <button className="flex items-center gap-2 px-6 py-3 rounded-xl border border-white/15 text-white/60 text-sm font-bold uppercase tracking-widest hover:border-[#A855F7]/40 hover:text-[#A855F7] transition-all">
+                All Events <ArrowRight size={15} />
+              </button>
+            </Link>
+          </div>
+
+          <div>
+            {events.length > 0
+              ? events.map((ev, i) => <EventRow key={ev.id} event={ev} index={i} />)
+              : Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="h-20 my-2 rounded-xl bg-white/[0.03] animate-pulse" />
+                ))
+            }
+          </div>
+        </div>
+      </section>
+
+      {/* ── SPLIT CTA ─────────────────────────────────────────────────── */}
+      <section className="grid grid-cols-1 lg:grid-cols-2 min-h-[70vh]">
+        {/* Organizer */}
+        <div className="relative overflow-hidden flex items-end p-10 lg:p-16 min-h-[50vh]">
+          <div className="absolute inset-0">
+            <img src="https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=900&q=80" alt=""
+              className="w-full h-full object-cover" />
+            <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, #000 0%, rgba(0,0,0,0.7) 50%, rgba(0,0,0,0.3) 100%)' }} />
+            <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 0% 100%, rgba(255,209,102,0.2) 0%, transparent 60%)' }} />
+          </div>
+          <div className="relative z-10 space-y-5">
+            <p className="text-[0.6rem] font-bold text-[#FFD166] uppercase tracking-[0.3em]">For Organizers</p>
+            <h3 className="font-display text-white uppercase leading-tight" style={{ fontSize: 'clamp(2rem, 4vw, 4rem)' }}>
+              PLANNING<br />AN EVENT?
+            </h3>
+            <p className="text-white/50 text-sm max-w-sm leading-relaxed">
+              Post your brief and let our AI find the perfect talent — sorted by location, category, and Wave Score.
             </p>
+            <Link href="/auth/register">
+              <button className="flex items-center gap-3 h-14 px-8 rounded-xl font-bold text-sm tracking-[0.2em] uppercase text-black mt-2"
+                style={{ background: 'linear-gradient(135deg, #FFD166, #F59E0B)' }}>
+                POST AN EVENT <ArrowRight size={16} />
+              </button>
+            </Link>
           </div>
+        </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {FEATURES.map((f, i) => (
-              <motion.div
-                key={f.title}
-                initial={{ opacity: 0, y: 24 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-                className="group relative overflow-hidden rounded-2xl border border-white/5 bg-[#070F1F] p-8 flex flex-col gap-6 hover:border-white/10 transition-all duration-300 hover:shadow-[0_8px_40px_rgba(0,0,0,0.4)]"
-              >
-                {/* Hover glow */}
-                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
-                  style={{ background: `radial-gradient(circle at 0% 100%, ${f.color}08, transparent 60%)` }}
-                />
-
-                {/* Step number watermark */}
-                <span className="absolute top-4 right-6 font-display text-[3.5rem] leading-none text-white/[0.03] select-none">
-                  {String(i + 1).padStart(2, '0')}
-                </span>
-
-                <div className="relative z-10 space-y-5 flex flex-col flex-1">
-                  <div className="w-12 h-12 rounded-xl flex items-center justify-center"
-                    style={{ backgroundColor: `${f.color}15`, color: f.color }}>
-                    <f.icon size={22} />
-                  </div>
-                  <div className="space-y-2 flex-1">
-                    <h3 className="font-display text-xl text-white uppercase tracking-wider">{f.title}</h3>
-                    <p className="text-sm text-white/40 leading-relaxed">{f.desc}</p>
-                  </div>
-                  <Link href={f.href} className="flex items-center gap-2 text-[0.6rem] font-bold uppercase tracking-widest transition-colors"
-                    style={{ color: f.color }}>
-                    {f.cta} <ArrowRight size={11} />
-                  </Link>
-                </div>
-              </motion.div>
-            ))}
+        {/* Talent */}
+        <div className="relative overflow-hidden flex items-end p-10 lg:p-16 min-h-[50vh]">
+          <div className="absolute inset-0">
+            <img src="https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=900&q=80" alt=""
+              className="w-full h-full object-cover" />
+            <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, #000 0%, rgba(0,0,0,0.7) 50%, rgba(0,0,0,0.3) 100%)' }} />
+            <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 100% 100%, rgba(168,85,247,0.2) 0%, transparent 60%)' }} />
+          </div>
+          <div className="relative z-10 space-y-5">
+            <p className="text-[0.6rem] font-bold text-[#A855F7] uppercase tracking-[0.3em]">For Performers</p>
+            <h3 className="font-display text-white uppercase leading-tight" style={{ fontSize: 'clamp(2rem, 4vw, 4rem)' }}>
+              ARE YOU<br />A CREATIVE?
+            </h3>
+            <p className="text-white/50 text-sm max-w-sm leading-relaxed">
+              Build your profile, earn your Wave Score, and get discovered by organizers across Ghana — for free.
+            </p>
+            <Link href="/auth/register">
+              <button className="flex items-center gap-3 h-14 px-8 rounded-xl font-bold text-sm tracking-[0.2em] uppercase text-white border border-[#A855F7]/50 hover:bg-[#A855F7] transition-all mt-2">
+                JOIN THE ROSTER <ArrowRight size={16} />
+              </button>
+            </Link>
           </div>
         </div>
       </section>
 
-      {/* ── RECENT EVENTS ────────────────────────────────────────────── */}
-      {events.length > 0 && (
-        <section className="bg-[#050D1A] py-24 lg:py-32 px-6 lg:px-12 border-t border-white/5">
-          <div className="max-w-screen-2xl mx-auto space-y-12">
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-              <div className="space-y-3">
-                <SectionLabel>Happening Now</SectionLabel>
-                <h2 className="font-display text-white uppercase" style={{ fontSize: 'clamp(2rem, 5vw, 4.5rem)' }}>
-                  RECENT EVENTS
-                </h2>
-              </div>
-              <Link href="/events">
-                <Button variant="ghost" className="border border-white/10 hover:border-gold/30 h-12 px-8 text-xs">
-                  All Events <ArrowRight size={14} className="ml-2" />
-                </Button>
-              </Link>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {events.map((ev, i) => <RecentEvent key={ev.id} event={ev} index={i} />)}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* ── DUAL CTA ─────────────────────────────────────────────────── */}
-      <section className="bg-black py-24 lg:py-32 px-6 lg:px-12 border-t border-white/5">
-        <div className="max-w-screen-2xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Organizer CTA */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            className="relative overflow-hidden rounded-3xl border border-white/5 bg-[#070F1F] p-10 lg:p-14 flex flex-col justify-between gap-10 group hover:border-gold/15 transition-all duration-500"
-          >
-            <div className="absolute inset-0 pointer-events-none">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-gold/5 blur-[80px] rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-            </div>
-            <div className="relative z-10 space-y-4">
-              <SectionLabel>For Organizers</SectionLabel>
-              <h3 className="font-display text-white uppercase leading-tight" style={{ fontSize: 'clamp(2rem, 4vw, 3.5rem)' }}>
-                PLANNING AN EVENT?
-              </h3>
-              <p className="text-white/40 text-sm leading-relaxed max-w-md">
-                Post your event brief and let AstroWave's matching engine find you the perfect talent — sorted, scored, and ready to book.
-              </p>
-            </div>
-            <Link href="/auth/register" className="relative z-10">
-              <Button size="lg" className="h-14 px-12 text-sm font-bold tracking-[0.2em] w-full sm:w-auto shadow-[0_0_40px_rgba(255,209,102,0.12)] hover:shadow-[0_0_60px_rgba(255,209,102,0.2)]">
-                POST AN EVENT <ArrowRight size={15} className="ml-2" />
-              </Button>
-            </Link>
-          </motion.div>
-
-          {/* Talent CTA */}
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            className="relative overflow-hidden rounded-3xl border border-white/5 bg-[#070F1F] p-10 lg:p-14 flex flex-col justify-between gap-10 group hover:border-purple/15 transition-all duration-500"
-          >
-            <div className="absolute inset-0 pointer-events-none">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-purple/5 blur-[80px] rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-            </div>
-            <div className="relative z-10 space-y-4">
-              <SectionLabel>For Performers</SectionLabel>
-              <h3 className="font-display text-white uppercase leading-tight" style={{ fontSize: 'clamp(2rem, 4vw, 3.5rem)' }}>
-                ARE YOU A CREATIVE?
-              </h3>
-              <p className="text-white/40 text-sm leading-relaxed max-w-md">
-                Build your profile, earn your Wave Score, and get discovered by the organizers who need exactly your vibe — for free.
-              </p>
-            </div>
-            <Link href="/auth/register" className="relative z-10">
-              <Button variant="secondary" size="lg" className="h-14 px-12 text-sm font-bold tracking-[0.2em] w-full sm:w-auto border border-purple/30 text-purple hover:bg-purple hover:text-white transition-all">
-                JOIN THE ROSTER <ArrowRight size={15} className="ml-2" />
-              </Button>
-            </Link>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* ── REEL MODAL ───────────────────────────────────────────────── */}
+      {/* ── VIDEO MODAL ───────────────────────────────────────────────── */}
       <AnimatePresence>
         {videoOpen && (
           <div className="fixed inset-0 z-[9000] flex items-center justify-center p-6">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               onClick={() => setVideoOpen(false)}
-              className="absolute inset-0 bg-black/90 backdrop-blur-2xl"
-            />
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="relative z-10 w-full max-w-4xl aspect-video rounded-2xl overflow-hidden border border-white/10 bg-[#070F1F] flex items-center justify-center"
-            >
+              className="absolute inset-0 bg-black/95 backdrop-blur-2xl" />
+            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
+              className="relative z-10 w-full max-w-4xl aspect-video rounded-2xl overflow-hidden border border-white/10 bg-[#080818] flex items-center justify-center">
               <div className="text-center space-y-4 p-12">
-                <div className="w-20 h-20 rounded-full border border-gold/20 bg-gold/5 flex items-center justify-center mx-auto">
-                  <Play size={32} className="text-gold ml-1" />
+                <div className="w-20 h-20 rounded-full border border-[#FFD166]/30 bg-[#FFD166]/5 flex items-center justify-center mx-auto">
+                  <Play size={32} className="text-[#FFD166] ml-1" />
                 </div>
                 <p className="font-display text-2xl text-white uppercase tracking-widest">Coming Soon</p>
-                <p className="text-sm text-muted">The AstroWave showreel is in production.</p>
+                <p className="text-sm text-white/40">The AstroWave showreel is in production.</p>
               </div>
-              <button
-                onClick={() => setVideoOpen(false)}
-                className="absolute top-4 right-4 w-10 h-10 rounded-full border border-white/10 flex items-center justify-center text-muted hover:text-white hover:border-white/25 transition-all"
-              >
+              <button onClick={() => setVideoOpen(false)}
+                className="absolute top-4 right-4 w-10 h-10 rounded-full border border-white/10 flex items-center justify-center text-white/50 hover:text-white transition-all">
                 ✕
               </button>
             </motion.div>
