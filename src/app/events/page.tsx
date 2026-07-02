@@ -12,13 +12,13 @@ import { format, isPast, isFuture, isToday, differenceInHours } from 'date-fns';
 
 function getStatus(event: any) {
   const start = event.startDate?.toDate?.() ?? new Date(event.startDate);
-  const end   = event.endDate?.toDate?.()   ?? (event.endDate ? new Date(event.endDate) : null);
-  if (event.soldOut)                                                      return { label: 'Sold Out', color: '#6B8CAE', pulse: false };
-  if (end && isPast(end))                                                  return { label: 'Ended',    color: '#6B8CAE', pulse: false };
+  const end   = event.endDate?.toDate?.() ?? (event.endDate ? new Date(event.endDate) : null);
+  if (event.soldOut)                                                               return { label: 'Sold Out', color: '#5A7A65', bg: '#EAF5EF', pulse: false };
+  if (end && isPast(end))                                                          return { label: 'Ended',    color: '#5A7A65', bg: '#EAF5EF', pulse: false };
   if (isToday(start) || (!isPast(start) && differenceInHours(start, new Date()) < 4))
-                                                                           return { label: 'LIVE NOW', color: '#00FF87', pulse: true };
-  if (isFuture(start))                                                     return { label: 'Upcoming', color: '#FFD166', pulse: false };
-  return                                                                         { label: 'Scheduled', color: '#A855F7', pulse: false };
+                                                                                   return { label: 'LIVE NOW', color: '#FFFFFF', bg: '#00C853', pulse: true };
+  if (isFuture(start))                                                             return { label: 'Upcoming', color: '#FFFFFF', bg: '#0EA5E9', pulse: false };
+  return                                                                                { label: 'Scheduled', color: '#0EA5E9', bg: '#EAF5EF', pulse: false };
 }
 
 const FALLBACKS: Record<string, string> = {
@@ -34,73 +34,66 @@ function EventCard({ event }: { event: any }) {
   const status    = getStatus(event);
   const img       = event.coverImage || FALLBACKS[event.category] || FALLBACKS.default;
   const startDate = event.startDate?.toDate?.() ?? new Date(event.startDate);
-  const month     = format(startDate, 'MMM').toUpperCase();
-  const day       = format(startDate, 'd');
 
   return (
-    <motion.article
-      layout
-      initial={{ opacity: 0, y: 24 }}
-      animate={{ opacity: 1, y: 0 }}
+    <motion.article layout
+      initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.96 }}
       transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-      className="group relative overflow-hidden rounded-2xl bg-[#080818] border border-white/[0.06] hover:border-white/20 transition-all duration-500 hover:shadow-[0_20px_60px_rgba(0,0,0,0.6)] flex flex-col"
+      className="group relative overflow-hidden rounded-2xl bg-white border border-[#D1E8DA] hover:border-[#00C853] hover:shadow-card-hover transition-all duration-500 flex flex-col"
     >
-      {/* Image */}
       <div className="relative aspect-video overflow-hidden">
         <img src={img} alt={event.title} loading="lazy"
           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-        <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, #080818 0%, rgba(8,8,24,0.2) 60%, transparent 100%)' }} />
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(255,255,255,0.95) 0%, transparent 60%)' }} />
 
         {/* Date badge */}
-        <div className="absolute top-4 left-4 text-center px-3 py-2 rounded-xl bg-black/70 backdrop-blur-md border border-white/10">
-          <p className="font-display text-2xl text-white leading-none">{day}</p>
-          <p className="text-[0.5rem] font-bold text-[#FFD166] uppercase tracking-widest">{month}</p>
+        <div className="absolute top-4 left-4 text-center px-3 py-2 rounded-xl bg-white/95 backdrop-blur-sm border border-[#D1E8DA] shadow-card">
+          <p className="font-display text-2xl text-[#0A1A10] leading-none">{format(startDate, 'd')}</p>
+          <p className="text-[0.5rem] font-bold text-[#00C853] uppercase tracking-widest">{format(startDate, 'MMM').toUpperCase()}</p>
         </div>
 
         {/* Status */}
-        <div className="absolute top-4 right-4 flex items-center gap-1.5 px-3 py-1.5 rounded-full backdrop-blur-md border text-[0.55rem] font-bold uppercase tracking-widest"
-          style={{ color: status.color, backgroundColor: `${status.color}18`, borderColor: `${status.color}30` }}>
-          {status.pulse && <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: status.color }} />}
+        <div className="absolute top-4 right-4 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[0.55rem] font-bold uppercase tracking-widest"
+          style={{ color: status.color, backgroundColor: status.bg }}>
+          {status.pulse && <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />}
           {status.label}
         </div>
 
-        {/* Category */}
         {event.category && (
-          <div className="absolute bottom-4 left-4 px-3 py-1 rounded-full bg-black/60 backdrop-blur-sm text-[0.55rem] font-bold text-white/60 uppercase tracking-widest">
+          <div className="absolute bottom-4 left-4 px-3 py-1 rounded-full bg-white/90 border border-[#D1E8DA] text-[0.55rem] font-bold text-[#5A7A65] uppercase tracking-widest">
             {event.category}
           </div>
         )}
       </div>
 
-      {/* Body */}
       <div className="flex flex-col flex-1 p-5 space-y-3">
-        <h3 className="font-display text-2xl text-white uppercase tracking-wider leading-tight group-hover:text-[#FFD166] transition-colors line-clamp-2">
+        <h3 className="font-display text-2xl text-[#0A1A10] uppercase tracking-wider leading-tight group-hover:text-[#00C853] transition-colors line-clamp-2">
           {event.title}
         </h3>
 
         <div className="space-y-1.5">
-          <div className="flex items-center gap-2 text-[0.65rem] text-white/40">
-            <Calendar size={11} className="text-[#FFD166]" />
+          <div className="flex items-center gap-2 text-[0.65rem] text-[#5A7A65]">
+            <Calendar size={11} className="text-[#00C853]" />
             <span>{format(startDate, 'EEEE, MMM d · h:mm a')}</span>
           </div>
           {event.venue && (
-            <div className="flex items-center gap-2 text-[0.65rem] text-white/40">
-              <MapPin size={11} className="text-[#A855F7]" />
+            <div className="flex items-center gap-2 text-[0.65rem] text-[#5A7A65]">
+              <MapPin size={11} className="text-[#0EA5E9]" />
               <span className="truncate">{event.venue}{event.city ? `, ${event.city}` : ''}</span>
             </div>
           )}
         </div>
 
         {event.description && (
-          <p className="text-[0.7rem] text-white/30 leading-relaxed line-clamp-2 flex-1">{event.description}</p>
+          <p className="text-[0.7rem] text-[#5A7A65] leading-relaxed line-clamp-2 flex-1">{event.description}</p>
         )}
 
-        <div className="flex items-center justify-between pt-3 border-t border-white/[0.06] mt-auto">
+        <div className="flex items-center justify-between pt-3 border-t border-[#EAF5EF] mt-auto">
           {event.price != null ? (
             <div>
-              <p className="text-[0.5rem] text-white/30 uppercase">From</p>
-              <p className="font-display text-xl text-[#FFD166]">
+              <p className="text-[0.5rem] text-[#5A7A65] uppercase">From</p>
+              <p className="font-display text-xl text-[#00C853]">
                 {event.price === 0 ? 'FREE' : `GHS ${Number(event.price).toLocaleString()}`}
               </p>
             </div>
@@ -108,13 +101,13 @@ function EventCard({ event }: { event: any }) {
 
           {event.ticketLink ? (
             <a href={event.ticketLink} target="_blank" rel="noopener noreferrer"
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-[0.6rem] font-bold uppercase tracking-widest text-black transition-all"
-              style={{ background: 'linear-gradient(135deg, #FFD166, #F59E0B)' }}>
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-[0.6rem] font-bold uppercase tracking-widest text-white transition-all"
+              style={{ background: 'linear-gradient(135deg, #00C853, #0EA5E9)' }}>
               Get Tickets <ArrowRight size={11} />
             </a>
           ) : event.slug ? (
             <Link href={`/events/${event.slug}`}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-white/10 text-white/50 text-[0.6rem] font-bold uppercase tracking-widest hover:border-white/30 hover:text-white transition-all">
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-[#D1E8DA] text-[#5A7A65] text-[0.6rem] font-bold uppercase tracking-widest hover:border-[#00C853] hover:text-[#00C853] transition-all">
               Details <ArrowRight size={11} />
             </Link>
           ) : null}
@@ -162,34 +155,34 @@ export default function EventsPage() {
   const isFiltered = category !== 'All' || searchQuery.trim().length > 0;
 
   return (
-    <main className="flex flex-col w-full min-h-screen bg-black">
+    <main className="flex flex-col w-full min-h-screen bg-white">
 
       {/* ── HERO ─────────────────────────────────────────────────────── */}
       <section className="relative min-h-[65vh] flex items-end overflow-hidden">
         <div className="absolute inset-0 z-0">
           <img src="https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=1920&q=90" alt=""
             className="w-full h-full object-cover" />
-          <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, #000 0%, rgba(0,0,0,0.8) 40%, rgba(0,0,0,0.3) 100%)' }} />
-          <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 50% 100%, rgba(168,85,247,0.15) 0%, transparent 60%)' }} />
+          <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(10,26,16,0.97) 0%, rgba(10,26,16,0.65) 45%, rgba(0,0,0,0.15) 100%)' }} />
+          <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 40% 100%, rgba(0,200,83,0.20) 0%, transparent 55%)' }} />
         </div>
 
         <div className="relative z-10 w-full max-w-screen-2xl mx-auto px-6 lg:px-16 pb-16 space-y-4">
-          <p className="text-[0.6rem] font-bold text-[#A855F7] uppercase tracking-[0.35em]">Live &amp; Upcoming</p>
+          <p className="text-[0.6rem] font-bold text-[#00C853] uppercase tracking-[0.35em]">Live &amp; Upcoming</p>
           <h1 className="font-display uppercase text-white leading-none"
-            style={{ fontSize: 'clamp(4rem, 14vw, 14rem)', textShadow: '0 4px 80px rgba(0,0,0,0.6)' }}>
+            style={{ fontSize: 'clamp(4rem, 14vw, 14rem)' }}>
             EVENTS
           </h1>
           {!loading && (
             <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-[#00FF87] animate-pulse" />
-              <p className="text-sm font-bold text-white/50">{events.length} events listed across Ghana</p>
+              <span className="w-2 h-2 rounded-full bg-[#00C853] animate-pulse" />
+              <p className="text-sm font-bold text-white/60">{events.length} events listed across Ghana</p>
             </div>
           )}
         </div>
       </section>
 
-      {/* ── STICKY FILTER BAR ────────────────────────────────────────── */}
-      <div className="sticky top-0 z-50 bg-black/95 backdrop-blur-xl border-b border-white/[0.06]">
+      {/* ── FILTER BAR ───────────────────────────────────────────────── */}
+      <div className="sticky top-0 z-50 bg-white/95 backdrop-blur-xl border-b-2 border-[#D1E8DA] shadow-sm">
         <div className="max-w-screen-2xl mx-auto px-6 lg:px-16 py-4 flex items-center gap-4">
           <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide flex-1 pb-0.5">
             {CATEGORIES.map(cat => {
@@ -199,13 +192,13 @@ export default function EventsPage() {
                 <button key={cat} onClick={() => setCategory(cat)}
                   className={cn('whitespace-nowrap flex items-center gap-1.5 px-4 py-2 rounded-full text-[0.6rem] font-bold uppercase tracking-widest transition-all shrink-0',
                     category === cat
-                      ? 'bg-[#FFD166] text-black shadow-[0_0_20px_rgba(255,209,102,0.3)]'
-                      : 'border border-white/10 text-white/40 hover:border-white/30 hover:text-white'
+                      ? 'bg-[#00C853] text-white shadow-glow-green'
+                      : 'border border-[#D1E8DA] text-[#5A7A65] hover:border-[#00C853] hover:text-[#00C853] bg-white'
                   )}>
                   {cat}
                   {count != null && (
                     <span className={cn('text-[0.5rem] px-1.5 py-0.5 rounded-full font-bold',
-                      category === cat ? 'bg-black/20 text-black' : 'bg-white/8 text-white/30')}>
+                      category === cat ? 'bg-white/25 text-white' : 'bg-[#EAF5EF] text-[#5A7A65]')}>
                       {count}
                     </span>
                   )}
@@ -220,12 +213,12 @@ export default function EventsPage() {
                 <motion.div initial={{ width: 0, opacity: 0 }} animate={{ width: 200, opacity: 1 }} exit={{ width: 0, opacity: 0 }} className="overflow-hidden">
                   <input ref={searchRef} type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
                     placeholder="Search events…"
-                    className="w-full bg-white/[0.06] border border-white/10 rounded-full px-4 h-9 text-xs text-white placeholder:text-white/20 focus:outline-none focus:border-[#FFD166]/40" />
+                    className="w-full bg-[#F4FBF7] border border-[#D1E8DA] rounded-full px-4 h-9 text-xs text-[#0A1A10] placeholder:text-[#5A7A65]/50 focus:outline-none focus:border-[#00C853]" />
                 </motion.div>
               )}
             </AnimatePresence>
             <button onClick={() => { setSearchOpen(v => !v); if (searchOpen) setSearchQuery(''); }}
-              className="w-9 h-9 flex items-center justify-center rounded-full border border-white/10 text-white/40 hover:text-white hover:border-white/30 transition-all">
+              className="w-9 h-9 flex items-center justify-center rounded-full border border-[#D1E8DA] text-[#5A7A65] hover:text-[#00C853] hover:border-[#00C853] transition-all bg-white">
               {searchOpen ? <X size={14} /> : <Search size={14} />}
             </button>
           </div>
@@ -233,9 +226,9 @@ export default function EventsPage() {
 
         {isFiltered && (
           <div className="max-w-screen-2xl mx-auto px-6 lg:px-16 pb-3 flex items-center gap-3">
-            <span className="text-[0.55rem] font-bold text-white/30 uppercase tracking-widest">{filtered.length} result{filtered.length !== 1 ? 's' : ''}</span>
+            <span className="text-[0.55rem] font-bold text-[#5A7A65] uppercase tracking-widest">{filtered.length} result{filtered.length !== 1 ? 's' : ''}</span>
             <button onClick={() => { setCategory('All'); setSearchQuery(''); setSearchOpen(false); }}
-              className="flex items-center gap-1 text-[0.55rem] font-bold text-[#FFD166]/60 hover:text-[#FFD166] uppercase tracking-widest transition-colors">
+              className="flex items-center gap-1 text-[0.55rem] font-bold text-[#00C853] hover:text-[#007A33] uppercase tracking-widest transition-colors">
               <X size={10} /> Clear
             </button>
           </div>
@@ -243,12 +236,12 @@ export default function EventsPage() {
       </div>
 
       {/* ── GRID ─────────────────────────────────────────────────────── */}
-      <section className="flex-1 py-12 lg:py-16 px-6 lg:px-16">
+      <section className="flex-1 py-12 lg:py-16 px-6 lg:px-16 bg-[#F4FBF7]">
         <div className="max-w-screen-2xl mx-auto">
           {loading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
               {Array.from({ length: 8 }).map((_, i) => (
-                <div key={i} className="h-[420px] rounded-2xl bg-white/[0.03] animate-pulse" />
+                <div key={i} className="h-[420px] rounded-2xl bg-[#EAF5EF] animate-pulse border border-[#D1E8DA]" />
               ))}
             </div>
           ) : (
@@ -259,13 +252,13 @@ export default function EventsPage() {
                   : (
                     <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }}
                       className="col-span-full py-32 text-center space-y-4">
-                      <Music size={48} className="mx-auto text-white/10" />
-                      <p className="font-display text-3xl text-white/15 uppercase tracking-widest">
+                      <Music size={48} className="mx-auto text-[#D1E8DA]" />
+                      <p className="font-display text-3xl text-[#D1E8DA] uppercase tracking-widest">
                         {isFiltered ? 'No Events Match' : 'No Events Yet'}
                       </p>
                       {isFiltered && (
                         <button onClick={() => { setCategory('All'); setSearchQuery(''); }}
-                          className="text-[#FFD166]/50 text-sm hover:text-[#FFD166] transition-colors">
+                          className="text-[#00C853] text-sm hover:text-[#007A33] transition-colors font-bold">
                           Clear filters
                         </button>
                       )}
@@ -278,31 +271,28 @@ export default function EventsPage() {
       </section>
 
       {/* ── HOST CTA ─────────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden border-t border-white/[0.06]" style={{ background: '#080818' }}>
-        <div className="absolute inset-0 pointer-events-none">
-          <img src="https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=1400&q=80" alt=""
-            className="w-full h-full object-cover opacity-10" />
-          <div className="absolute inset-0" style={{ background: 'linear-gradient(to right, #080818 0%, rgba(8,8,24,0.8) 50%, #080818 100%)' }} />
-        </div>
+      <section className="relative overflow-hidden border-t-2 border-[#D1E8DA] bg-white">
+        <div className="absolute inset-0 pointer-events-none"
+          style={{ background: 'radial-gradient(ellipse at 30% 50%, rgba(0,200,83,0.06) 0%, transparent 60%), radial-gradient(ellipse at 80% 50%, rgba(14,165,233,0.06) 0%, transparent 60%)' }} />
 
         <div className="relative z-10 max-w-screen-2xl mx-auto px-6 lg:px-16 py-24 lg:py-32 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           <div className="space-y-6">
-            <p className="text-[0.6rem] font-bold text-[#FFD166] uppercase tracking-[0.35em]">For Organizers</p>
-            <h2 className="font-display text-white uppercase leading-tight" style={{ fontSize: 'clamp(2.5rem, 5vw, 5rem)' }}>
+            <p className="text-[0.6rem] font-bold text-[#00C853] uppercase tracking-[0.35em]">For Organizers</p>
+            <h2 className="font-display text-[#0A1A10] uppercase leading-tight" style={{ fontSize: 'clamp(2.5rem, 5vw, 5rem)' }}>
               HOST YOUR EVENT<br />WITH ASTROWAVE
             </h2>
-            <p className="text-white/40 text-base leading-relaxed max-w-md">
+            <p className="text-[#5A7A65] text-base leading-relaxed max-w-md">
               List your event, access Ghana's top talent roster, and manage everything from one dashboard.
             </p>
             <div className="flex flex-wrap gap-4">
               <Link href="/contact">
-                <button className="flex items-center gap-3 h-14 px-10 rounded-xl font-bold text-sm tracking-[0.2em] uppercase text-black"
-                  style={{ background: 'linear-gradient(135deg, #FFD166, #F59E0B)' }}>
+                <button className="flex items-center gap-3 h-14 px-10 rounded-xl font-bold text-sm tracking-[0.2em] uppercase text-white"
+                  style={{ background: 'linear-gradient(135deg, #00C853, #0EA5E9)' }}>
                   GET IN TOUCH <ArrowRight size={16} />
                 </button>
               </Link>
               <Link href="/platform">
-                <button className="flex items-center gap-3 h-14 px-10 rounded-xl font-bold text-sm tracking-[0.2em] uppercase text-white border border-white/15 hover:border-[#A855F7]/50 hover:text-[#A855F7] transition-all">
+                <button className="flex items-center gap-3 h-14 px-10 rounded-xl font-bold text-sm tracking-[0.2em] uppercase text-[#0EA5E9] border-2 border-[#0EA5E9] hover:bg-[#0EA5E9] hover:text-white transition-all">
                   EXPLORE PLATFORM <ArrowRight size={16} />
                 </button>
               </Link>
@@ -311,22 +301,22 @@ export default function EventsPage() {
 
           <div className="grid grid-cols-2 gap-4">
             {[
-              { icon: Zap,      label: 'AI Matching',   sub: 'Find the right talent',       color: '#FFD166' },
-              { icon: Users,    label: 'Live Roster',   sub: 'Wave Score ranked artists',   color: '#A855F7' },
-              { icon: Calendar, label: 'Dashboard',     sub: 'Full event management',       color: '#06B6D4' },
-              { icon: Play,     label: 'Real-Time',     sub: 'Instant booking flow',        color: '#00FF87' },
+              { icon: Zap,      label: 'AI Matching',  sub: 'Find the right talent',     color: '#00C853' },
+              { icon: Users,    label: 'Live Roster',  sub: 'Wave Score ranked artists', color: '#0EA5E9' },
+              { icon: Calendar, label: 'Dashboard',    sub: 'Full event management',     color: '#00C853' },
+              { icon: Play,     label: 'Real-Time',    sub: 'Instant booking flow',      color: '#0EA5E9' },
             ].map((item, i) => (
               <motion.div key={item.label}
                 initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }} transition={{ delay: i * 0.08 }}
-                className="p-5 rounded-2xl border border-white/[0.06] bg-white/[0.02] space-y-3">
+                className="p-5 rounded-2xl border border-[#D1E8DA] bg-[#F4FBF7] hover:border-[#00C853] hover:shadow-card transition-all space-y-3 group">
                 <div className="w-10 h-10 rounded-xl flex items-center justify-center"
-                  style={{ backgroundColor: `${item.color}12`, color: item.color }}>
+                  style={{ backgroundColor: `${item.color}15`, color: item.color }}>
                   <item.icon size={18} />
                 </div>
                 <div>
-                  <p className="text-sm font-bold text-white">{item.label}</p>
-                  <p className="text-[0.6rem] text-white/30 mt-0.5">{item.sub}</p>
+                  <p className="text-sm font-bold text-[#0A1A10]">{item.label}</p>
+                  <p className="text-[0.6rem] text-[#5A7A65] mt-0.5">{item.sub}</p>
                 </div>
               </motion.div>
             ))}
