@@ -4,40 +4,44 @@
 
 @layer base {
   :root {
-    /* ── AstroWave Palette — White / Green / Blue ── */
+    /* ── Core palette: White / Green / Blue ─────────────── */
     --color-bg:           #FFFFFF;
-    --color-bg-soft:      #F4FBF7;
-    --color-bg-muted:     #EAF5EF;
+    --color-bg-soft:      #F0FAF5;
+    --color-bg-muted:     #E6F4ED;
     --color-surface:      #FFFFFF;
     --color-card:         #FFFFFF;
-    --color-border:       #D1E8DA;
-    --color-border-dark:  #A8D5BB;
+    --color-border:       #C8E6D4;
 
-    /* Primary — Neon/Forest Green */
+    /* Green — primary */
     --color-green:        #00C853;
-    --color-green-light:  #00FF87;
+    --color-green-light:  #5FFFAC;
     --color-green-dark:   #007A33;
-    --color-green-dim:    rgba(0,200,83,0.10);
-    --color-green-glow:   rgba(0,200,83,0.20);
 
-    /* Secondary — Electric Blue */
+    /* Blue — secondary */
     --color-blue:         #0EA5E9;
     --color-blue-light:   #38BDF8;
     --color-blue-dark:    #0369A1;
-    --color-blue-dim:     rgba(14,165,233,0.10);
-    --color-blue-glow:    rgba(14,165,233,0.20);
 
     /* Text */
-    --color-text:         #0A1A10;
-    --color-text-soft:    #2D4A38;
-    --color-muted:        #5A7A65;
+    --color-text:         #0B1F14;
+    --color-text-soft:    #2A4434;
+    --color-muted:        #567060;
     --color-white:        #FFFFFF;
 
-    /* Accents kept for backwards compat */
-    --color-gold:         #00C853;
-    --color-purple:       #0EA5E9;
+    /* ── Dark-theme aliases (Navbar, hero overlays still need dark) */
+    /* These let old dark-* classes compile without errors */
+    --dark-bg:            #0B1F14;
+    --dark-surface:       #122819;
+    --dark-card:          #162E1C;
+    --dark-border:        rgba(0,200,83,0.15);
+    --dark-text:          #F0FAF5;
+    --dark-subtext:       rgba(240,250,245,0.65);
+    --dark-muted:         rgba(240,250,245,0.35);
+
+    /* ── Accent aliases ─────────────────────────────────── */
+    --color-gold:         #00C853;   /* remap gold → green */
+    --color-purple:       #0EA5E9;   /* remap purple → blue */
     --color-cyan:         #38BDF8;
-    --color-black:        #0A1A10;
 
     /* ShadCN compat */
     --background:         0 0% 100%;
@@ -46,27 +50,16 @@
     --primary-foreground: 0 0% 100%;
     --secondary:          199 89% 48%;
     --secondary-foreground: 0 0% 100%;
-    --accent:             145 80% 94%;
+    --accent:             145 60% 93%;
     --accent-foreground:  145 100% 20%;
-    --muted:              145 20% 94%;
-    --muted-foreground:   145 15% 40%;
-    --border:             145 30% 85%;
+    --muted:              145 20% 93%;
+    --muted-foreground:   145 15% 42%;
+    --border:             145 35% 84%;
     --radius:             10px;
-
-    /* Spacing */
-    --space-xs:  clamp(1rem,   2vw,  1.5rem);
-    --space-sm:  clamp(2rem,   4vw,  3rem);
-    --space-md:  clamp(3rem,   6vw,  5rem);
-    --space-lg:  clamp(5rem,   8vw,  8rem);
-    --space-xl:  clamp(6rem,  10vw, 10rem);
-
-    /* Transitions */
-    --transition-base: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    --transition-slow: 0.5s  cubic-bezier(0.22, 1, 0.36, 1);
   }
 }
 
-/* ── Reset & Base ──────────────────────────────────────────── */
+/* ── Reset ──────────────────────────────────────────────── */
 @layer base {
   *, *::before, *::after { box-sizing: border-box; }
 
@@ -77,8 +70,8 @@
   }
 
   body {
-    background-color: var(--color-bg);
-    color: var(--color-text);
+    background-color: #FFFFFF;
+    color: #0B1F14;
     font-family: var(--font-body), sans-serif;
     font-weight: 400;
     overflow-x: hidden;
@@ -86,132 +79,175 @@
   }
 
   ::selection {
-    background-color: rgba(0,200,83,0.20);
-    color: #0A1A10;
+    background-color: rgba(0,200,83,0.22);
+    color: #0B1F14;
   }
 }
 
-/* ── Scrollbar ──────────────────────────────────────────────── */
+/* ── Scrollbar ──────────────────────────────────────────── */
 ::-webkit-scrollbar          { width: 4px; height: 4px; }
-::-webkit-scrollbar-track    { background: #EAF5EF; }
+::-webkit-scrollbar-track    { background: #E6F4ED; }
 ::-webkit-scrollbar-thumb    { background: #00C853; border-radius: 999px; }
 ::-webkit-scrollbar-thumb:hover { background: #0EA5E9; }
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 
-/* ── Fluid Typography ───────────────────────────────────────── */
-.display-2xl {
-  font-family: var(--font-display);
-  font-size: clamp(3.5rem, 11vw, 11rem);
-  line-height: 0.92;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-}
-.display-xl {
-  font-family: var(--font-display);
-  font-size: clamp(2.8rem, 9vw, 8rem);
-  line-height: 0.95;
-  text-transform: uppercase;
-}
-.display-lg {
-  font-family: var(--font-display);
-  font-size: clamp(2rem, 6vw, 5rem);
-  line-height: 1.02;
-  text-transform: uppercase;
-}
-.display-md {
-  font-family: var(--font-display);
-  font-size: clamp(1.5rem, 4vw, 2.8rem);
-  line-height: 1.05;
-  text-transform: uppercase;
-}
-.label {
-  font-family: var(--font-body);
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: var(--color-muted);
-  display: flex;
-  align-items: center;
+/* ── Tailwind token shims (maps old dark-* to CSS vars) ─ */
+@layer components {
+
+  /* Backgrounds */
+  .bg-dark-bg      { background-color: var(--dark-bg); }
+  .bg-dark-surface { background-color: var(--dark-surface); }
+  .bg-dark-card    { background-color: var(--dark-card); }
+
+  /* Borders */
+  .border-dark-border { border-color: var(--dark-border); }
+
+  /* Text */
+  .text-dark-text    { color: var(--dark-text); }
+  .text-dark-subtext { color: var(--dark-subtext); }
+  .text-dark-muted   { color: var(--dark-muted); }
+
+  /* Green utilities */
+  .text-green        { color: #00C853; }
+  .bg-green          { background-color: #00C853; }
+  .border-green      { border-color: #00C853; }
+  .bg-green-bg-dark  { background-color: rgba(0,200,83,0.12); }
+  .bg-green-bg-light { background-color: rgba(0,200,83,0.08); }
+  .border-green-border{ border-color: rgba(0,200,83,0.35); }
+  .text-green-dark   { color: #007A33; }
+
+  /* Gold → green remap */
+  .text-gold         { color: #00C853; }
+  .bg-gold           { background-color: #00C853; }
+  .border-gold       { border-color: #00C853; }
+  .shadow-gold       { box-shadow: 0 0 20px rgba(0,200,83,0.3); }
+
+  /* Purple → blue remap */
+  .text-purple       { color: #0EA5E9; }
+  .bg-purple         { background-color: #0EA5E9; }
+  .border-purple     { border-color: #0EA5E9; }
+
+  /* Cyan */
+  .text-cyan         { color: #38BDF8; }
+  .bg-cyan-bg-dark   { background-color: rgba(56,189,248,0.10); }
+
+  /* Blue */
+  .text-blue         { color: #0EA5E9; }
+  .bg-blue           { background-color: #0EA5E9; }
+  .shadow-blue       { box-shadow: 0 0 20px rgba(14,165,233,0.3); }
+  .bg-blue-light     { background-color: #38BDF8; }
+
+  /* Section labels */
+  .section-label-dark {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: #00C853;
+  }
+  .section-label-light {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: #007A33;
+  }
+
+  /* Light-theme variants */
+  .bg-light-surface  { background-color: #F0FAF5; }
+  .border-light-border{ border-color: #C8E6D4; }
+  .text-light-muted  { color: #567060; }
+  .text-light-text   { color: #0B1F14; }
+
+  /* Cards */
+  .card-dark {
+    background: #FFFFFF;
+    border: 1px solid #C8E6D4;
+    border-radius: 16px;
+  }
+  .card-light {
+    background: #FFFFFF;
+    border: 1px solid #C8E6D4;
+    border-radius: 16px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+  }
 }
 
-/* ── Glow utilities ─────────────────────────────────────────── */
-.text-glow-green { text-shadow: 0 0 30px rgba(0,200,83,0.4); }
-.text-glow-blue  { text-shadow: 0 0 30px rgba(14,165,233,0.4); }
-
-/* ── Glass Card (light) ─────────────────────────────────────── */
+/* ── Glass ──────────────────────────────────────────────── */
 .glass {
-  background: rgba(255,255,255,0.80);
+  background: rgba(255,255,255,0.88);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(0,200,83,0.15);
   border-radius: var(--radius);
 }
 
-/* ── Divider ────────────────────────────────────────────────── */
+/* ── Divider ────────────────────────────────────────────── */
 .divider {
   height: 1px;
-  background: linear-gradient(90deg, transparent, var(--color-border), transparent);
+  background: linear-gradient(90deg, transparent, #C8E6D4, transparent);
   margin: 2rem 0;
 }
 
-/* ── Admin UI ───────────────────────────────────────────────── */
+/* ── Admin UI ───────────────────────────────────────────── */
 .admin-card {
   background: #FFFFFF;
-  border: 1px solid var(--color-border);
+  border: 1px solid #C8E6D4;
   border-radius: 12px;
   padding: 1.5rem;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  box-shadow: 0 1px 6px rgba(0,0,0,0.05);
 }
-
 .admin-page-title {
   font-family: var(--font-display);
   font-size: clamp(1.8rem, 4vw, 2.8rem);
-  color: var(--color-text);
+  color: #0B1F14;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   line-height: 1;
 }
 .admin-page-subtitle {
   font-size: 0.8rem;
-  color: var(--color-muted);
+  color: #567060;
   margin-top: 0.4rem;
 }
-
 .admin-label {
-  font-family: var(--font-body);
   font-size: 0.65rem;
   font-weight: 700;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--color-muted);
+  color: #567060;
   display: block;
   margin-bottom: 0.5rem;
 }
-
 .admin-input {
   width: 100%;
-  background: #F4FBF7;
-  border: 1px solid var(--color-border);
+  background: #F0FAF5;
+  border: 1px solid #C8E6D4;
   border-radius: 8px;
   padding: 0 1rem;
-  font-family: var(--font-body);
   font-size: 0.85rem;
-  color: var(--color-text);
+  color: #0B1F14;
   outline: none;
-  transition: border-color var(--transition-base), box-shadow var(--transition-base);
+  transition: border-color 0.2s, box-shadow 0.2s;
   height: 3rem;
 }
-.admin-input::placeholder { color: var(--color-muted); opacity: 0.5; }
+.admin-input::placeholder { color: #567060; opacity: 0.5; }
 .admin-input:focus {
-  border-color: var(--color-green);
+  border-color: #00C853;
   box-shadow: 0 0 0 3px rgba(0,200,83,0.10);
 }
+.admin-input option { background: #fff; color: #0B1F14; }
 
-/* ── Admin Table ────────────────────────────────────────────── */
+/* Admin table */
 .admin-table { width: 100%; border-collapse: collapse; }
-.admin-table thead tr { border-bottom: 1px solid var(--color-border); }
+.admin-table thead tr { border-bottom: 2px solid #C8E6D4; }
 .admin-table th {
   padding: 0.9rem 1.25rem;
   text-align: left;
@@ -219,87 +255,54 @@
   font-weight: 700;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--color-muted);
+  color: #567060;
   white-space: nowrap;
 }
-.admin-table tbody tr {
-  border-bottom: 1px solid var(--color-border);
-  transition: background var(--transition-base);
-}
-.admin-table tbody tr:hover { background: #F4FBF7; }
+.admin-table tbody tr { border-bottom: 1px solid #E6F4ED; transition: background 0.15s; }
+.admin-table tbody tr:hover { background: #F0FAF5; }
 .admin-table td {
   padding: 1rem 1.25rem;
   font-size: 0.82rem;
-  color: var(--color-text-soft);
+  color: #2A4434;
   vertical-align: middle;
 }
 .admin-table td:last-child { text-align: right; }
 
-/* ── Colour utilities ───────────────────────────────────────── */
-.text-green   { color: var(--color-green); }
-.text-blue    { color: var(--color-blue); }
-.text-muted   { color: var(--color-muted); }
-
-.bg-green-dim { background-color: var(--color-green-dim); }
-.bg-blue-dim  { background-color: var(--color-blue-dim); }
-
-.border-green { border-color: var(--color-green); }
-.border-blue  { border-color: var(--color-blue); }
-
-/* ── Mesh background ────────────────────────────────────────── */
-.mesh-bg {
-  background:
-    radial-gradient(ellipse 70% 50% at 15% 20%, rgba(0,200,83,0.07) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 40% at 85% 80%, rgba(14,165,233,0.07) 0%, transparent 60%),
-    #FFFFFF;
-}
-
-/* ── Shimmer ────────────────────────────────────────────────── */
+/* ── Animations ─────────────────────────────────────────── */
 @keyframes shimmer {
   0%   { background-position: -200% 0; }
   100% { background-position:  200% 0; }
 }
 .animate-shimmer {
-  background: linear-gradient(90deg,
-    rgba(0,0,0,0.04) 25%,
-    rgba(0,0,0,0.07) 50%,
-    rgba(0,0,0,0.04) 75%
-  );
+  background: linear-gradient(90deg, #E6F4ED 25%, #C8E6D4 50%, #E6F4ED 75%);
   background-size: 200% 100%;
-  animation: shimmer 2s infinite linear;
+  animation: shimmer 1.8s infinite linear;
 }
-
-/* ── Float ──────────────────────────────────────────────────── */
 @keyframes float {
   0%, 100% { transform: translateY(0px); }
   50%       { transform: translateY(-8px); }
 }
 .animate-float { animation: float 4s ease-in-out infinite; }
 
-/* ── Gradient border ────────────────────────────────────────── */
-.gradient-border {
-  position: relative;
-}
+/* Gradient border */
+.gradient-border { position: relative; }
 .gradient-border::before {
   content: '';
   position: absolute;
   inset: 0;
   border-radius: inherit;
   padding: 1px;
-  background: linear-gradient(135deg, var(--color-green), var(--color-blue));
+  background: linear-gradient(135deg, #00C853, #0EA5E9);
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
   pointer-events: none;
 }
 
-/* ── Focus rings ────────────────────────────────────────────── */
-*:focus-visible {
-  outline: 2px solid var(--color-green);
-  outline-offset: 2px;
-}
+/* Focus */
+*:focus-visible { outline: 2px solid #00C853; outline-offset: 2px; }
 
-/* ── ShadCN Accordion ───────────────────────────────────────── */
+/* ShadCN accordion */
 @keyframes accordion-down {
   from { height: 0; }
   to   { height: var(--radix-accordion-content-height); }

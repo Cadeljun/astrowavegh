@@ -23,13 +23,13 @@ const inter = Inter({
 });
 
 export const viewport: Viewport = {
-  themeColor: '#050E1A',
+  themeColor: '#00C853',
   width: 'device-width',
   initialScale: 1,
 };
 
 export const metadata: Metadata = {
-  title: 'AstroWave | Africa\'s Entertainment Powerhouse',
+  title: "AstroWave | Africa's Entertainment Powerhouse",
   description: 'Connect with elite creative talent and immersive event experiences in Accra, Ghana.',
   icons: {
     icon: 'https://res.cloudinary.com/dmd5bq3va/image/upload/v1779674858/ivzvmlaglz9l1hgevktn.png',
@@ -39,7 +39,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${plusJakarta.variable} ${inter.variable}`} suppressHydrationWarning>
-      <body className="antialiased bg-dark-bg text-dark-text min-h-screen selection:bg-green selection:text-white">
+      <body className="antialiased bg-white text-[#0B1F14] min-h-screen selection:bg-[#00C853]/20 selection:text-[#0B1F14]">
         <FirebaseClientProvider>
           <AuthProvider>
             <RoleProvider>

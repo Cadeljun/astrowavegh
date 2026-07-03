@@ -41,15 +41,15 @@ function WaveScoreDemo() {
   const dashOffset = circumference - (score / 5) * circumference;
 
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-white/5 bg-[#070F1F] p-8 space-y-8">
+    <div className="relative overflow-hidden rounded-2xl border border-[#C8E6D4] bg-white p-8 space-y-8">
       {/* Glow */}
       <div className="absolute top-0 right-0 w-48 h-48 bg-gold/5 blur-[80px] rounded-full pointer-events-none" />
 
       <div className="flex items-center gap-3 relative z-10">
-        <div className="p-2 rounded-lg bg-gold/10 text-gold"><Zap size={18} /></div>
+        <div className="p-2 rounded-lg bg-[#00C853]/10 text-[#00C853]"><Zap size={18} /></div>
         <div>
-          <p className="text-xs font-bold text-white uppercase tracking-widest">Live Score Demo</p>
-          <p className="text-[0.6rem] text-muted">Adjust sliders to see the algorithm</p>
+          <p className="text-xs font-bold text-[#0B1F14] uppercase tracking-widest">Live Score Demo</p>
+          <p className="text-[0.6rem] text-[#567060]">Adjust sliders to see the algorithm</p>
         </div>
       </div>
 
@@ -57,7 +57,7 @@ function WaveScoreDemo() {
       <div className="flex items-center justify-center relative z-10">
         <div className="relative w-40 h-40">
           <svg className="w-full h-full -rotate-90" viewBox="0 0 128 128">
-            <circle cx="64" cy="64" r="54" stroke="rgba(255,255,255,0.05)" strokeWidth="8" fill="transparent" />
+            <circle cx="64" cy="64" r="54" stroke="rgba(0,200,83,0.06)" strokeWidth="8" fill="transparent" />
             <motion.circle
               cx="64" cy="64" r="54"
               stroke="url(#scoreGrad)" strokeWidth="10"
@@ -69,8 +69,8 @@ function WaveScoreDemo() {
             />
             <defs>
               <linearGradient id="scoreGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stopColor="#FFD166" />
-                <stop offset="100%" stopColor="#A855F7" />
+                <stop offset="0%" stopColor="#00C853" />
+                <stop offset="100%" stopColor="#0EA5E9" />
               </linearGradient>
             </defs>
           </svg>
@@ -79,11 +79,11 @@ function WaveScoreDemo() {
               key={score}
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              className="font-display text-4xl text-white leading-none"
+              className="font-display text-4xl text-[#0B1F14] leading-none"
             >
               {score.toFixed(1)}
             </motion.span>
-            <span className="text-[0.55rem] text-muted uppercase font-bold tracking-widest mt-1">/ 5.0</span>
+            <span className="text-[0.55rem] text-[#567060] uppercase font-bold tracking-widest mt-1">/ 5.0</span>
           </div>
         </div>
       </div>
@@ -104,13 +104,13 @@ function WaveScoreDemo() {
       {/* Sliders */}
       <div className="space-y-5 relative z-10">
         {[
-          { label: 'Avg Rating', value: rating, min: 0, max: 5, step: 0.1, set: setRating, display: `${rating.toFixed(1)} ★`, color: '#FFD166' },
-          { label: 'Events Done', value: events, min: 0, max: 50, step: 1, set: setEvents, display: `${events} gigs`, color: '#A855F7' },
+          { label: 'Avg Rating', value: rating, min: 0, max: 5, step: 0.1, set: setRating, display: `${rating.toFixed(1)} ★`, color: '#00C853' },
+          { label: 'Events Done', value: events, min: 0, max: 50, step: 1, set: setEvents, display: `${events} gigs`, color: '#0EA5E9' },
           { label: 'Days Since Last Gig', value: days, min: 0, max: 120, step: 1, set: setDays, display: `${days} days`, color: '#06B6D4' },
         ].map((s) => (
           <div key={s.label} className="space-y-2">
             <div className="flex justify-between text-[0.6rem] font-bold uppercase tracking-widest">
-              <span className="text-muted">{s.label}</span>
+              <span className="text-[#567060]">{s.label}</span>
               <span style={{ color: s.color }}>{s.display}</span>
             </div>
             <Slider
@@ -124,8 +124,8 @@ function WaveScoreDemo() {
       </div>
 
       {/* Formula */}
-      <div className="relative z-10 p-3 rounded-lg bg-white/[0.03] border border-white/5">
-        <p className="text-[0.55rem] font-mono text-muted/60 leading-relaxed">
+      <div className="relative z-10 p-3 rounded-lg bg-white/[0.03] border border-[#C8E6D4]">
+        <p className="text-[0.55rem] font-mono text-[#567060]/60 leading-relaxed">
           WS = [(Rating÷5)×0.6] + [Min(Events÷20,1)×0.2] + [Recency×0.2] × 5
         </p>
       </div>
@@ -142,7 +142,7 @@ function TalentCard({ talent, onBook }: { talent: any; onBook: (t: any) => void 
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="group relative overflow-hidden rounded-2xl border border-white/5 bg-[#070F1F] hover:border-white/15 transition-all duration-500 hover:shadow-[0_0_30px_rgba(168,85,247,0.06)] flex flex-col"
+      className="group relative overflow-hidden rounded-2xl border border-[#C8E6D4] bg-white hover:border-[#C8E6D4] transition-all duration-500 hover:shadow-[0_0_30px_rgba(168,85,247,0.06)] flex flex-col"
     >
       {/* Photo */}
       <div className="relative aspect-[4/3] overflow-hidden">
@@ -154,9 +154,9 @@ function TalentCard({ talent, onBook }: { talent: any; onBook: (t: any) => void 
         <div className="absolute inset-0 bg-gradient-to-t from-[#070F1F] via-[#070F1F]/30 to-transparent" />
 
         {/* Wave score badge */}
-        <div className="absolute top-3 right-3 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/60 backdrop-blur-md border border-white/10">
-          <Zap size={10} className="text-gold" />
-          <span className="font-display text-sm text-white">{(talent.waveScore || 0).toFixed(1)}</span>
+        <div className="absolute top-3 right-3 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/60 backdrop-blur-md border border-[#C8E6D4]">
+          <Zap size={10} className="text-[#00C853]" />
+          <span className="font-display text-sm text-[#0B1F14]">{(talent.waveScore || 0).toFixed(1)}</span>
         </div>
 
         {/* Availability dot */}
@@ -172,7 +172,7 @@ function TalentCard({ talent, onBook }: { talent: any; onBook: (t: any) => void 
       <div className="p-5 flex flex-col flex-1 space-y-3">
         <div>
           <div className="flex items-start justify-between gap-2">
-            <h3 className="font-display text-xl text-white uppercase tracking-wider leading-tight group-hover:text-purple transition-colors">
+            <h3 className="font-display text-xl text-[#0B1F14] uppercase tracking-wider leading-tight group-hover:text-[#0EA5E9] transition-colors">
               {talent.stageName}
             </h3>
             <span className="text-[0.55rem] font-bold px-2 py-1 rounded-full border shrink-0"
@@ -180,25 +180,25 @@ function TalentCard({ talent, onBook }: { talent: any; onBook: (t: any) => void 
               {rank.emoji} {rank.label}
             </span>
           </div>
-          <div className="flex items-center gap-3 mt-1 text-[0.6rem] font-bold text-muted uppercase tracking-widest">
-            <span className="flex items-center gap-1"><MapPin size={10} className="text-purple" />{talent.city}</span>
+          <div className="flex items-center gap-3 mt-1 text-[0.6rem] font-bold text-[#567060] uppercase tracking-widest">
+            <span className="flex items-center gap-1"><MapPin size={10} className="text-[#0EA5E9]" />{talent.city}</span>
             <span className="opacity-20">•</span>
-            <Badge variant="active" className="text-[0.5rem] bg-purple/10 text-purple border-purple/20 px-2 py-0.5">{talent.category}</Badge>
+            <Badge variant="active" className="text-[0.5rem] bg-purple/10 text-[#0EA5E9] border-purple/20 px-2 py-0.5">{talent.category}</Badge>
           </div>
         </div>
 
-        <p className="text-[0.7rem] text-muted leading-relaxed line-clamp-2 flex-1">{talent.bio || 'Professional creative talent on the AstroWave roster.'}</p>
+        <p className="text-[0.7rem] text-[#567060] leading-relaxed line-clamp-2 flex-1">{talent.bio || 'Professional creative talent on the AstroWave roster.'}</p>
 
         {/* Stats row */}
-        <div className="grid grid-cols-3 gap-2 py-3 border-t border-white/5">
+        <div className="grid grid-cols-3 gap-2 py-3 border-t border-[#C8E6D4]">
           {[
             { label: 'Rating', val: (talent.averageRating || 0).toFixed(1) + '★' },
             { label: 'Gigs', val: talent.eventCount || 0 },
             { label: 'Reviews', val: talent.ratingCount || 0 },
           ].map(s => (
             <div key={s.label} className="text-center">
-              <p className="font-display text-lg text-white leading-none">{s.val}</p>
-              <p className="text-[0.5rem] text-muted uppercase tracking-widest mt-0.5">{s.label}</p>
+              <p className="font-display text-lg text-[#0B1F14] leading-none">{s.val}</p>
+              <p className="text-[0.5rem] text-[#567060] uppercase tracking-widest mt-0.5">{s.label}</p>
             </div>
           ))}
         </div>
@@ -206,12 +206,12 @@ function TalentCard({ talent, onBook }: { talent: any; onBook: (t: any) => void 
         {/* Pricing + CTA */}
         <div className="flex items-center justify-between pt-1">
           <div>
-            <p className="text-[0.55rem] text-muted uppercase">From</p>
-            <p className="font-display text-base text-gold">{talent.currency || 'GHS'} {(talent.basePrice || 0).toLocaleString()}</p>
+            <p className="text-[0.55rem] text-[#567060] uppercase">From</p>
+            <p className="font-display text-base text-[#00C853]">{talent.currency || 'GHS'} {(talent.basePrice || 0).toLocaleString()}</p>
           </div>
           <button
             onClick={() => onBook(talent)}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-purple/10 border border-purple/20 text-purple text-[0.6rem] font-bold uppercase tracking-widest hover:bg-purple hover:text-white transition-all duration-200"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-purple/10 border border-purple/20 text-[#0EA5E9] text-[0.6rem] font-bold uppercase tracking-widest hover:bg-purple hover:text-[#0B1F14] transition-all duration-200"
           >
             Book Now <ArrowRight size={12} />
           </button>
@@ -229,14 +229,14 @@ const HOW_IT_WORKS = [
     icon: Search,
     title: 'POST YOUR EVENT',
     desc: 'Describe your event, budget, and vibe. Our system reads every detail.',
-    color: '#FFD166',
+    color: '#00C853',
   },
   {
     step: '02',
     icon: Zap,
     title: 'AI MATCHES TALENT',
     desc: 'The Vibe Sync Algorithm scores Location (30%), Category (40%) and Wave Score (30%).',
-    color: '#A855F7',
+    color: '#0EA5E9',
   },
   {
     step: '03',
@@ -350,8 +350,8 @@ export default function PlatformPage() {
   }, [talents]);
 
   const STAT_ITEMS = [
-    { label: 'Verified Talent', value: stats.talents, icon: Users, color: '#FFD166' },
-    { label: 'Events Posted', value: stats.events, icon: Zap, color: '#A855F7' },
+    { label: 'Verified Talent', value: stats.talents, icon: Users, color: '#00C853' },
+    { label: 'Events Posted', value: stats.events, icon: Zap, color: '#0EA5E9' },
     { label: 'Bookings Made', value: stats.bookings, icon: CheckCircle, color: '#06B6D4' },
     { label: 'Avg Wave Score', value: stats.avgScore.toFixed(2), icon: Star, color: '#00FF87' },
   ];
@@ -360,7 +360,7 @@ export default function PlatformPage() {
     <main className="flex flex-col w-full min-h-screen">
 
       {/* ── HERO ─────────────────────────────────────────────────────────── */}
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-black">
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-white">
         {/* Background grid */}
         <div className="absolute inset-0 z-0"
           style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px)', backgroundSize: '60px 60px' }}
@@ -381,15 +381,15 @@ export default function PlatformPage() {
           >
             <SectionLabel>AI-Powered Matching Platform</SectionLabel>
 
-            <h1 className="font-display uppercase leading-[0.9] text-white" style={{ fontSize: 'clamp(3rem, 8vw, 7rem)' }}>
+            <h1 className="font-display uppercase leading-[0.9] text-[#0B1F14]" style={{ fontSize: 'clamp(3rem, 8vw, 7rem)' }}>
               FIND THE
-              <span className="block text-transparent bg-clip-text" style={{ backgroundImage: 'linear-gradient(135deg, #FFD166, #A855F7)' }}>
+              <span className="block text-transparent bg-clip-text" style={{ backgroundImage: 'linear-gradient(135deg, #00C853, #0EA5E9)' }}>
                 PERFECT TALENT
               </span>
               FOR YOUR EVENT.
             </h1>
 
-            <p className="text-white/50 text-lg font-light leading-relaxed max-w-xl">
+            <p className="text-[#567060] text-lg font-light leading-relaxed max-w-xl">
               AstroWave uses intelligent matching to connect event organizers with Ghana's best DJs, MCs, and performers — powered by the Wave Score algorithm.
             </p>
 
@@ -400,7 +400,7 @@ export default function PlatformPage() {
                 </Button>
               </Link>
               <Link href="/auth/register">
-                <Button variant="secondary" size="lg" className="h-16 px-12 text-sm w-full sm:w-auto border-white/20 hover:border-purple text-white hover:text-purple">
+                <Button variant="secondary" size="lg" className="h-16 px-12 text-sm w-full sm:w-auto border-white/20 hover:border-purple text-[#0B1F14] hover:text-[#0EA5E9]">
                   <Mic size={16} className="mr-2" /> I'M A PERFORMER
                 </Button>
               </Link>
@@ -413,8 +413,8 @@ export default function PlatformPage() {
                 { icon: Clock, text: '24hr Response' },
                 { icon: TrendingUp, text: 'AI-Ranked Results' },
               ].map(({ icon: Icon, text }) => (
-                <div key={text} className="flex items-center gap-2 text-[0.65rem] font-bold text-white/30 uppercase tracking-widest">
-                  <Icon size={12} className="text-gold" />
+                <div key={text} className="flex items-center gap-2 text-[0.65rem] font-bold text-[#0B1F14]/30 uppercase tracking-widest">
+                  <Icon size={12} className="text-[#00C853]" />
                   {text}
                 </div>
               ))}
@@ -436,7 +436,7 @@ export default function PlatformPage() {
         <motion.div
           animate={{ y: [0, 8, 0] }}
           transition={{ duration: 2, repeat: Infinity }}
-          className="absolute bottom-10 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2 text-muted"
+          className="absolute bottom-10 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2 text-[#567060]"
         >
           <span className="text-[0.55rem] font-bold uppercase tracking-[0.3em]">Scroll</span>
           <ChevronDown size={16} />
@@ -444,7 +444,7 @@ export default function PlatformPage() {
       </section>
 
       {/* ── LIVE STATS ───────────────────────────────────────────────────── */}
-      <section className="bg-[#050D1A] border-y border-white/5 py-12 px-6 lg:px-12">
+      <section className="bg-[#F0FAF5] border-y border-[#C8E6D4] py-12 px-6 lg:px-12">
         <div className="max-w-screen-2xl mx-auto grid grid-cols-2 lg:grid-cols-4 gap-6">
           {STAT_ITEMS.map((s, i) => (
             <motion.div
@@ -453,17 +453,17 @@ export default function PlatformPage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.08 }}
-              className="relative overflow-hidden rounded-2xl border border-white/5 bg-[#070F1F] p-6 text-center group hover:border-white/10 transition-all"
+              className="relative overflow-hidden rounded-2xl border border-[#C8E6D4] bg-white p-6 text-center group hover:border-[#C8E6D4] transition-all"
             >
               <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
                 style={{ background: `radial-gradient(circle at 50% 0%, ${s.color}08, transparent 70%)` }}
               />
               <div className="relative z-10 space-y-2">
                 <s.icon size={20} className="mx-auto mb-3" style={{ color: s.color, opacity: 0.6 }} />
-                <p className="font-display text-4xl text-white">
+                <p className="font-display text-4xl text-[#0B1F14]">
                   {statsLoading ? '—' : s.value}
                 </p>
-                <p className="text-[0.6rem] font-bold text-muted uppercase tracking-[0.2em]">{s.label}</p>
+                <p className="text-[0.6rem] font-bold text-[#567060] uppercase tracking-[0.2em]">{s.label}</p>
               </div>
             </motion.div>
           ))}
@@ -471,14 +471,14 @@ export default function PlatformPage() {
       </section>
 
       {/* ── HOW IT WORKS ─────────────────────────────────────────────────── */}
-      <section className="bg-black py-24 lg:py-32 px-6 lg:px-12">
+      <section className="bg-white py-24 lg:py-32 px-6 lg:px-12">
         <div className="max-w-screen-2xl mx-auto space-y-16">
           <div className="text-center space-y-4">
             <SectionLabel className="justify-center">THE PROCESS</SectionLabel>
-            <h2 className="font-display text-white uppercase" style={{ fontSize: 'clamp(2rem, 5vw, 4rem)' }}>
+            <h2 className="font-display text-[#0B1F14] uppercase" style={{ fontSize: 'clamp(2rem, 5vw, 4rem)' }}>
               HOW VIBE SYNC WORKS
             </h2>
-            <p className="text-white/40 max-w-xl mx-auto text-sm leading-relaxed">
+            <p className="text-[#567060] max-w-xl mx-auto text-sm leading-relaxed">
               A proprietary 3-factor algorithm matches your event brief with Ghana's top talent in seconds.
             </p>
           </div>
@@ -491,14 +491,14 @@ export default function PlatformPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.1 }}
-                className="relative group rounded-2xl border border-white/5 bg-[#070F1F] p-8 hover:border-white/10 transition-all duration-300 hover:shadow-lg overflow-hidden"
+                className="relative group rounded-2xl border border-[#C8E6D4] bg-white p-8 hover:border-[#C8E6D4] transition-all duration-300 hover:shadow-lg overflow-hidden"
               >
                 <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
                   style={{ background: `radial-gradient(circle at 0% 100%, ${step.color}08, transparent 60%)` }}
                 />
 
                 {/* Step number */}
-                <div className="absolute top-4 right-6 font-display text-[3rem] leading-none text-white/[0.04] select-none">
+                <div className="absolute top-4 right-6 font-display text-[3rem] leading-none text-[#0B1F14]/[0.04] select-none">
                   {step.step}
                 </div>
 
@@ -508,8 +508,8 @@ export default function PlatformPage() {
                   >
                     <step.icon size={22} />
                   </div>
-                  <h3 className="font-display text-xl text-white uppercase tracking-wider">{step.title}</h3>
-                  <p className="text-sm text-white/40 leading-relaxed">{step.desc}</p>
+                  <h3 className="font-display text-xl text-[#0B1F14] uppercase tracking-wider">{step.title}</h3>
+                  <p className="text-sm text-[#567060] leading-relaxed">{step.desc}</p>
                 </div>
 
                 {/* Connector line (not on last) */}
@@ -523,19 +523,19 @@ export default function PlatformPage() {
       </section>
 
       {/* ── TALENT ROSTER ────────────────────────────────────────────────── */}
-      <section className="bg-[#050D1A] py-24 lg:py-32 px-6 lg:px-12">
+      <section className="bg-[#F0FAF5] py-24 lg:py-32 px-6 lg:px-12">
         <div className="max-w-screen-2xl mx-auto space-y-10">
           {/* Header */}
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div className="space-y-3">
               <SectionLabel>THE ROSTER</SectionLabel>
-              <h2 className="font-display text-white uppercase" style={{ fontSize: 'clamp(2rem, 5vw, 4rem)' }}>
+              <h2 className="font-display text-[#0B1F14] uppercase" style={{ fontSize: 'clamp(2rem, 5vw, 4rem)' }}>
                 ELITE TALENT
               </h2>
-              <p className="text-white/40 text-sm max-w-md">Ranked by Wave Score — the platform's trust index for creative talent in Ghana.</p>
+              <p className="text-[#567060] text-sm max-w-md">Ranked by Wave Score — the platform's trust index for creative talent in Ghana.</p>
             </div>
             <Link href="/auth/register">
-              <Button variant="ghost" size="md" className="border border-white/10 hover:border-purple hover:text-purple h-12 px-8">
+              <Button variant="ghost" size="md" className="border border-[#C8E6D4] hover:border-purple hover:text-[#0EA5E9] h-12 px-8">
                 Join as Talent <ArrowRight size={14} className="ml-2" />
               </Button>
             </Link>
@@ -552,8 +552,8 @@ export default function PlatformPage() {
                   className={cn(
                     "whitespace-nowrap px-4 py-2 rounded-full border text-[0.6rem] font-bold uppercase tracking-widest transition-all",
                     roleFilter === role
-                      ? "bg-purple text-white border-purple shadow-[0_0_15px_rgba(168,85,247,0.3)]"
-                      : "bg-transparent text-muted border-white/10 hover:border-white/25 hover:text-white"
+                      ? "bg-purple text-[#0B1F14] border-purple shadow-[0_0_15px_rgba(168,85,247,0.3)]"
+                      : "bg-transparent text-[#567060] border-[#C8E6D4] hover:border-white/25 hover:text-[#0B1F14]"
                   )}
                 >
                   {role}
@@ -568,15 +568,15 @@ export default function PlatformPage() {
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 placeholder="Search talent..."
-                className="w-48 bg-white/5 border border-white/10 rounded-full px-4 h-9 text-xs text-white placeholder:text-white/20 focus:outline-none focus:border-purple/50 transition-colors"
+                className="w-48 bg-white/5 border border-[#C8E6D4] rounded-full px-4 h-9 text-xs text-[#0B1F14] placeholder:text-[#0B1F14]/20 focus:outline-none focus:border-purple/50 transition-colors"
               />
               <button
                 onClick={() => setIsFilterOpen(!isFilterOpen)}
                 className={cn(
                   "flex items-center gap-2 px-4 h-9 rounded-full border text-[0.6rem] font-bold uppercase tracking-widest transition-all",
                   isFilterOpen
-                    ? "bg-white/10 border-white/20 text-white"
-                    : "border-white/10 text-muted hover:border-white/20 hover:text-white"
+                    ? "bg-white/10 border-white/20 text-[#0B1F14]"
+                    : "border-[#C8E6D4] text-[#567060] hover:border-white/20 hover:text-[#0B1F14]"
                 )}
               >
                 <SlidersHorizontal size={12} /> Filters
@@ -593,14 +593,14 @@ export default function PlatformPage() {
                 exit={{ height: 0, opacity: 0 }}
                 className="overflow-hidden"
               >
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 p-6 rounded-2xl bg-[#070F1F] border border-white/5">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 p-6 rounded-2xl bg-white border border-[#C8E6D4]">
                   {/* City filter */}
                   <div className="space-y-2">
-                    <label className="text-[0.6rem] font-bold text-muted uppercase tracking-widest">City</label>
+                    <label className="text-[0.6rem] font-bold text-[#567060] uppercase tracking-widest">City</label>
                     <select
                       value={cityFilter}
                       onChange={e => setCityFilter(e.target.value)}
-                      className="w-full bg-white/5 border border-white/10 rounded-lg px-4 h-10 text-xs text-white focus:outline-none focus:border-purple/50"
+                      className="w-full bg-white/5 border border-[#C8E6D4] rounded-lg px-4 h-10 text-xs text-[#0B1F14] focus:outline-none focus:border-purple/50"
                     >
                       {cities.map(c => <option key={c} value={c} className="bg-[#0A0A0F]">{c}</option>)}
                     </select>
@@ -609,22 +609,22 @@ export default function PlatformPage() {
                   {/* Min wave score */}
                   <div className="space-y-2">
                     <div className="flex justify-between">
-                      <label className="text-[0.6rem] font-bold text-muted uppercase tracking-widest">Min Wave Score</label>
-                      <span className="text-[0.6rem] font-bold text-gold">{minScore > 0 ? `${minScore}+` : 'Any'}</span>
+                      <label className="text-[0.6rem] font-bold text-[#567060] uppercase tracking-widest">Min Wave Score</label>
+                      <span className="text-[0.6rem] font-bold text-[#00C853]">{minScore > 0 ? `${minScore}+` : 'Any'}</span>
                     </div>
                     <Slider value={[minScore]} min={0} max={5} step={0.5} onValueChange={([v]) => setMinScore(v)} />
                   </div>
 
                   {/* Available toggle */}
                   <div className="space-y-2">
-                    <label className="text-[0.6rem] font-bold text-muted uppercase tracking-widest">Availability</label>
+                    <label className="text-[0.6rem] font-bold text-[#567060] uppercase tracking-widest">Availability</label>
                     <button
                       onClick={() => setAvailableOnly(!availableOnly)}
                       className={cn(
                         "w-full h-10 rounded-lg border text-[0.65rem] font-bold uppercase tracking-widest transition-all",
                         availableOnly
                           ? "bg-green-500/10 border-green-500/30 text-green-400"
-                          : "bg-white/5 border-white/10 text-muted hover:text-white"
+                          : "bg-white/5 border-[#C8E6D4] text-[#567060] hover:text-[#0B1F14]"
                       )}
                     >
                       {availableOnly ? '✓ Available Only' : 'Show All'}
@@ -637,7 +637,7 @@ export default function PlatformPage() {
 
           {/* Results count */}
           {!talentsLoading && (
-            <p className="text-[0.6rem] font-bold text-muted uppercase tracking-[0.2em]">
+            <p className="text-[0.6rem] font-bold text-[#567060] uppercase tracking-[0.2em]">
               {filteredTalents.length} {filteredTalents.length === 1 ? 'Artist' : 'Artists'} found
             </p>
           )}
@@ -646,7 +646,7 @@ export default function PlatformPage() {
           {talentsLoading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
-                <div key={i} className="h-[420px] rounded-2xl bg-white/5 animate-pulse border border-white/5" />
+                <div key={i} className="h-[420px] rounded-2xl bg-white/5 animate-pulse border border-[#C8E6D4]" />
               ))}
             </div>
           ) : filteredTalents.length > 0 ? (
@@ -668,7 +668,7 @@ export default function PlatformPage() {
           {filteredTalents.length > 0 && (
             <div className="flex justify-center pt-6">
               <Link href="/auth/register">
-                <Button variant="ghost" size="lg" className="border border-white/10 hover:border-gold/30 h-14 px-12">
+                <Button variant="ghost" size="lg" className="border border-[#C8E6D4] hover:border-gold/30 h-14 px-12">
                   View Full Roster <ArrowRight size={16} className="ml-2" />
                 </Button>
               </Link>
@@ -678,7 +678,7 @@ export default function PlatformPage() {
       </section>
 
       {/* ── ALGORITHM EXPLAINER ──────────────────────────────────────────── */}
-      <section className="bg-black py-24 lg:py-32 px-6 lg:px-12 border-t border-white/5">
+      <section className="bg-white py-24 lg:py-32 px-6 lg:px-12 border-t border-[#C8E6D4]">
         <div className="max-w-screen-2xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           <motion.div
             initial={{ opacity: 0, x: -20 }}
@@ -688,7 +688,7 @@ export default function PlatformPage() {
           >
             <div className="space-y-4">
               <SectionLabel>THE ALGORITHM</SectionLabel>
-              <h2 className="font-display text-white uppercase leading-tight" style={{ fontSize: 'clamp(2rem, 5vw, 4rem)' }}>
+              <h2 className="font-display text-[#0B1F14] uppercase leading-tight" style={{ fontSize: 'clamp(2rem, 5vw, 4rem)' }}>
                 VIBE SYNC<br />EXPLAINED
               </h2>
             </div>
@@ -696,8 +696,8 @@ export default function PlatformPage() {
             <div className="space-y-4">
               {[
                 { label: 'Location Match', weight: '30%', desc: 'Same city = full score. Same region = partial. Long distance = minimal.', color: '#06B6D4', w: 30 },
-                { label: 'Category Fit', weight: '40%', desc: 'Talent specialty must match your event type perfectly for full points.', color: '#FFD166', w: 40 },
-                { label: 'Wave Score', weight: '30%', desc: 'Community-verified rating combining reviews, gig count, and recency.', color: '#A855F7', w: 30 },
+                { label: 'Category Fit', weight: '40%', desc: 'Talent specialty must match your event type perfectly for full points.', color: '#00C853', w: 40 },
+                { label: 'Wave Score', weight: '30%', desc: 'Community-verified rating combining reviews, gig count, and recency.', color: '#0EA5E9', w: 30 },
               ].map((item, i) => (
                 <motion.div
                   key={item.label}
@@ -705,10 +705,10 @@ export default function PlatformPage() {
                   whileInView={{ opacity: 1, x: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: i * 0.1 }}
-                  className="space-y-2 p-5 rounded-xl border border-white/5 bg-[#070F1F] hover:border-white/10 transition-all"
+                  className="space-y-2 p-5 rounded-xl border border-[#C8E6D4] bg-white hover:border-[#C8E6D4] transition-all"
                 >
                   <div className="flex justify-between items-center">
-                    <span className="text-sm font-bold text-white">{item.label}</span>
+                    <span className="text-sm font-bold text-[#0B1F14]">{item.label}</span>
                     <span className="font-display text-xl" style={{ color: item.color }}>{item.weight}</span>
                   </div>
                   <div className="h-1 bg-white/5 rounded-full overflow-hidden">
@@ -721,7 +721,7 @@ export default function PlatformPage() {
                       style={{ backgroundColor: item.color }}
                     />
                   </div>
-                  <p className="text-xs text-muted leading-relaxed">{item.desc}</p>
+                  <p className="text-xs text-[#567060] leading-relaxed">{item.desc}</p>
                 </motion.div>
               ))}
             </div>
@@ -738,12 +738,12 @@ export default function PlatformPage() {
       </section>
 
       {/* ── FINAL CTA ────────────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden bg-[#050D1A] border-t border-white/5 py-24 px-6 lg:px-12">
+      <section className="relative overflow-hidden bg-[#F0FAF5] border-t border-[#C8E6D4] py-24 px-6 lg:px-12">
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-purple/6 blur-[100px] rounded-full" />
         </div>
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none z-0">
-          <span className="font-display text-[14vw] text-white/[0.018] leading-none tracking-tighter uppercase">WAVE</span>
+          <span className="font-display text-[14vw] text-[#0B1F14]/[0.018] leading-none tracking-tighter uppercase">WAVE</span>
         </div>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -752,10 +752,10 @@ export default function PlatformPage() {
           className="relative z-10 max-w-3xl mx-auto text-center space-y-8"
         >
           <SectionLabel className="justify-center">GET STARTED</SectionLabel>
-          <h2 className="font-display text-white uppercase leading-tight" style={{ fontSize: 'clamp(2.5rem, 6vw, 5rem)' }}>
+          <h2 className="font-display text-[#0B1F14] uppercase leading-tight" style={{ fontSize: 'clamp(2.5rem, 6vw, 5rem)' }}>
             READY TO RIDE<br />THE WAVE?
           </h2>
-          <p className="text-white/40 text-base leading-relaxed max-w-xl mx-auto">
+          <p className="text-[#567060] text-base leading-relaxed max-w-xl mx-auto">
             Join hundreds of organizers and creative talent building Ghana's most vibrant entertainment economy.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -765,7 +765,7 @@ export default function PlatformPage() {
               </Button>
             </Link>
             <Link href="/about">
-              <Button variant="ghost" size="lg" className="h-16 px-14 text-sm border border-white/10 hover:border-white/25">
+              <Button variant="ghost" size="lg" className="h-16 px-14 text-sm border border-[#C8E6D4] hover:border-white/25">
                 LEARN MORE
               </Button>
             </Link>
@@ -782,15 +782,15 @@ export default function PlatformPage() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setBookingTalent(null)}
-              className="absolute inset-0 bg-black/80 backdrop-blur-xl"
+              className="absolute inset-0 bg-white/80 backdrop-blur-xl"
             />
             <motion.div
               initial={{ scale: 0.95, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.95, opacity: 0, y: 20 }}
-              className="relative z-10 w-full max-w-md rounded-2xl border border-white/10 bg-[#070F1F] p-8 space-y-6 shadow-2xl"
+              className="relative z-10 w-full max-w-md rounded-2xl border border-[#C8E6D4] bg-white p-8 space-y-6 shadow-2xl"
             >
-              <button onClick={() => setBookingTalent(null)} className="absolute top-5 right-5 text-muted hover:text-white transition-colors">
+              <button onClick={() => setBookingTalent(null)} className="absolute top-5 right-5 text-[#567060] hover:text-[#0B1F14] transition-colors">
                 <X size={20} />
               </button>
 
@@ -799,15 +799,15 @@ export default function PlatformPage() {
                   <img src={bookingTalent.photoURL || `https://picsum.photos/seed/${bookingTalent.id}/100/100`} className="w-full h-full object-cover" alt="" />
                 </div>
                 <div>
-                  <h3 className="font-display text-2xl text-white uppercase tracking-wider">{bookingTalent.stageName}</h3>
-                  <p className="text-[0.6rem] text-muted uppercase tracking-widest">{bookingTalent.category} · {bookingTalent.city}</p>
+                  <h3 className="font-display text-2xl text-[#0B1F14] uppercase tracking-wider">{bookingTalent.stageName}</h3>
+                  <p className="text-[0.6rem] text-[#567060] uppercase tracking-widest">{bookingTalent.category} · {bookingTalent.city}</p>
                 </div>
               </div>
 
               <div className="p-5 rounded-xl bg-purple/5 border border-purple/10 text-center space-y-1">
-                <p className="text-[0.6rem] text-muted uppercase tracking-widest">To book talent, you need an account</p>
-                <p className="font-display text-2xl text-gold">{bookingTalent.currency || 'GHS'} {(bookingTalent.basePrice || 0).toLocaleString()}</p>
-                <p className="text-[0.55rem] text-muted">Starting price · Negotiable</p>
+                <p className="text-[0.6rem] text-[#567060] uppercase tracking-widest">To book talent, you need an account</p>
+                <p className="font-display text-2xl text-[#00C853]">{bookingTalent.currency || 'GHS'} {(bookingTalent.basePrice || 0).toLocaleString()}</p>
+                <p className="text-[0.55rem] text-[#567060]">Starting price · Negotiable</p>
               </div>
 
               <div className="space-y-3">
@@ -817,7 +817,7 @@ export default function PlatformPage() {
                   </Button>
                 </Link>
                 <Link href="/auth/login" className="block">
-                  <Button variant="ghost" className="w-full h-12 text-xs border border-white/10">
+                  <Button variant="ghost" className="w-full h-12 text-xs border border-[#C8E6D4]">
                     Already have an account? Sign In
                   </Button>
                 </Link>

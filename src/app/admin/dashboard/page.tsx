@@ -20,7 +20,7 @@ function StatCard({ label, value, icon: Icon, color, href, loading }: any) {
     <Link href={href || '#'}>
       <motion.div
         whileHover={{ y: -2 }}
-        className="relative overflow-hidden rounded-xl border border-white/5 bg-[#0A1020] p-6 group hover:border-white/10 transition-all duration-300 cursor-pointer"
+        className="relative overflow-hidden rounded-xl border border-[#C8E6D4] bg-white p-6 group hover:border-[#C8E6D4] transition-all duration-300 cursor-pointer"
       >
         <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
           style={{ background: `radial-gradient(circle at 0% 100%, ${color}08, transparent 70%)` }} />
@@ -29,12 +29,12 @@ function StatCard({ label, value, icon: Icon, color, href, loading }: any) {
             style={{ backgroundColor: `${color}15`, color }}>
             <Icon size={18} />
           </div>
-          <ArrowRight size={14} className="text-muted/30 group-hover:text-muted/70 transition-colors" />
+          <ArrowRight size={14} className="text-[#567060]/30 group-hover:text-[#567060]/70 transition-colors" />
         </div>
-        <p className="font-display text-4xl text-white leading-none mb-1">
+        <p className="font-display text-4xl text-[#0B1F14] leading-none mb-1">
           {loading ? <span className="inline-block w-12 h-8 bg-white/5 rounded animate-pulse" /> : value}
         </p>
-        <p className="text-[0.6rem] font-bold text-muted uppercase tracking-[0.2em]">{label}</p>
+        <p className="text-[0.6rem] font-bold text-[#567060] uppercase tracking-[0.2em]">{label}</p>
         <div className="absolute bottom-0 left-0 right-0 h-[1px] opacity-0 group-hover:opacity-100 transition-opacity"
           style={{ backgroundColor: color }} />
       </motion.div>
@@ -48,18 +48,18 @@ function ActivityRow({ item, index }: { item: any; index: number }) {
       initial={{ opacity: 0, x: -10 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: index * 0.05 }}
-      className="flex items-center gap-4 py-3 border-b border-white/[0.04] last:border-0 group hover:bg-white/[0.02] -mx-4 px-4 rounded-lg transition-colors"
+      className="flex items-center gap-4 py-3 border-b border-white/[0.04] last:border-0 group hover:bg-[#F0FAF5] -mx-4 px-4 rounded-lg transition-colors"
     >
-      <div className="w-8 h-8 rounded-full overflow-hidden border border-white/10 shrink-0 bg-white/5 flex items-center justify-center">
+      <div className="w-8 h-8 rounded-full overflow-hidden border border-[#C8E6D4] shrink-0 bg-white/5 flex items-center justify-center">
         {item.photoURL
           ? <img src={item.photoURL} alt="" className="w-full h-full object-cover" />
-          : <span className="text-[0.55rem] font-bold text-muted uppercase">{item.name?.[0] ?? '?'}</span>}
+          : <span className="text-[0.55rem] font-bold text-[#567060] uppercase">{item.name?.[0] ?? '?'}</span>}
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-sm text-white truncate">{item.name || item.stageName || item.email || 'Unknown'}</p>
-        <p className="text-[0.6rem] text-muted uppercase tracking-widest">{item.type}</p>
+        <p className="text-sm text-[#0B1F14] truncate">{item.name || item.stageName || item.email || 'Unknown'}</p>
+        <p className="text-[0.6rem] text-[#567060] uppercase tracking-widest">{item.type}</p>
       </div>
-      <div className="text-[0.6rem] text-muted/50 shrink-0">
+      <div className="text-[0.6rem] text-[#567060]/50 shrink-0">
         {item.createdAt
           ? formatDistanceToNow(item.createdAt?.toDate?.() ?? new Date(item.createdAt), { addSuffix: true })
           : '—'}
@@ -169,9 +169,9 @@ export default function AdminDashboardPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <p className="text-[0.65rem] font-bold text-muted uppercase tracking-[0.25em] mb-1">{greeting}</p>
-          <h1 className="font-display text-4xl lg:text-5xl text-white uppercase tracking-wider">{firstName}</h1>
-          <p className="text-sm text-muted/60 mt-1">AstroWave Admin Dashboard</p>
+          <p className="text-[0.65rem] font-bold text-[#567060] uppercase tracking-[0.25em] mb-1">{greeting}</p>
+          <h1 className="font-display text-4xl lg:text-5xl text-[#0B1F14] uppercase tracking-wider">{firstName}</h1>
+          <p className="text-sm text-[#567060]/60 mt-1">AstroWave Admin Dashboard</p>
         </div>
         <div className="flex items-center gap-3">
           {unreadContacts > 0 && (
@@ -182,7 +182,7 @@ export default function AdminDashboardPage() {
             </Link>
           )}
           <Link href="/" target="_blank"
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-white/10 text-muted text-[0.65rem] font-bold uppercase tracking-widest hover:text-white hover:border-white/25 transition-all">
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-[#C8E6D4] text-[#567060] text-[0.65rem] font-bold uppercase tracking-widest hover:text-[#0B1F14] hover:border-white/25 transition-all">
             <Eye size={13} />
             Live Site
           </Link>
@@ -202,13 +202,13 @@ export default function AdminDashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
         {/* Recent Activity */}
-        <div className="lg:col-span-2 rounded-2xl border border-white/5 bg-[#0A1020] p-6 space-y-4">
+        <div className="lg:col-span-2 rounded-2xl border border-[#C8E6D4] bg-white p-6 space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-lg bg-green-500/10 flex items-center justify-center">
                 <Activity size={15} className="text-green-400" />
               </div>
-              <h2 className="font-display text-xl text-white uppercase tracking-wider">Recent Activity</h2>
+              <h2 className="font-display text-xl text-[#0B1F14] uppercase tracking-wider">Recent Activity</h2>
             </div>
             <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
           </div>
@@ -217,7 +217,7 @@ export default function AdminDashboardPage() {
             {activity.length > 0
               ? activity.map((item, i) => <ActivityRow key={item.id} item={item} index={i} />)
               : Array.from({ length: 5 }).map((_, i) => (
-                  <div key={i} className="h-12 rounded-lg bg-white/[0.03] animate-pulse my-2" />
+                  <div key={i} className="h-12 rounded-lg bg-[#F0FAF5] animate-pulse my-2" />
                 ))
             }
           </div>
@@ -225,18 +225,18 @@ export default function AdminDashboardPage() {
 
         {/* Quick Actions */}
         <div className="space-y-4">
-          <div className="rounded-2xl border border-white/5 bg-[#0A1020] p-6 space-y-4">
-            <h2 className="font-display text-xl text-white uppercase tracking-wider">Quick Actions</h2>
+          <div className="rounded-2xl border border-[#C8E6D4] bg-white p-6 space-y-4">
+            <h2 className="font-display text-xl text-[#0B1F14] uppercase tracking-wider">Quick Actions</h2>
             <div className="grid grid-cols-2 gap-3">
               {QUICK_ACTIONS.map((a, i) => (
                 <motion.div key={a.label} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.3 + i * 0.06 }}>
                   <Link href={a.href}
-                    className="flex flex-col gap-3 p-4 rounded-xl border border-white/5 hover:border-white/12 bg-[#070F1F] transition-all group hover:shadow-[0_4px_20px_rgba(0,0,0,0.3)]">
+                    className="flex flex-col gap-3 p-4 rounded-xl border border-[#C8E6D4] hover:border-white/12 bg-[#F0FAF5] transition-all group hover:shadow-[0_4px_20px_rgba(0,0,0,0.3)]">
                     <div className="w-8 h-8 rounded-lg flex items-center justify-center"
                       style={{ backgroundColor: `${a.color}15`, color: a.color }}>
                       <a.icon size={16} />
                     </div>
-                    <p className="text-[0.65rem] font-bold text-white/70 group-hover:text-white uppercase tracking-widest transition-colors leading-tight">
+                    <p className="text-[0.65rem] font-bold text-[#0B1F14]/70 group-hover:text-[#0B1F14] uppercase tracking-widest transition-colors leading-tight">
                       {a.label}
                     </p>
                   </Link>
@@ -246,15 +246,15 @@ export default function AdminDashboardPage() {
           </div>
 
           {/* System status */}
-          <div className="rounded-2xl border border-white/5 bg-[#0A1020] p-6 space-y-3">
-            <h2 className="font-display text-lg text-white uppercase tracking-wider">System</h2>
+          <div className="rounded-2xl border border-[#C8E6D4] bg-white p-6 space-y-3">
+            <h2 className="font-display text-lg text-[#0B1F14] uppercase tracking-wider">System</h2>
             {[
               { label: 'Firebase',   status: 'Online',  color: '#00FF87' },
               { label: 'Cloudinary', status: 'Online',  color: '#00FF87' },
               { label: 'Auth',       status: 'Active',  color: '#00FF87' },
             ].map(s => (
               <div key={s.label} className="flex items-center justify-between">
-                <span className="text-[0.65rem] font-bold text-muted uppercase tracking-widest">{s.label}</span>
+                <span className="text-[0.65rem] font-bold text-[#567060] uppercase tracking-widest">{s.label}</span>
                 <div className="flex items-center gap-1.5">
                   <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: s.color }} />
                   <span className="text-[0.6rem] font-bold uppercase tracking-widest" style={{ color: s.color }}>{s.status}</span>

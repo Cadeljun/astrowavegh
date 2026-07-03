@@ -59,12 +59,12 @@ export default function AdminSidebar() {
   const isActive = (href: string) => pathname === href || pathname.startsWith(href + '/')
 
   return (
-    <aside className="w-[260px] min-h-screen flex flex-col bg-[#030B14] border-r border-white/5 sticky top-0">
+    <aside className="w-[260px] min-h-screen flex flex-col bg-white border-r border-[#C8E6D4] sticky top-0">
 
       {/* Logo */}
-      <div className="px-7 py-8 border-b border-white/5">
+      <div className="px-7 py-8 border-b border-[#C8E6D4]">
         <Logo height={28} />
-        <p className="text-[0.55rem] font-bold tracking-[0.25em] uppercase text-muted/40 mt-2 font-mono">
+        <p className="text-[0.55rem] font-bold tracking-[0.25em] uppercase text-[#567060]/60 mt-2 font-mono">
           Admin Panel
         </p>
       </div>
@@ -85,12 +85,12 @@ export default function AdminSidebar() {
                   className={cn(
                     'flex items-center gap-3 px-4 py-2.5 rounded-lg text-[0.8rem] font-medium transition-all group border-l-2',
                     isActive(item.href)
-                      ? 'bg-yellow-400/8 text-yellow-400 border-yellow-400'
-                      : 'text-muted/60 hover:text-white hover:bg-white/5 border-transparent'
+                      ? 'bg-[#00C853]/8 text-[#00C853] border-[#00C853]'
+                      : 'text-[#567060] hover:text-[#0B1F14] hover:bg-white/5 border-transparent'
                   )}>
-                  <item.icon size={15} className={cn(isActive(item.href) ? 'text-yellow-400' : 'text-muted/40 group-hover:text-muted')} />
+                  <item.icon size={15} className={cn(isActive(item.href) ? 'text-[#00C853]' : 'text-[#567060]/60 group-hover:text-muted')} />
                   {item.label}
-                  {isActive(item.href) && <ChevronRight size={10} className="ml-auto text-yellow-400/60" />}
+                  {isActive(item.href) && <ChevronRight size={10} className="ml-auto text-[#00C853]/60" />}
                 </Link>
               ))}
             </div>
@@ -100,7 +100,7 @@ export default function AdminSidebar() {
         {/* Platform Control (superAdmin) */}
         {isSuperAdmin && (
           <div>
-            <p className="px-4 mb-2 text-[0.55rem] font-bold uppercase tracking-[0.25em] font-mono text-blue-400/50">
+            <p className="px-4 mb-2 text-[0.55rem] font-bold uppercase tracking-[0.25em] font-mono text-[#0EA5E9]/50">
               Platform Control
             </p>
             <div className="space-y-0.5">
@@ -109,12 +109,12 @@ export default function AdminSidebar() {
                   className={cn(
                     'flex items-center gap-3 px-4 py-2.5 rounded-lg text-[0.8rem] font-medium transition-all group border-l-2',
                     isActive(item.href)
-                      ? 'bg-blue-400/8 text-blue-400 border-blue-400'
-                      : 'text-muted/60 hover:text-white hover:bg-white/5 border-transparent'
+                      ? 'bg-[#0EA5E9]/8 text-[#0EA5E9] border-[#0EA5E9]'
+                      : 'text-[#567060] hover:text-[#0B1F14] hover:bg-white/5 border-transparent'
                   )}>
-                  <item.icon size={15} className={cn(isActive(item.href) ? 'text-blue-400' : 'text-muted/40 group-hover:text-muted')} />
+                  <item.icon size={15} className={cn(isActive(item.href) ? 'text-[#0EA5E9]' : 'text-[#567060]/60 group-hover:text-muted')} />
                   {item.label}
-                  {isActive(item.href) && <ChevronRight size={10} className="ml-auto text-blue-400/60" />}
+                  {isActive(item.href) && <ChevronRight size={10} className="ml-auto text-[#0EA5E9]/60" />}
                 </Link>
               ))}
             </div>
@@ -137,9 +137,9 @@ export default function AdminSidebar() {
       </nav>
 
       {/* Footer */}
-      <div className="px-3 py-5 border-t border-white/5 space-y-1 bg-black/30">
+      <div className="px-3 py-5 border-t border-[#C8E6D4] space-y-1 bg-[#F0FAF5]">
         <Link href="/" target="_blank"
-          className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-[0.8rem] text-muted/50 hover:text-white hover:bg-white/5 transition-all">
+          className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-[0.8rem] text-muted/50 hover:text-[#0B1F14] hover:bg-white/5 transition-all">
           <ExternalLink size={15} />
           View Live Site
         </Link>

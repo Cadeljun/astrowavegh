@@ -3,11 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { AlertCircle, Sparkles, UserPlus, Zap, Rocket } from 'lucide-react';
-import { 
-  getOrCreatePlatformUser,
-  updateLastLogin
-} from '@/lib/firebase/platformAuth';
+import { AlertCircle, Rocket, Users, Mic } from 'lucide-react';
+import { getOrCreatePlatformUser, updateLastLogin } from '@/lib/firebase/platformAuth';
 import Link from 'next/link';
 
 function GoogleIcon() {
@@ -22,168 +19,112 @@ function GoogleIcon() {
 }
 
 export default function RegisterPage() {
-  const { 
-    user, loading,
-    signInWithGoogle, 
-    error, clearError
-  } = useAuth();
+  const { user, loading, signInWithGoogle, error, clearError } = useAuth();
   const router = useRouter();
   const [signing, setSigning] = useState(false);
   const [processing, setProcessing] = useState(false);
 
   useEffect(() => {
-    if (!loading && user) {
-      handlePostLogin();
-    }
+    if (!loading && user) handlePostLogin();
   }, [user, loading]);
 
   const handlePostLogin = async () => {
+    if (!user || processing) return;
     setProcessing(true);
     try {
-      const result = await getOrCreatePlatformUser(
-        user!.uid,
-        user!.email || '',
-        user!.displayName || '',
-        user!.photoURL || '',
-        'google'
-      );
-
-      await updateLastLogin(user!.uid);
-
-      if (result.isNew || !result.onboarded) {
-        router.replace('/auth/onboarding');
-      } else {
-        router.replace(result.role === 'talent' ? '/talent/dashboard' : '/organizer/dashboard');
-      }
-    } catch {
-      setProcessing(false);
-    }
+      await getOrCreatePlatformUser(user);
+      await updateLastLogin(user.uid);
+    } catch {}
+    router.push('/auth/onboarding');
   };
 
-  const handleGoogleSignIn = async () => {
+  const handleGoogle = async () => {
+    clearError?.();
     setSigning(true);
-    clearError();
-    try {
-      await signInWithGoogle();
-    } catch {
-      setSigning(false);
-    }
+    try { await signInWithGoogle(); }
+    catch {}
+    finally { setSigning(false); }
   };
-
-  const isLoading = loading || signing || processing;
-
-  if (loading && !user) return null;
 
   return (
-    <div style={{
-      background: 'rgba(12,30,53,0.85)',
-      backdropFilter: 'blur(20px)',
-      WebkitBackdropFilter: 'blur(20px)',
-      border: '1px solid #142440',
-      borderTop: '3px solid #0EA5E9',
-      borderRadius: '20px',
-      padding: '40px',
-      boxShadow: '0 20px 50px rgba(0,0,0,0.5)'
-    }}>
-      <style>{`
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .google-btn:hover:not(:disabled) {
-          background: #fff !important;
-          transform: translateY(-1px);
-          box-shadow: 0 8px 30px rgba(14,165,233,0.2) !important;
-        }
-      `}</style>
+    <div className="min-h-screen bg-[#F0FAF5] flex">
+      {/* Left panel */}
+      <div className="hidden lg:flex flex-col justify-between w-[45%] bg-[#0B1F14] p-16 relative overflow-hidden">
+        <div className="absolute inset-0 pointer-events-none"
+          style={{ background: 'radial-gradient(ellipse at 80% 20%, rgba(14,165,233,0.15) 0%, transparent 55%), radial-gradient(ellipse at 20% 80%, rgba(0,200,83,0.10) 0%, transparent 55%)' }} />
 
-      {/* Header */}
-      <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-        <div style={{
-          width: '56px', height: '56px',
-          borderRadius: '16px',
-          background: 'rgba(14,165,233,0.08)',
-          border: '1px solid rgba(14,165,233,0.2)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          margin: '0 auto 20px'
-        }}>
-          <Rocket size={28} color="#0EA5E9" />
-        </div>
-        <h1 style={{
-          fontFamily: 'var(--font-display)',
-          fontSize: '1.8rem',
-          fontWeight: 800,
-          color: '#FFFFFF',
-          letterSpacing: '-0.02em',
-          textTransform: 'uppercase'
-        }}>Create Account</h1>
-        <p style={{ color: '#8BA4BE', fontSize: '0.9rem', marginTop: '4px' }}>Join the next-gen creative ecosystem</p>
-      </div>
-
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: '1fr',
-        gap: '12px',
-        marginBottom: '32px'
-      }}>
-        {[
-          { label: 'Verified professional profile', icon: Sparkles },
-          { label: 'Intelligent AI match engine', icon: Zap },
-          { label: 'Secure engagement protocol', icon: Rocket }
-        ].map(item => (
-          <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px', color: '#8BA4BE' }}>
-            <item.icon size={14} color="#0EA5E9" />
-            <span style={{ fontSize: '0.8rem', fontWeight: 500 }}>{item.label}</span>
+        <div className="relative z-10">
+          <div className="flex items-center gap-2 mb-16">
+            <span className="w-2 h-2 rounded-full bg-[#0EA5E9] animate-pulse" />
+            <span className="text-[0.6rem] font-bold text-[#0EA5E9] uppercase tracking-[0.3em]">Join AstroWave</span>
           </div>
-        ))}
+          <h1 className="font-display text-5xl lg:text-6xl text-white uppercase leading-tight">
+            CREATE YOUR<br />
+            <span className="text-[#0EA5E9]">ACCOUNT.</span>
+          </h1>
+          <p className="text-white/40 text-sm mt-6 leading-relaxed max-w-xs">
+            Whether you're hosting events or performing at them — AstroWave is your platform.
+          </p>
+        </div>
+
+        <div className="relative z-10 grid grid-cols-1 gap-4">
+          {[
+            { icon: Users, title: 'For Organizers', desc: 'Post events, find talent, manage bookings', color: '#00C853' },
+            { icon: Mic,   title: 'For Performers', desc: 'Build your profile, earn your Wave Score', color: '#0EA5E9' },
+          ].map(({ icon: Icon, title, desc, color }) => (
+            <div key={title} className="flex items-start gap-4 p-4 rounded-xl border"
+              style={{ borderColor: `${color}20`, backgroundColor: `${color}08` }}>
+              <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
+                style={{ backgroundColor: `${color}15`, color }}>
+                <Icon size={18} />
+              </div>
+              <div>
+                <p className="text-sm font-bold text-white">{title}</p>
+                <p className="text-xs text-white/40 mt-0.5">{desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
-      {error && (
-        <div style={{ padding: '12px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: '10px', marginBottom: '20px', color: '#ef4444', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <AlertCircle size={16} />
-          {error}
+      {/* Right panel */}
+      <div className="flex-1 flex items-center justify-center p-8">
+        <div className="w-full max-w-md space-y-8">
+          <div>
+            <h2 className="font-display text-4xl text-[#0B1F14] uppercase">GET STARTED</h2>
+            <p className="text-[#567060] text-sm mt-2">Create your free AstroWave account</p>
+          </div>
+
+          {error && (
+            <div className="flex items-center gap-3 p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm">
+              <AlertCircle size={16} className="shrink-0" />
+              {error}
+            </div>
+          )}
+
+          <button onClick={handleGoogle} disabled={signing || processing}
+            className="w-full h-14 flex items-center justify-center gap-3 rounded-xl border-2 border-[#C8E6D4] bg-white text-[#0B1F14] font-bold text-sm hover:border-[#00C853] hover:shadow-glow-green transition-all disabled:opacity-50">
+            {signing || processing ? (
+              <div className="w-5 h-5 border-2 border-[#00C853] border-t-transparent rounded-full animate-spin" />
+            ) : <GoogleIcon />}
+            {signing ? 'Creating account…' : processing ? 'Setting up…' : 'Sign up with Google'}
+          </button>
+
+          <p className="text-center text-sm text-[#567060]">
+            Already have an account?{' '}
+            <Link href="/auth/login" className="text-[#00C853] font-bold hover:text-[#007A33] transition-colors">
+              Sign in
+            </Link>
+          </p>
+
+          <p className="text-center text-[0.65rem] text-[#567060]/50 leading-relaxed">
+            By continuing you agree to our{' '}
+            <Link href="/legal/terms-of-service" className="hover:text-[#00C853] transition-colors">Terms</Link>
+            {' '}and{' '}
+            <Link href="/legal/privacy-policy" className="hover:text-[#00C853] transition-colors">Privacy Policy</Link>.
+          </p>
         </div>
-      )}
-
-      {/* Action */}
-      <button
-        className="google-btn"
-        onClick={handleGoogleSignIn}
-        disabled={isLoading}
-        style={{
-          width: '100%',
-          padding: '16px',
-          background: '#F0F8FF',
-          border: 'none',
-          borderRadius: '12px',
-          fontFamily: 'inherit',
-          fontSize: '0.95rem',
-          fontWeight: 700,
-          color: '#020B18',
-          cursor: isLoading ? 'not-allowed' : 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '12px',
-          transition: 'all 0.2s ease',
-          marginBottom: '24px'
-        }}
-      >
-        {isLoading ? (
-          <span style={{ width: '20px', height: '20px', borderRadius: '50%', border: '2px solid #020B18', borderTopColor: 'transparent', animation: 'spin 0.8s linear infinite' }} />
-        ) : (
-          <>
-            <GoogleIcon />
-            <span style={{ textTransform: 'uppercase', letterSpacing: '0.05em' }}>Sign up with Google</span>
-          </>
-        )}
-      </button>
-
-      <div style={{ height: '1px', background: '#142440', marginBottom: '24px' }} />
-
-      <p style={{ textAlign: 'center', fontSize: '0.875rem', color: '#8BA4BE' }}>
-        Already have an account?{' '}
-        <Link href="/auth/login" style={{ color: '#0EA5E9', fontWeight: 700, textDecoration: 'none' }}>Sign in →</Link>
-      </p>
+      </div>
     </div>
   );
 }

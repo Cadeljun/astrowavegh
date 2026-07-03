@@ -3,11 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { AlertCircle, Waves, Sparkles, Zap, Calendar, Star } from 'lucide-react';
-import { 
-  getOrCreatePlatformUser,
-  updateLastLogin
-} from '@/lib/firebase/platformAuth';
+import { AlertCircle, Zap, Calendar, Star, Waves } from 'lucide-react';
+import { getOrCreatePlatformUser, updateLastLogin } from '@/lib/firebase/platformAuth';
 import Link from 'next/link';
 
 function GoogleIcon() {
@@ -22,200 +19,108 @@ function GoogleIcon() {
 }
 
 export default function LoginPage() {
-  const { 
-    user, loading,
-    signInWithGoogle, 
-    error, clearError
-  } = useAuth();
+  const { user, loading, signInWithGoogle, error, clearError } = useAuth();
   const router = useRouter();
   const [signing, setSigning] = useState(false);
   const [processing, setProcessing] = useState(false);
 
   useEffect(() => {
-    if (!loading && user) {
-      handlePostLogin();
-    }
+    if (!loading && user) handlePostLogin();
   }, [user, loading]);
 
   const handlePostLogin = async () => {
+    if (!user || processing) return;
     setProcessing(true);
     try {
-      const result = await getOrCreatePlatformUser(
-        user!.uid,
-        user!.email || '',
-        user!.displayName || '',
-        user!.photoURL || '',
-        'google'
-      );
-
-      await updateLastLogin(user!.uid);
-
-      if (result.isNew || !result.onboarded) {
-        router.replace('/auth/onboarding');
-      } else if (result.role === 'talent') {
-        router.replace('/talent/dashboard');
-      } else if (result.role === 'organizer' || result.role === 'both') {
-        router.replace('/organizer/dashboard');
-      } else {
-        router.replace('/auth/onboarding');
-      }
-    } catch (err) {
-      console.error("Auth processing error:", err);
-      setProcessing(false);
-    }
+      await getOrCreatePlatformUser(user);
+      await updateLastLogin(user.uid);
+    } catch {}
+    router.push('/organizer/dashboard');
   };
 
-  const handleGoogleSignIn = async () => {
+  const handleGoogle = async () => {
+    clearError?.();
     setSigning(true);
-    clearError();
-    try {
-      await signInWithGoogle();
-    } catch {
-      setSigning(false);
-    }
+    try { await signInWithGoogle(); }
+    catch {}
+    finally { setSigning(false); }
   };
-
-  const isLoading = loading || signing || processing;
-
-  if (loading && !user) return null;
 
   return (
-    <div style={{
-      background: 'rgba(12,30,53,0.85)',
-      backdropFilter: 'blur(20px)',
-      WebkitBackdropFilter: 'blur(20px)',
-      border: '1px solid #142440',
-      borderTop: '3px solid #00C96B',
-      borderRadius: '20px',
-      padding: '40px',
-      boxShadow: '0 20px 50px rgba(0,0,0,0.5)'
-    }}>
-      <style>{`
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .google-btn:hover:not(:disabled) {
-          background: #fff !important;
-          transform: translateY(-1px);
-          box-shadow: 0 8px 30px rgba(0,201,107,0.2) !important;
-        }
-      `}</style>
+    <div className="min-h-screen bg-[#F0FAF5] flex">
+      {/* Left panel */}
+      <div className="hidden lg:flex flex-col justify-between w-[45%] bg-[#0B1F14] p-16 relative overflow-hidden">
+        <div className="absolute inset-0 pointer-events-none"
+          style={{ background: 'radial-gradient(ellipse at 20% 80%, rgba(0,200,83,0.15) 0%, transparent 55%), radial-gradient(ellipse at 80% 20%, rgba(14,165,233,0.10) 0%, transparent 55%)' }} />
 
-      {/* Header */}
-      <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-        <div style={{
-          width: '56px', height: '56px',
-          borderRadius: '16px',
-          background: 'rgba(0,255,135,0.08)',
-          border: '1px solid rgba(0,255,135,0.2)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          margin: '0 auto 20px'
-        }}>
-          <Waves size={28} color="#00FF87" />
-        </div>
-        <h1 style={{
-          fontFamily: 'var(--font-display)',
-          fontSize: '1.8rem',
-          fontWeight: 800,
-          color: '#FFFFFF',
-          letterSpacing: '-0.02em',
-          textTransform: 'uppercase'
-        }}>Welcome Back</h1>
-        <p style={{ color: '#8BA4BE', fontSize: '0.9rem', marginTop: '4px' }}>Sign in to your AstroWave account</p>
-      </div>
-
-      {/* Value Grid */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: '1fr 1fr',
-        gap: '12px',
-        marginBottom: '32px'
-      }}>
-        {[
-          { icon: Sparkles, label: 'Find Talent', color: '#00FF87' },
-          { icon: Calendar, label: 'Post Gigs', color: '#0EA5E9' },
-          { icon: Star, label: 'Wave Score', color: '#FFD166' },
-          { icon: Zap, label: 'AI Matching', color: '#A855F7' }
-        ].map(item => (
-          <div key={item.label} style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '10px',
-            padding: '12px',
-            background: 'rgba(255,255,255,0.03)',
-            border: '1px solid #142440',
-            borderRadius: '10px'
-          }}>
-            <item.icon size={16} color={item.color} />
-            <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#F0F8FF', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{item.label}</span>
+        <div className="relative z-10">
+          <div className="flex items-center gap-2 mb-16">
+            <span className="w-2 h-2 rounded-full bg-[#00C853] animate-pulse" />
+            <span className="text-[0.6rem] font-bold text-[#00C853] uppercase tracking-[0.3em]">AstroWave Platform</span>
           </div>
-        ))}
+          <h1 className="font-display text-5xl lg:text-6xl text-white uppercase leading-tight">
+            WELCOME<br />
+            <span className="text-[#00C853]">BACK.</span>
+          </h1>
+          <p className="text-white/40 text-sm mt-6 leading-relaxed max-w-xs">
+            Sign in to access your dashboard, manage bookings and connect with Ghana's top creative talent.
+          </p>
+        </div>
+
+        <div className="relative z-10 space-y-4">
+          {[
+            { icon: Zap,      text: 'Wave Score Matching',  color: '#00C853' },
+            { icon: Calendar, text: 'Real-Time Bookings',   color: '#0EA5E9' },
+            { icon: Star,     text: 'Verified Talent Pool', color: '#00C853' },
+          ].map(({ icon: Icon, text, color }) => (
+            <div key={text} className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${color}15` }}>
+                <Icon size={15} style={{ color }} />
+              </div>
+              <span className="text-sm text-white/50">{text}</span>
+            </div>
+          ))}
+        </div>
       </div>
 
-      {error && (
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '10px',
-          padding: '12px',
-          background: 'rgba(239,68,68,0.1)',
-          border: '1px solid rgba(239,68,68,0.2)',
-          borderRadius: '10px',
-          marginBottom: '20px',
-          color: '#ef4444',
-          fontSize: '0.85rem'
-        }}>
-          <AlertCircle size={16} />
-          {error}
+      {/* Right panel */}
+      <div className="flex-1 flex items-center justify-center p-8">
+        <div className="w-full max-w-md space-y-8">
+          <div>
+            <h2 className="font-display text-4xl text-[#0B1F14] uppercase">SIGN IN</h2>
+            <p className="text-[#567060] text-sm mt-2">Continue to your AstroWave account</p>
+          </div>
+
+          {error && (
+            <div className="flex items-center gap-3 p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm">
+              <AlertCircle size={16} className="shrink-0" />
+              {error}
+            </div>
+          )}
+
+          <button onClick={handleGoogle} disabled={signing || processing}
+            className="w-full h-14 flex items-center justify-center gap-3 rounded-xl border-2 border-[#C8E6D4] bg-white text-[#0B1F14] font-bold text-sm hover:border-[#00C853] hover:shadow-glow-green transition-all disabled:opacity-50">
+            {signing || processing ? (
+              <div className="w-5 h-5 border-2 border-[#00C853] border-t-transparent rounded-full animate-spin" />
+            ) : <GoogleIcon />}
+            {signing ? 'Signing in…' : processing ? 'Setting up…' : 'Continue with Google'}
+          </button>
+
+          <p className="text-center text-sm text-[#567060]">
+            Don't have an account?{' '}
+            <Link href="/auth/register" className="text-[#00C853] font-bold hover:text-[#007A33] transition-colors">
+              Create one free
+            </Link>
+          </p>
+
+          <p className="text-center text-[0.65rem] text-[#567060]/50 leading-relaxed">
+            By continuing you agree to our{' '}
+            <Link href="/legal/terms-of-service" className="hover:text-[#00C853] transition-colors">Terms</Link>
+            {' '}and{' '}
+            <Link href="/legal/privacy-policy" className="hover:text-[#00C853] transition-colors">Privacy Policy</Link>.
+          </p>
         </div>
-      )}
-
-      {/* Action */}
-      <button
-        className="google-btn"
-        onClick={handleGoogleSignIn}
-        disabled={isLoading}
-        style={{
-          width: '100%',
-          padding: '16px',
-          background: '#F0F8FF',
-          border: 'none',
-          borderRadius: '12px',
-          fontFamily: 'inherit',
-          fontSize: '0.95rem',
-          fontWeight: 700,
-          color: '#020B18',
-          cursor: isLoading ? 'not-allowed' : 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '12px',
-          transition: 'all 0.2s ease',
-          marginBottom: '24px'
-        }}
-      >
-        {isLoading ? (
-          <span style={{
-            width: '20px', height: '20px',
-            borderRadius: '50%',
-            border: '2px solid #020B18',
-            borderTopColor: 'transparent',
-            animation: 'spin 0.8s linear infinite'
-          }} />
-        ) : (
-          <>
-            <GoogleIcon />
-            <span style={{ textTransform: 'uppercase', letterSpacing: '0.05em' }}>Continue with Google</span>
-          </>
-        )}
-      </button>
-
-      <div style={{ height: '1px', background: '#142440', marginBottom: '24px' }} />
-
-      <p style={{ textAlign: 'center', fontSize: '0.875rem', color: '#8BA4BE' }}>
-        New to AstroWave?{' '}
-        <Link href="/auth/register" style={{ color: '#00FF87', fontWeight: 700, textDecoration: 'none' }}>Create account →</Link>
-      </p>
+      </div>
     </div>
   );
 }
