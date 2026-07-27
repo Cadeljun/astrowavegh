@@ -3,9 +3,13 @@
 import { useEffect } from 'react';
 import { useCMSSettings } from '@/lib/cms/useCMS';
 
+// Default local favicon
+const DEFAULT_FAVICON = '/favicon.svg';
+
 /**
  * Real-time favicon injector.
  * Listens to Firestore changes and updates the browser tab icon instantly.
+ * Falls back to local favicon if no CMS setting is configured.
  */
 export default function DynamicFavicon() {
   const { settings } = useCMSSettings();
@@ -14,7 +18,7 @@ export default function DynamicFavicon() {
     const faviconUrl = settings?.faviconUrl;
     const svgCode = settings?.faviconSvgCode;
 
-    let finalUrl = faviconUrl;
+    let finalUrl = faviconUrl || DEFAULT_FAVICON;
 
     // If we have raw SVG code but no URL, or if SVG is preferred, convert to data URI
     if (svgCode && !faviconUrl) {

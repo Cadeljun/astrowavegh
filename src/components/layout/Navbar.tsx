@@ -42,7 +42,7 @@ export default function Navbar() {
         : 'h-28 bg-transparent'
     )}>
       <div className="max-w-screen-2xl mx-auto h-full flex items-center justify-between">
-        <Logo height={32} />
+        <Logo height={32} variant={scrolled ? 'dark' : 'white'} />
 
         {/* Desktop links */}
         <div className="hidden lg:flex items-center gap-10">

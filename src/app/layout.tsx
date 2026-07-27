@@ -32,7 +32,12 @@ export const metadata: Metadata = {
   title: "AstroWave | Africa's Entertainment Powerhouse",
   description: 'Connect with elite creative talent and immersive event experiences in Accra, Ghana.',
   icons: {
-    icon: 'https://res.cloudinary.com/dmd5bq3va/image/upload/v1779674858/ivzvmlaglz9l1hgevktn.png',
+    icon: [
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+      { url: '/favicon.png', type: 'image/png' },
+      { url: '/favicon.ico', sizes: 'any' },
+    ],
+    apple: '/favicon.png',
   }
 };
 
