@@ -9,7 +9,7 @@ const DEFAULT_FAVICON = '/favicon.svg';
 /**
  * Real-time favicon injector.
  * Listens to Firestore changes and updates the browser tab icon instantly.
- * Falls back to local favicon if no CMS setting is configured.
+ * Uses local favicon by default; CMS override only if explicitly set to a non-Cloudinary URL.
  */
 export default function DynamicFavicon() {
   const { settings } = useCMSSettings();
@@ -18,10 +18,16 @@ export default function DynamicFavicon() {
     const faviconUrl = settings?.faviconUrl;
     const svgCode = settings?.faviconSvgCode;
 
-    let finalUrl = faviconUrl || DEFAULT_FAVICON;
+    // Use local favicon by default, only override if CMS has a custom non-Cloudinary URL
+    let finalUrl = DEFAULT_FAVICON;
+    
+    // Only use CMS favicon if it's explicitly set and not the old Cloudinary URL
+    if (faviconUrl && !faviconUrl.includes('cloudinary.com')) {
+      finalUrl = faviconUrl;
+    }
 
-    // If we have raw SVG code but no URL, or if SVG is preferred, convert to data URI
-    if (svgCode && !faviconUrl) {
+    // If we have raw SVG code but no URL, convert to data URI
+    if (svgCode) {
       try {
         const base64Svg = btoa(unescape(encodeURIComponent(svgCode)));
         finalUrl = `data:image/svg+xml;base64,${base64Svg}`;
