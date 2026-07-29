@@ -6,6 +6,7 @@ import { AuthProvider } from '@/context/AuthContext';
 import { RoleProvider } from '@/context/RoleContext';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
 import ClientLayout from '@/components/layout/ClientLayout';
+import DynamicFavicon from '@/components/ui/DynamicFavicon';
 import { Toaster } from '@/components/ui/toaster';
 
 const plusJakarta = Plus_Jakarta_Sans({
@@ -48,6 +49,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <FirebaseClientProvider>
           <AuthProvider>
             <RoleProvider>
+              <DynamicFavicon />
               <ClientLayout>
                 {children}
               </ClientLayout>

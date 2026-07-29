@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
@@ -8,7 +9,7 @@ import {
   LayoutDashboard, Users, Image as ImageIcon, Upload,
   Mail, Bell, FileText, LogOut, ExternalLink, Edit3,
   Terminal, Calendar, BookOpen, Star, BarChart2, Mic,
-  ChevronRight, Settings
+  ChevronRight, Settings, Menu, X
 } from 'lucide-react'
 import Logo from '@/components/ui/Logo'
 import { cn } from '@/lib/utils'
@@ -51,27 +52,18 @@ const platformItems = [
   { label: 'Analytics',          href: '/admin/platform/analytics', icon: BarChart2 },
 ]
 
-export default function AdminSidebar() {
+// Shared nav content component
+function NavContent({ onLinkClick }: { onLinkClick?: () => void }) {
   const pathname = usePathname()
   const { logout } = useAuth()
-  const { isSuperAdmin, isDeveloper, canEditCMS } = useRole()
+  const { isSuperAdmin, isDeveloper } = useRole()
 
   const isActive = (href: string) => pathname === href || pathname.startsWith(href + '/')
 
   return (
-    <aside className="w-[260px] min-h-screen flex flex-col bg-white border-r border-[#C8E6D4] sticky top-0">
-
-      {/* Logo */}
-      <div className="px-7 py-8 border-b border-[#C8E6D4]">
-        <Logo height={28} />
-        <p className="text-[0.55rem] font-bold tracking-[0.25em] uppercase text-[#567060]/60 mt-2 font-mono">
-          Admin Panel
-        </p>
-      </div>
-
+    <>
       {/* Nav */}
       <nav className="flex-1 px-3 py-6 overflow-y-auto scrollbar-hide space-y-6">
-
         {/* Core groups */}
         {navGroups.map(group => (
           <div key={group.label}>
@@ -81,7 +73,7 @@ export default function AdminSidebar() {
             </p>
             <div className="space-y-0.5">
               {group.items.map(item => (
-                <Link key={item.href} href={item.href}
+                <Link key={item.href} href={item.href} onClick={onLinkClick}
                   className={cn(
                     'flex items-center gap-3 px-4 py-2.5 rounded-lg text-[0.8rem] font-medium transition-all group border-l-2',
                     isActive(item.href)
@@ -105,7 +97,7 @@ export default function AdminSidebar() {
             </p>
             <div className="space-y-0.5">
               {platformItems.map(item => (
-                <Link key={item.href} href={item.href}
+                <Link key={item.href} href={item.href} onClick={onLinkClick}
                   className={cn(
                     'flex items-center gap-3 px-4 py-2.5 rounded-lg text-[0.8rem] font-medium transition-all group border-l-2',
                     isActive(item.href)
@@ -127,7 +119,7 @@ export default function AdminSidebar() {
             <p className="px-4 mb-2 text-[0.55rem] font-bold uppercase tracking-[0.25em] font-mono text-green-400/50">
               Dev Tools
             </p>
-            <Link href="/dev"
+            <Link href="/dev" onClick={onLinkClick}
               className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-[0.8rem] font-medium text-green-400/60 hover:text-green-400 hover:bg-green-400/8 transition-all border-l-2 border-transparent group">
               <Terminal size={15} className="text-green-400/40 group-hover:text-green-400" />
               Dev Command Center
@@ -138,17 +130,74 @@ export default function AdminSidebar() {
 
       {/* Footer */}
       <div className="px-3 py-5 border-t border-[#C8E6D4] space-y-1 bg-[#F0FAF5]">
-        <Link href="/" target="_blank"
+        <Link href="/" target="_blank" onClick={onLinkClick}
           className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-[0.8rem] text-muted/50 hover:text-[#0B1F14] hover:bg-white/5 transition-all">
           <ExternalLink size={15} />
           View Live Site
         </Link>
-        <button onClick={logout}
+        <button onClick={() => { logout(); onLinkClick?.(); }}
           className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-[0.8rem] text-red-400/50 hover:text-red-400 hover:bg-red-400/8 transition-all w-full text-left">
           <LogOut size={15} />
           Sign Out
         </button>
       </div>
-    </aside>
+    </>
+  )
+}
+
+// Mobile hamburger button (exported for use in admin layout)
+export function MobileMenuButton({ onClick }: { onClick: () => void }) {
+  return (
+    <button onClick={onClick}
+      className="lg:hidden fixed top-4 left-4 z-[1001] p-2 rounded-lg bg-white border border-[#C8E6D4] shadow-sm hover:bg-[#F0FAF5] transition-colors">
+      <Menu size={20} className="text-[#0B1F14]" />
+    </button>
+  )
+}
+
+// Main sidebar component
+export default function AdminSidebar() {
+  const [mobileOpen, setMobileOpen] = useState(false)
+
+  return (
+    <>
+      {/* Mobile hamburger button */}
+      <MobileMenuButton onClick={() => setMobileOpen(true)} />
+
+      {/* Desktop sidebar */}
+      <aside className="hidden lg:flex w-[260px] min-h-screen flex-col bg-white border-r border-[#C8E6D4] sticky top-0">
+        <div className="px-7 py-8 border-b border-[#C8E6D4]">
+          <Logo height={28} variant="dark" />
+          <p className="text-[0.55rem] font-bold tracking-[0.25em] uppercase text-[#567060]/60 mt-2 font-mono">
+            Admin Panel
+          </p>
+        </div>
+        <NavContent />
+      </aside>
+
+      {/* Mobile drawer overlay */}
+      {mobileOpen && (
+        <div className="lg:hidden fixed inset-0 z-[1002]">
+          {/* Backdrop */}
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setMobileOpen(false)} />
+
+          {/* Drawer */}
+          <div className="absolute left-0 top-0 bottom-0 w-[280px] bg-white flex flex-col shadow-2xl animate-in slide-in-from-left duration-300">
+            <div className="px-7 py-6 border-b border-[#C8E6D4] flex items-center justify-between">
+              <div>
+                <Logo height={28} variant="dark" />
+                <p className="text-[0.55rem] font-bold tracking-[0.25em] uppercase text-[#567060]/60 mt-2 font-mono">
+                  Admin Panel
+                </p>
+              </div>
+              <button onClick={() => setMobileOpen(false)} className="p-2 rounded-lg hover:bg-[#F0FAF5] transition-colors">
+                <X size={20} className="text-[#567060]" />
+              </button>
+            </div>
+            <NavContent onLinkClick={() => setMobileOpen(false)} />
+          </div>
+        </div>
+      )}
+    </>
   )
 }

@@ -19,13 +19,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   return (
     <AdminGuard>
       <div className="flex min-h-screen bg-[#020B18]">
-        {/* Sidebar */}
-        <div className="hidden lg:flex flex-shrink-0">
-          <AdminSidebar />
-        </div>
+        {/* Sidebar (handles both desktop and mobile) */}
+        <AdminSidebar />
         {/* Main */}
         <main className="flex-1 min-w-0 overflow-auto">
-          <div className="min-h-screen p-8 lg:p-10">
+          <div className="min-h-screen p-4 lg:p-10 pt-16 lg:pt-10">
             {children}
           </div>
         </main>
