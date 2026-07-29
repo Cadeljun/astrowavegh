@@ -1,9 +1,5 @@
 import { MetadataRoute } from 'next';
 
-/**
- * Configures the robots.txt file to control search engine crawling behavior.
- * Blocks sensitive areas like /admin and /dev.
- */
 export default function robots(): MetadataRoute.Robots {
   const baseUrl = 'https://astrowavegh.com';
 
@@ -12,12 +8,26 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: '*',
         allow: '/',
-        disallow: ['/admin/', '/dev/', '/api/'],
+        disallow: [
+          '/admin/',
+          '/dev/',
+          '/api/',
+          '/organizer/',
+          '/talent/',
+          '/match/',
+        ],
       },
       {
         userAgent: 'Googlebot',
         allow: '/',
-        disallow: ['/admin/', '/dev/', '/api/'],
+        disallow: [
+          '/admin/',
+          '/dev/',
+          '/api/',
+          '/organizer/',
+          '/talent/',
+          '/match/',
+        ],
       },
     ],
     sitemap: `${baseUrl}/sitemap.xml`,

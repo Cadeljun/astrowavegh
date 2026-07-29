@@ -49,7 +49,7 @@ export default function EventSchema({
         organizer: {
           '@type': 'Organization',
           name: organizer,
-          url: 'https://astrowave.com',
+          url: 'https://astrowavegh.com',
         },
         offers: {
           '@type': 'Offer',

@@ -1,7 +1,6 @@
 'use client'
 
 import { usePathname } from 'next/navigation'
-import { redirect } from 'next/navigation'
 import AdminGuard from '@/components/admin/AdminGuard'
 import AdminSidebar from '@/components/admin/AdminSidebar'
 
