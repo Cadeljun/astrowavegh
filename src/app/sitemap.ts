@@ -5,7 +5,7 @@ import { MetadataRoute } from 'next';
  * Ensuring all public pages are discoverable by search engines.
  */
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://astrowave.com';
+  const baseUrl = 'https://astrowavegh.com';
   const lastModified = new Date();
 
   return [

@@ -5,7 +5,7 @@ import { MetadataRoute } from 'next';
  * Blocks sensitive areas like /admin and /dev.
  */
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = 'https://astrowave.com';
+  const baseUrl = 'https://astrowavegh.com';
 
   return {
     rules: [

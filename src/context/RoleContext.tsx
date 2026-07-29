@@ -51,7 +51,10 @@ export function RoleProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (authLoading) return;
     
-    if (user?.email === 'junioraquils143@gmail.com') {
+    // Check if user is super admin via environment variable
+    // This is more secure than hardcoding emails
+    const superAdminEmails = process.env.NEXT_PUBLIC_SUPER_ADMIN_EMAILS?.split(',').map(e => e.trim()) || []
+    if (user?.email && superAdminEmails.includes(user.email)) {
       setRole('SUPER_ADMIN');
       setRoleLoading(false);
       return;
@@ -92,7 +95,9 @@ export function RoleProvider({ children }: { children: ReactNode }) {
     return () => unsub();
   }, [user, authLoading, db]);
 
-  const isSuperAdmin = role === 'SUPER_ADMIN' || user?.email === 'junioraquils143@gmail.com';
+  // Check if user is super admin via environment variable
+  const superAdminEmails = process.env.NEXT_PUBLIC_SUPER_ADMIN_EMAILS?.split(',').map(e => e.trim()) || []
+  const isSuperAdmin = role === 'SUPER_ADMIN' || (user?.email ? superAdminEmails.includes(user.email) : false);
   const isEditor = isSuperAdmin || role === 'EDITOR';
   const isDeveloper = isSuperAdmin || role === 'DEVELOPER';
   

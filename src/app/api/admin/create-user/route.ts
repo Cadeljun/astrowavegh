@@ -18,10 +18,7 @@ async function getAdminApp() {
   if (!projectId || !clientEmail || 
       !privateKey) {
     throw new Error(
-      'Firebase Admin credentials not configured. ' +
-      'Add FIREBASE_PROJECT_ID, ' +
-      'FIREBASE_CLIENT_EMAIL and ' +
-      'FIREBASE_PRIVATE_KEY to environment variables.'
+      'Server configuration error.'
     )
   }
   
@@ -33,7 +30,7 @@ async function getAdminApp() {
         projectId,
         clientEmail,
         privateKey: privateKey
-          .replace(/\\n/g, '\n')
+          .replace(/\\\\n/g, '\n')
       })
     })
   } else {
@@ -43,10 +40,52 @@ async function getAdminApp() {
   return adminApp
 }
 
+// Verify Firebase ID token
+async function verifyAuth(request: Request): Promise<{ uid: string; email: string } | null> {
+  try {
+    const authHeader = request.headers.get('authorization')
+    if (!authHeader?.startsWith('Bearer ')) {
+      return null
+    }
+
+    const token = authHeader.split('Bearer ')[1]
+    const admin = await import('firebase-admin')
+    const app = await getAdminApp()
+    const decodedToken = await admin.auth(app).verifyIdToken(token)
+    
+    return {
+      uid: decodedToken.uid,
+      email: decodedToken.email || ''
+    }
+  } catch (error) {
+    return null
+  }
+}
+
 export async function POST(
   request: Request
 ) {
   try {
+    // Verify authentication first
+    const authUser = await verifyAuth(request)
+    if (!authUser) {
+      return NextResponse.json(
+        { error: 'Unauthorized. Please log in.' },
+        { status: 401 }
+      )
+    }
+
+    // Check if user is admin
+    const adminEmails = process.env.ADMIN_EMAILS?.split(',').map(e => e.trim()) || []
+    const superAdminEmail = 'junioraquils143@gmail.com'
+    
+    if (!adminEmails.includes(authUser.email) && authUser.email !== superAdminEmail) {
+      return NextResponse.json(
+        { error: 'Forbidden. Admin access required.' },
+        { status: 403 }
+      )
+    }
+
     // This will throw clear error if 
     // credentials missing
     await getAdminApp()
@@ -58,6 +97,23 @@ export async function POST(
     if (!email || !password) {
       return NextResponse.json(
         { error: 'Email and password required' },
+        { status: 400 }
+      )
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) {
+      return NextResponse.json(
+        { error: 'Invalid email format' },
+        { status: 400 }
+      )
+    }
+
+    // Validate password strength
+    if (password.length < 8) {
+      return NextResponse.json(
+        { error: 'Password must be at least 8 characters' },
         { status: 400 }
       )
     }
@@ -75,8 +131,10 @@ export async function POST(
     })
     
   } catch (error: any) {
+    // Don't leak internal errors
+    console.error('Create user error:', error)
     return NextResponse.json(
-      { error: error.message },
+      { error: 'Failed to create user. Please try again.' },
       { status: 500 }
     )
   }

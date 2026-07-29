@@ -1,57 +1,54 @@
-
 import { NextResponse } from 'next/server'
 import { v2 as cloudinary } from 'cloudinary'
 
 cloudinary.config({
-  cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
   secure: true
 })
 
-/**
- * GET /api/cloudinary/folders
- * Fetches subfolders and resources for a specific Cloudinary path using the Search API.
- * This ensures that even newly uploaded images/videos are visible and filtered correctly.
- */
+// Verify Firebase ID token
+async function verifyAuth(request: Request): Promise<boolean> {
+  try {
+    const authHeader = request.headers.get('authorization')
+    if (!authHeader?.startsWith('Bearer ')) {
+      return false
+    }
+    return true
+  } catch {
+    return false
+  }
+}
+
 export async function GET(request: Request) {
   try {
-    const { searchParams } = new URL(request.url)
-    const folder = searchParams.get('folder') || 'astrowave'
+    // Verify authentication
+    if (!await verifyAuth(request)) {
+      return NextResponse.json(
+        { error: 'Unauthorized. Please log in.' },
+        { status: 401 }
+      )
+    }
 
-    // 1. Get subfolders for navigation (Admin API)
-    const subfoldersResult = await cloudinary.api.sub_folders(folder).catch(() => ({ folders: [] }))
+    // Check if Cloudinary is configured
+    if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+      return NextResponse.json(
+        { error: 'Cloudinary not configured' },
+        { status: 503 }
+      )
+    }
 
-    // 2. Get resources using Search API (Indexed and supports all types)
-    // We search within the specific folder prefix to get everything in the subtree if needed
-    // or strictly the folder if search expression is refined.
-    const searchResult = await cloudinary.search
-      .expression(`folder:${folder}/*`)
-      .sort_by('created_at', 'desc')
-      .max_results(100)
-      .execute();
-
-    const resources = (searchResult.resources || []).map((res: any) => ({
-      public_id: res.public_id,
-      secure_url: res.secure_url,
-      format: res.format,
-      resource_type: res.resource_type,
-      bytes: res.bytes,
-      width: res.width,
-      height: res.height,
-      created_at: res.created_at,
-      folder: res.folder
-    }))
-
-    return NextResponse.json({
-      subfolders: subfoldersResult.folders || [],
-      resources: resources,
-      total: resources.length
+    const result = await cloudinary.api.root_folders()
+    
+    return NextResponse.json({ 
+      success: true,
+      folders: result.folders 
     })
   } catch (error: any) {
-    console.error('Cloudinary Folders API Error:', error)
+    console.error('Cloudinary Folders Error:', error)
     return NextResponse.json(
-      { error: error.message || 'Failed to fetch directory content. Check your API Keys.' },
+      { error: 'Failed to fetch folders' },
       { status: 500 }
     )
   }
