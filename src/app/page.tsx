@@ -199,7 +199,7 @@ export default function HomePage() {
     <main className="flex flex-col w-full min-h-screen bg-white overflow-x-hidden">
 
       {/* ── HERO ─────────────────────────────────────────────────────── */}
-      <section ref={heroRef} className="relative min-h-screen flex items-end overflow-hidden">
+      <section ref={heroRef} className="relative min-h-[70vh] lg:min-h-[80vh] flex items-end overflow-hidden">
         <motion.div style={{ y: bgY }} className="absolute inset-0 z-0 scale-[1.15]">
           <img
             src="https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=1920&q=90"
