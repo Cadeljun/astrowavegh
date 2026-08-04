@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Mail, MapPin, Instagram, Twitter, Music, Loader2 } from 'lucide-react';
+import { Mail, MapPin, Instagram, Loader2 } from 'lucide-react';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
@@ -14,6 +14,25 @@ import { fadeUp, fadeIn, staggerContainer } from '@/lib/animations';
 import { useCMSContent } from '@/lib/cms/useCMS';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
+
+// Custom TikTok icon (lucide doesn't have one)
+function TikTokIcon({ size = 18, className = '' }: { size?: number; className?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5" />
+    </svg>
+  );
+}
+
+// Custom YouTube icon
+function YouTubeIcon({ size = 18, className = '' }: { size?: number; className?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <path d="M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17" />
+      <path d="m10 15 5-3-5-3z" />
+    </svg>
+  );
+}
 
 export default function ContactPage() {
   const db = useFirestore();
@@ -50,6 +69,12 @@ export default function ContactPage() {
       .finally(() => setLoading(false));
   };
 
+  const socials = [
+    { icon: Instagram, label: 'Instagram', href: 'https://instagram.com/astrowaveevent' },
+    { icon: TikTokIcon, label: 'TikTok', href: 'https://tiktok.com/@astrowaveevent' },
+    { icon: YouTubeIcon, label: 'YouTube', href: 'https://youtube.com/@astrowaveevent' },
+  ];
+
   return (
     <div className="flex flex-col w-full">
       <section className="relative h-[50vh] w-full flex items-center justify-center overflow-hidden bg-[var(--color-black)]">
@@ -79,9 +104,40 @@ export default function ContactPage() {
 
           <motion.div variants={staggerContainer} initial="hidden" whileInView="show" viewport={{ once: true }} className="lg:col-span-5 space-y-12">
             <div className="space-y-8">
-              <div className="flex gap-6"><Mail size={20} className="text-green" /><div><h4 className="label mb-1">EMAIL US</h4><p className="body-md text-white">info@astrowave.live</p></div></div>
-              <Divider className="opacity-10 my-0" /><div className="flex gap-6"><MapPin size={20} className="text-green" /><div><h4 className="label mb-1">BASED IN</h4><p className="body-md text-white">Accra, Ghana</p></div></div>
-              <Divider className="opacity-10 my-0" /><div className="space-y-4"><h4 className="label">FOLLOW THE WAVE</h4><div className="flex gap-4">{[Instagram, Twitter, Music].map((Icon, i) => <Icon key={i} size={18} className="text-muted hover:text-green cursor-pointer transition-colors" />)}</div></div>
+              <div className="flex gap-6">
+                <Mail size={20} className="text-green" />
+                <div>
+                  <h4 className="label mb-1">EMAIL US</h4>
+                  <a href="mailto:astrowaveevent@gmail.com" className="body-md text-white hover:text-green transition-colors">astrowaveevent@gmail.com</a>
+                </div>
+              </div>
+              <Divider className="opacity-10 my-0" />
+              <div className="flex gap-6">
+                <MapPin size={20} className="text-green" />
+                <div>
+                  <h4 className="label mb-1">BASED IN</h4>
+                  <p className="body-md text-white">Accra, Ghana</p>
+                </div>
+              </div>
+              <Divider className="opacity-10 my-0" />
+              <div className="space-y-4">
+                <h4 className="label">FOLLOW THE WAVE</h4>
+                <div className="flex gap-4">
+                  {socials.map((social) => (
+                    <a
+                      key={social.label}
+                      href={social.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      title={social.label}
+                      className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center text-muted hover:text-green hover:border-green transition-all"
+                    >
+                      <social.icon size={18} />
+                    </a>
+                  ))}
+                </div>
+                <p className="text-[0.65rem] text-muted/60 uppercase tracking-widest">@astrowaveevent</p>
+              </div>
             </div>
           </motion.div>
         </div>
