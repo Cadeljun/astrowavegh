@@ -199,65 +199,54 @@ export default function HomePage() {
     <main className="flex flex-col w-full min-h-screen bg-white overflow-x-hidden">
 
       {/* ── HERO ─────────────────────────────────────────────────────── */}
-      <section ref={heroRef} className="relative min-h-[70vh] lg:min-h-[80vh] flex items-end overflow-hidden">
+      <section ref={heroRef} className="relative min-h-[70vh] lg:min-h-[80vh] flex items-center justify-center overflow-hidden">
         <motion.div style={{ y: bgY }} className="absolute inset-0 z-0 scale-[1.15]">
           <img
             src="https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=1920&q=90"
             alt="" className="w-full h-full object-cover"
           />
         </motion.div>
-        {/* Dark bottom gradient */}
+        {/* Dark overlay */}
         <div className="absolute inset-0 z-[1]"
-          style={{ background: 'linear-gradient(to top, rgba(10,26,16,0.97) 0%, rgba(10,26,16,0.75) 35%, rgba(10,26,16,0.20) 75%, transparent 100%)' }} />
-        {/* Green glow bottom-left */}
-        <div className="absolute bottom-0 left-0 w-[700px] h-[400px] z-[1] pointer-events-none"
-          style={{ background: 'radial-gradient(ellipse at 0% 100%, rgba(0,200,83,0.18) 0%, transparent 65%)' }} />
-        {/* Blue glow top-right */}
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] z-[1] pointer-events-none"
-          style={{ background: 'radial-gradient(ellipse at 100% 0%, rgba(14,165,233,0.14) 0%, transparent 60%)' }} />
+          style={{ background: 'linear-gradient(to top, rgba(10,26,16,0.95) 0%, rgba(10,26,16,0.7) 40%, rgba(10,26,16,0.4) 70%, rgba(10,26,16,0.6) 100%)' }} />
+        {/* Green glow center */}
+        <div className="absolute inset-0 z-[1] pointer-events-none"
+          style={{ background: 'radial-gradient(ellipse at 50% 60%, rgba(0,200,83,0.15) 0%, transparent 60%)' }} />
 
-        <motion.div style={{ y: textY }} className="relative z-10 w-full max-w-screen-2xl mx-auto px-6 lg:px-16 pb-20 lg:pb-28">
-          <div className="max-w-4xl space-y-6">
-            <div className="flex items-center gap-2">
+        <motion.div style={{ y: textY }} className="relative z-10 w-full max-w-screen-2xl mx-auto px-6 lg:px-16 text-center">
+          <div className="max-w-3xl mx-auto space-y-6">
+            <div className="flex items-center justify-center gap-2">
               <span className="w-2 h-2 rounded-full bg-[#00C853] animate-pulse" />
               <span className="text-[0.65rem] font-bold text-[#00C853] uppercase tracking-[0.35em]">
                 Ghana's #1 Entertainment Platform
               </span>
             </div>
 
-            <h1 className="font-display uppercase leading-[0.85] text-white"
-              style={{ fontSize: 'clamp(4rem, 13vw, 13rem)' }}>
-              RIDE THE<br />
-              <span style={{ WebkitTextStroke: '3px #00C853', color: 'transparent' }}>ASTRO</span>
-              <span className="text-[#00C853]">WAVE.</span>
+            <h1 className="font-display uppercase leading-[1.1] text-white"
+              style={{ fontSize: 'clamp(2rem, 6vw, 4.5rem)' }}>
+              VIBES BEYOND<br />
+              <span className="text-[#00C853]">THE HORIZON</span>
             </h1>
 
-            <p className="text-white/60 text-lg lg:text-xl font-light leading-relaxed max-w-xl">
+            <p className="text-white/60 text-base lg:text-lg font-light leading-relaxed max-w-lg mx-auto">
               AI-powered talent matching for Ghana's biggest events. DJs, MCs, live bands and performers — found, booked and rated in minutes.
             </p>
 
-            <div className="flex flex-wrap items-center gap-4 pt-2">
+            <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
               <Link href="/platform">
-                <button className="flex items-center gap-3 h-16 px-10 rounded-xl font-bold text-sm tracking-[0.2em] uppercase text-white transition-all"
+                <button className="flex items-center gap-3 h-14 px-8 rounded-xl font-bold text-sm tracking-[0.2em] uppercase text-white transition-all"
                   style={{ background: 'linear-gradient(135deg, #00C853, #00FF87)', boxShadow: '0 0 40px rgba(0,200,83,0.4)' }}>
                   <Zap size={18} fill="currentColor" /> FIND TALENT
                 </button>
               </Link>
               <Link href="/auth/register">
-                <button className="flex items-center gap-3 h-16 px-10 rounded-xl font-bold text-sm tracking-[0.2em] uppercase text-white border border-white/30 hover:border-[#00C853] hover:bg-[#00C853]/10 backdrop-blur-sm transition-all">
+                <button className="flex items-center gap-3 h-14 px-8 rounded-xl font-bold text-sm tracking-[0.2em] uppercase text-white border border-white/30 hover:border-[#00C853] hover:bg-[#00C853]/10 backdrop-blur-sm transition-all">
                   <Mic size={18} /> JOIN AS ARTIST
                 </button>
               </Link>
-              <button onClick={() => setVideoOpen(true)}
-                className="flex items-center gap-3 text-sm text-white/50 hover:text-white transition-colors group">
-                <span className="w-12 h-12 rounded-full border border-white/20 flex items-center justify-center group-hover:border-[#00C853]/50 transition-all">
-                  <Play size={16} className="ml-0.5" />
-                </span>
-                Watch reel
-              </button>
             </div>
 
-            <div className="flex flex-wrap gap-3 pt-2">
+            <div className="flex flex-wrap justify-center gap-3 pt-2">
               {[
                 { icon: Shield, text: 'Verified Artists' },
                 { icon: Clock,  text: '24hr Response' },
@@ -273,7 +262,7 @@ export default function HomePage() {
         </motion.div>
 
         <motion.div animate={{ y: [0, 8, 0] }} transition={{ duration: 2, repeat: Infinity }}
-          className="absolute bottom-8 right-12 z-10 flex flex-col items-center gap-2 text-white/30">
+          className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2 text-white/30">
           <span className="text-[0.5rem] font-bold uppercase tracking-[0.35em]">Scroll</span>
           <ChevronDown size={16} />
         </motion.div>
