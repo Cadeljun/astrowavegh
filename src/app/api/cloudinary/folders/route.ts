@@ -39,11 +39,42 @@ export async function GET(request: Request) {
       )
     }
 
-    const result = await cloudinary.api.root_folders()
-    
+    const url = new URL(request.url)
+    const folderPath = url.searchParams.get('folder')
+
+    let folders: any[] = []
+    let resources: any[] = []
+
+    if (folderPath) {
+      // List subfolders and resources in the specified folder
+      try {
+        const subfolders = await cloudinary.api.sub_folders(folderPath)
+        folders = subfolders.folders || []
+      } catch (e) {
+        // Folder might not exist or have no subfolders
+        folders = []
+      }
+
+      try {
+        const result = await cloudinary.api.resources({
+          type: 'upload',
+          prefix: folderPath,
+          max_results: 100,
+        })
+        resources = result.resources || []
+      } catch (e) {
+        resources = []
+      }
+    } else {
+      // List root folders
+      const result = await cloudinary.api.root_folders()
+      folders = result.folders || []
+    }
+
     return NextResponse.json({ 
       success: true,
-      folders: result.folders 
+      folders,
+      resources
     })
   } catch (error: any) {
     console.error('Cloudinary Folders Error:', error)

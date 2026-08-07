@@ -11,51 +11,51 @@ export const CLOUDINARY_CLOUD_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NA
 export const CLOUDINARY_DIRECTORY = [
   { 
     name: 'Events', 
-    path: 'astrowave/events', 
+    path: 'Astrowave/Events', 
     color: '#00FF87',
     children: [
-      { name: 'Mask Mirage', path: 'astrowave/events/mask-mirage' },
-      { name: 'Splash & Seduction', path: 'astrowave/events/splash-and-seduction' },
-      { name: 'General', path: 'astrowave/events/general' },
+      { name: 'Mask Mirage', path: 'Astrowave/Events/mask-mirage' },
+      { name: 'Splash & Seduction', path: 'Astrowave/Events/splash-and-seduction' },
+      { name: 'General', path: 'Astrowave/Events/general' },
     ]
   },
   { 
     name: 'Talent', 
-    path: 'astrowave/talent', 
+    path: 'Astrowave/Talent', 
     color: '#A855F7',
     children: [
-      { name: 'DJs', path: 'astrowave/talent/djs' },
-      { name: 'Artists', path: 'astrowave/talent/artists' },
-      { name: 'Profiles', path: 'astrowave/talent/profiles' },
+      { name: 'DJs', path: 'Astrowave/Talent/djs' },
+      { name: 'Artists', path: 'Astrowave/Talent/artists' },
+      { name: 'Profiles', path: 'Astrowave/Talent/profiles' },
     ]
   },
   { 
     name: 'Brand', 
-    path: 'astrowave/brand', 
+    path: 'Astrowave/Brand', 
     color: '#FFD166',
     children: [
-      { name: 'Logos', path: 'astrowave/brand/logos' },
-      { name: 'Backgrounds', path: 'astrowave/brand/backgrounds' },
-      { name: 'Graphics', path: 'astrowave/brand/graphics' },
-      { name: 'Avatars', path: 'astrowave/brand/avatars' },
+      { name: 'Logos', path: 'Astrowave/Brand/logos' },
+      { name: 'Backgrounds', path: 'Astrowave/Brand/backgrounds' },
+      { name: 'Graphics', path: 'Astrowave/Brand/graphics' },
+      { name: 'Avatars', path: 'Astrowave/Brand/avatars' },
     ]
   },
   { 
     name: 'Videos', 
-    path: 'astrowave/videos', 
+    path: 'Astrowave/Videos', 
     color: '#0EA5E9',
     children: [
-      { name: 'Hero', path: 'astrowave/videos/hero' },
-      { name: 'Events', path: 'astrowave/videos/events' },
-      { name: 'Talent', path: 'astrowave/videos/talent' },
+      { name: 'Hero', path: 'Astrowave/Videos/hero' },
+      { name: 'Events', path: 'Astrowave/Videos/events' },
+      { name: 'Talent', path: 'Astrowave/Videos/talent' },
     ]
   },
   { 
     name: 'Gallery', 
-    path: 'astrowave/gallery', 
+    path: 'Astrowave/Gallery', 
     color: '#38BDF8',
     children: [
-      { name: 'Past Events', path: 'astrowave/gallery/past-events' },
+      { name: 'Past Events', path: 'Astrowave/Gallery/past-events' },
     ]
   }
 ];
@@ -73,42 +73,42 @@ export const ALL_BRAND_PATHS = CLOUDINARY_DIRECTORY.flatMap(parent => [
  */
 export const MEDIA_SCHEMA = {
   logos: {
-    path: 'astrowave/brand/logos',
+    path: 'Astrowave/Brand/logos',
     firestore: 'cms_settings/global',
     fields: ['logoUrl', 'logoDarkUrl', 'logoIconUrl', 'faviconUrl'],
     label: 'Brand Logos',
     description: 'Corporate identity and tab icons.'
   },
   backgrounds: {
-    path: 'astrowave/brand/backgrounds',
+    path: 'Astrowave/Brand/backgrounds',
     firestore: 'cms_settings/global',
     fields: ['heroPosterUrl', 'heroImageUrl', 'ogImageHome'],
     label: 'Background Media',
     description: 'Hero fallbacks and social share cards.'
   },
   heroVideos: {
-    path: 'astrowave/videos/hero',
+    path: 'Astrowave/Videos/hero',
     firestore: 'cms_settings/global',
     fields: ['heroVideoUrl'],
     label: 'Hero Video Streams',
     description: 'Cinematic looping background videos.'
   },
   eventPosters: {
-    path: 'astrowave/events/general',
+    path: 'Astrowave/Events/general',
     firestore: 'platform_events/{id}',
     fields: ['imageUrl'],
     label: 'Event Content',
     description: 'Public event briefs and marketing posters.'
   },
   talentPhotos: {
-    path: 'astrowave/talent/profiles',
+    path: 'Astrowave/Talent/profiles',
     firestore: 'talent_profiles/{uid}',
     fields: ['photoURL'],
     label: 'Talent Identity',
     description: 'Professional headshots for the roster.'
   },
   gallery: {
-    path: 'astrowave/gallery/past-events',
+    path: 'Astrowave/Gallery/past-events',
     firestore: 'gallery/{id}',
     fields: ['imageUrl'],
     label: 'Gallery Archive',
