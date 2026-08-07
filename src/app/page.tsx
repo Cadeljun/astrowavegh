@@ -8,6 +8,7 @@ import { collection, query, where, orderBy, onSnapshot, limit, getCountFromServe
 import { useFirestore } from '@/firebase';
 import { getWaveRank } from '@/lib/algorithms/waveScore';
 import { cn } from '@/lib/utils';
+import { useCMSContent } from '@/lib/cms/useCMS';
 
 // ─── ANIMATED COUNTER ────────────────────────────────────────────────────────
 function AnimatedNumber({ target, suffix = '' }: { target: number; suffix?: string }) {
@@ -43,8 +44,8 @@ function AnimatedNumber({ target, suffix = '' }: { target: number; suffix?: stri
 const MARQUEE_ITEMS = ['DJ SET', 'LIVE BAND', 'MC HYPE', 'AFROBEATS', 'HIGHLIFE',
   'AMAPIANO', 'SPOKEN WORD', 'COMEDIAN', 'DANCER', 'VOCALIST', 'SAXOPHONIST'];
 
-function Marquee({ reverse = false, dark = false }: { reverse?: boolean; dark?: boolean }) {
-  const items = [...MARQUEE_ITEMS, ...MARQUEE_ITEMS];
+function Marquee({ reverse = false, dark = false, items = MARQUEE_ITEMS }: { reverse?: boolean; dark?: boolean; items?: string[] }) {
+  const displayItems = [...items, ...items];
   return (
     <div className="overflow-hidden">
       <motion.div
@@ -52,7 +53,7 @@ function Marquee({ reverse = false, dark = false }: { reverse?: boolean; dark?: 
         transition={{ duration: 28, repeat: Infinity, ease: 'linear' }}
         className="flex items-center whitespace-nowrap"
       >
-        {items.map((item, i) => (
+        {displayItems.map((item, i) => (
           <span key={i} className="flex items-center">
             <span className={cn('px-6 py-1 font-display text-xl lg:text-2xl uppercase tracking-widest',
               dark ? 'text-white/90' : 'text-[#0A1A10]')}>
@@ -166,10 +167,31 @@ export default function HomePage() {
   const bgY   = useTransform(scrollYProgress, [0, 1], ['0%', '25%']);
   const textY = useTransform(scrollYProgress, [0, 1], ['0%', '12%']);
 
+  // CMS Content
+  const { content: heroContent } = useCMSContent('home', 'hero', {
+    label: "Ghana's #1 Entertainment Platform",
+    heading: 'VIBES BEYOND THE HORIZON',
+    subtext: "AI-powered talent matching for Ghana's biggest events. DJs, MCs, live bands and performers — found, booked and rated in minutes."
+  });
+
+  const { content: marqueeContent } = useCMSContent('home', 'marquee', {
+    items: 'DJ SET, LIVE BAND, MC HYPE, AFROBEATS, HIGHLIFE, AMAPIANO, SPOKEN WORD, COMEDIAN, DANCER, VOCALIST, SAXOPHONIST'
+  });
+
+  const { content: ctaContent } = useCMSContent('home', 'cta', {
+    organizerHeading: 'PLANNING AN EVENT?',
+    organizerText: 'Post your brief and let our AI find the perfect talent — sorted by location, category, and Wave Score.',
+    talentHeading: 'ARE YOU A CREATIVE?',
+    talentText: 'Build your profile, earn your Wave Score, and get discovered by organizers across Ghana — for free.'
+  });
+
   const [stats, setStats]   = useState({ talents: 0, events: 0, bookings: 0 });
   const [talents, setTalents] = useState<any[]>([]);
   const [events, setEvents]   = useState<any[]>([]);
   const [videoOpen, setVideoOpen] = useState(false);
+
+  // Parse marquee items from CMS
+  const marqueeItems = (marqueeContent.items || '').split(',').map((s: string) => s.trim()).filter(Boolean);
 
   useEffect(() => {
     async function load() {
@@ -218,18 +240,24 @@ export default function HomePage() {
             <div className="flex items-center justify-center gap-2">
               <span className="w-2 h-2 rounded-full bg-[#00C853] animate-pulse" />
               <span className="text-[0.65rem] font-bold text-[#00C853] uppercase tracking-[0.35em]">
-                Ghana's #1 Entertainment Platform
+                {heroContent.label}
               </span>
             </div>
 
             <h1 className="font-display uppercase leading-[1.1] text-white"
               style={{ fontSize: 'clamp(2rem, 6vw, 4.5rem)' }}>
-              VIBES BEYOND<br />
-              <span className="text-[#00C853]">THE HORIZON</span>
+              {heroContent.heading?.includes('THE HORIZON') ? (
+                <>
+                  {heroContent.heading.split('THE HORIZON')[0]}<br />
+                  <span className="text-[#00C853]">THE HORIZON</span>
+                </>
+              ) : (
+                heroContent.heading
+              )}
             </h1>
 
             <p className="text-white/60 text-base lg:text-lg font-light leading-relaxed max-w-lg mx-auto">
-              AI-powered talent matching for Ghana's biggest events. DJs, MCs, live bands and performers — found, booked and rated in minutes.
+              {heroContent.subtext}
             </p>
 
             <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
@@ -270,10 +298,10 @@ export default function HomePage() {
 
       {/* ── MARQUEE ──────────────────────────────────────────────────── */}
       <div className="bg-[#00C853] py-4 overflow-hidden border-y-4 border-[#007A33]">
-        <Marquee dark />
+        <Marquee dark items={marqueeItems} />
       </div>
       <div className="bg-[#EAF5EF] py-3 overflow-hidden border-b border-[#D1E8DA]">
-        <Marquee reverse />
+        <Marquee reverse items={marqueeItems} />
       </div>
 
       {/* ── STATS ────────────────────────────────────────────────────── */}
@@ -368,10 +396,14 @@ export default function HomePage() {
           <div className="relative z-10 space-y-5">
             <p className="text-[0.6rem] font-bold text-[#00FF87] uppercase tracking-[0.3em]">For Organizers</p>
             <h3 className="font-display text-white uppercase leading-tight" style={{ fontSize: 'clamp(2rem, 4vw, 4rem)' }}>
-              PLANNING<br />AN EVENT?
+              {ctaContent.organizerHeading?.includes('?') ? (
+                <>{ctaContent.organizerHeading.split('?')[0]}<br />{ctaContent.organizerHeading.split('?')[1]}</>
+              ) : (
+                ctaContent.organizerHeading
+              )}
             </h3>
             <p className="text-white/60 text-sm max-w-sm leading-relaxed">
-              Post your brief and let our AI find the perfect talent — sorted by location, category, and Wave Score.
+              {ctaContent.organizerText}
             </p>
             <Link href="/auth/register">
               <button className="flex items-center gap-3 h-14 px-8 rounded-xl font-bold text-sm tracking-[0.2em] uppercase text-[#0A1A10] mt-2"
@@ -392,10 +424,14 @@ export default function HomePage() {
           <div className="relative z-10 space-y-5">
             <p className="text-[0.6rem] font-bold text-[#38BDF8] uppercase tracking-[0.3em]">For Performers</p>
             <h3 className="font-display text-white uppercase leading-tight" style={{ fontSize: 'clamp(2rem, 4vw, 4rem)' }}>
-              ARE YOU<br />A CREATIVE?
+              {ctaContent.talentHeading?.includes('?') ? (
+                <>{ctaContent.talentHeading.split('?')[0]}<br />{ctaContent.talentHeading.split('?')[1]}</>
+              ) : (
+                ctaContent.talentHeading
+              )}
             </h3>
             <p className="text-white/60 text-sm max-w-sm leading-relaxed">
-              Build your profile, earn your Wave Score, and get discovered by organizers across Ghana — for free.
+              {ctaContent.talentText}
             </p>
             <Link href="/auth/register">
               <button className="flex items-center gap-3 h-14 px-8 rounded-xl font-bold text-sm tracking-[0.2em] uppercase text-white border-2 border-[#38BDF8] hover:bg-[#38BDF8] hover:text-[#0A1A10] transition-all mt-2">
