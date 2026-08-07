@@ -2,198 +2,166 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // ─── HELPER FUNCTIONS ────────────────────────────────────────────
-
-    function isSignedIn() {
+    function isAuthenticated() {
       return request.auth != null;
     }
 
-    function isOwner(uid) {
-      return isSignedIn() && request.auth.uid == uid;
+    function isAdmin() {
+      return isAuthenticated() && 
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+         isSuperAdmin());
     }
 
     function isSuperAdmin() {
-      return isSignedIn() &&
+      return isAuthenticated() &&
         (request.auth.token.email == 'junioraquils143@gmail.com' ||
-         request.auth.token.email in ['junioraquils143@gmail.com'] ||
          (exists(/databases/$(database)/documents/user_roles/$(request.auth.uid)) &&
-          get(/databases/$(database)/documents/user_roles/$(request.auth.uid)).data.role == 'SUPER_ADMIN') ||
-         (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'));
+          get(/databases/$(database)/documents/user_roles/$(request.auth.uid)).data.role == 'SUPER_ADMIN'));
     }
 
-    function isDeveloper() {
-      return isSignedIn() &&
-        (isSuperAdmin() ||
-         (exists(/databases/$(database)/documents/user_roles/$(request.auth.uid)) &&
-          get(/databases/$(database)/documents/user_roles/$(request.auth.uid)).data.role in ['DEVELOPER', 'SUPER_ADMIN']));
+    function isOrganizer() {
+      return isAuthenticated() &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'organizer';
     }
 
-    function canEditCMS() {
-      return isSignedIn() &&
-        (isSuperAdmin() ||
-         (exists(/databases/$(database)/documents/user_roles/$(request.auth.uid)) &&
-          get(/databases/$(database)/documents/user_roles/$(request.auth.uid)).data.role in ['CMS_EDITOR', 'DEVELOPER', 'SUPER_ADMIN']) ||
-         (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'editor', 'developer']));
+    function isTalent() {
+      return isAuthenticated() &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'talent';
     }
 
-    // ─── ROLES ────────────────────────────────────────────────────────
-
-    match /user_roles/{uid} {
-      allow read: if isOwner(uid) || isSuperAdmin();
-      allow write: if isSuperAdmin();
-    }
-
-    // ─── USERS ────────────────────────────────────────────────────────
-
-    match /users/{uid} {
-      allow read:   if isSignedIn();
-      allow create: if request.auth.uid == uid;
-      allow update: if request.auth.uid == uid || isSuperAdmin();
-      allow delete: if isSuperAdmin();
-    }
-
-    // ─── PLATFORM PROFILES ────────────────────────────────────────────
-
-    match /organizer_profiles/{uid} {
-      allow read:   if isSignedIn();
-      allow create: if request.auth.uid == uid;
-      allow update: if request.auth.uid == uid || isSuperAdmin();
-      allow delete: if isSuperAdmin();
-    }
-
-    // talent_profiles: public read (used on /platform and home page hero)
-    match /talent_profiles/{uid} {
-      allow read:   if true;
-      allow create: if request.auth.uid == uid;
-      allow update: if request.auth.uid == uid || isSuperAdmin();
-      allow delete: if isSuperAdmin();
-    }
-
-    // talent: legacy collection used by admin talent manager
-    match /talent/{id} {
-      allow read:   if isSignedIn();
-      allow create: if isSuperAdmin();
-      allow update: if isSuperAdmin();
-      allow delete: if isSuperAdmin();
-    }
-
-    // ─── PUBLIC EVENTS ────────────────────────────────────────────────
-    // Used by /events page (public), admin events page, and home page feed.
-    // Public read required — only active==true docs shown via query filter.
-
-    match /events/{id} {
-      allow read:   if true;
-      allow create: if isSuperAdmin();
-      allow update: if isSuperAdmin();
-      allow delete: if isSuperAdmin();
-    }
-
-    // ─── PLATFORM EVENTS ──────────────────────────────────────────────
-
-    match /platform_events/{id} {
-      allow read:   if true;
-      allow create: if isSignedIn();
-      allow update: if isSignedIn() &&
-        (resource.data.organizerId == request.auth.uid || isSuperAdmin());
-      allow delete: if isSuperAdmin();
-    }
-
-    // ─── BOOKINGS ─────────────────────────────────────────────────────
-    // Individual reads scoped to participants.
-    // List/count by superAdmin allowed for dashboard aggregate counts.
-
+    // ── BOOKINGS ────────────────────────────────────────────────────
     match /bookings/{id} {
-      allow read: if isSignedIn() &&
-        (resource.data.organizerId == request.auth.uid ||
-         resource.data.talentId == request.auth.uid ||
-         isSuperAdmin());
-      allow create: if isSignedIn();
-      allow update: if isSignedIn() &&
-        (resource.data.organizerId == request.auth.uid ||
-         resource.data.talentId == request.auth.uid ||
-         isSuperAdmin());
-      allow delete: if isSuperAdmin();
+      allow read: if isAdmin() || 
+                   (isOrganizer() && resource.data.organizerId == request.auth.uid) ||
+                   (isTalent() && resource.data.talentId == request.auth.uid);
+      allow create: if isOrganizer() || isAdmin();
+      allow update: if isTalent() && resource.data.talentId == request.auth.uid || 
+                     isOrganizer() && resource.data.organizerId == request.auth.uid || 
+                     isAdmin();
+      allow delete: if isAdmin();
     }
 
-    // ─── RATINGS ──────────────────────────────────────────────────────
-
-    match /ratings/{id} {
-      allow read:   if true;
-      allow create: if isSignedIn();
-      allow update: if isSuperAdmin();
-      allow delete: if isSuperAdmin();
+    // ── EVENTS ──────────────────────────────────────────────────────
+    match /events/{id} {
+      allow read: if true;
+      allow create: if isOrganizer() || isAdmin();
+      allow update: if isOrganizer() && resource.data.organizerId == request.auth.uid || isAdmin();
+      allow delete: if isAdmin();
     }
 
-    // ─── MATCHES ──────────────────────────────────────────────────────
-
-    match /matches/{eventId} {
-      allow read:  if isSignedIn();
-      allow write: if isSignedIn();
+    // ── TALENT ──────────────────────────────────────────────────────
+    match /talent/{id} {
+      allow read: if true;
+      allow create: if isTalent() || isAdmin();
+      allow update: if isTalent() && resource.data.userId == request.auth.uid || isAdmin();
+      allow delete: if isAdmin();
     }
 
-    // ─── NOTIFICATIONS ────────────────────────────────────────────────
-
-    match /notifications/{id} {
-      allow read:   if isSignedIn() && resource.data.userId == request.auth.uid;
-      allow create: if isSignedIn();
-      allow update: if isSignedIn() && resource.data.userId == request.auth.uid;
-      allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+    match /talent_profiles/{id} {
+      allow read: if true;
+      allow create: if isTalent() || isAdmin();
+      allow update: if isTalent() && resource.data.userId == request.auth.uid || isAdmin();
+      allow delete: if isAdmin();
     }
 
-    // ─── MARKETING / CMS ──────────────────────────────────────────────
-
+    // ── PUBLIC FORMS ────────────────────────────────────────────────
     match /contacts/{id} {
-      allow create: if true;                   // public contact form
-      allow read:   if isSuperAdmin();
-      allow update: if isSuperAdmin();         // mark as read
-      allow delete: if isSuperAdmin();
+      allow create: if true;
+      allow read, update, delete: if isAdmin();
     }
 
     match /waitlist/{id} {
-      allow create: if true;                   // public signup
-      allow read:   if isSuperAdmin();
-      allow delete: if isSuperAdmin();
+      allow create: if true;
+      allow read, update, delete: if isAdmin();
     }
 
     match /talent_inquiries/{id} {
-      allow create: if true;                   // public talent inquiry form
-      allow read:   if isSuperAdmin();
-      allow update: if isSuperAdmin();
-      allow delete: if isSuperAdmin();
+      allow create: if true;
+      allow read, update, delete: if isAdmin();
+    }
+
+    // ── RATINGS ─────────────────────────────────────────────────────
+    match /ratings/{id} {
+      allow read: if true;
+      allow create: if isOrganizer() || isAdmin();
+      allow update, delete: if isAdmin();
+    }
+
+    // ── MATCHES ─────────────────────────────────────────────────────
+    match /matches/{eventId} {
+      allow read: if isOrganizer() || isAdmin();
+      allow write: if isAdmin();
+    }
+
+    // ── ANALYTICS ──────────────────────────────────────────────────
+    match /analytics_events/{id} {
+      allow create: if true;
+      allow read: if isAdmin();
+    }
+
+    // ── USERS ──────────────────────────────────────────────────────
+    match /users/{uid} {
+      allow read: if isAuthenticated();
+      allow create: if request.auth.uid == uid;
+      allow update: if request.auth.uid == uid || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    match /organizer_profiles/{id} {
+      allow read: if isAuthenticated();
+      allow create: if isOrganizer() || isAdmin();
+      allow update: if isOrganizer() && resource.data.userId == request.auth.uid || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // ── NOTIFICATIONS ──────────────────────────────────────────────
+    match /notifications/{id} {
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow delete: if isAuthenticated() && resource.data.userId == request.auth.uid || isAdmin();
+    }
+
+    // ── ADMIN ONLY ──────────────────────────────────────────────────
+    match /uploads/{id} {
+      allow read, write: if isAdmin();
+    }
+
+    match /seed_logs/{id} {
+      allow read, write: if isAdmin();
+    }
+
+    match /platform_events/{id} {
+      allow read: if true;
+      allow create, update: if isAdmin();
+      allow delete: if isAdmin();
     }
 
     match /gallery/{id} {
-      allow read:  if true;
-      allow write: if isSuperAdmin();
+      allow read: if true;
+      allow write: if isAdmin();
     }
 
-    match /uploads/{id} {
-      allow read:  if isSignedIn();
-      allow write: if isSuperAdmin();
+    // ── CMS ──────────────────────────────────────────────────────────
+    match /cms_settings/{id} {
+      allow read: if true;
+      allow write: if isAdmin() || isSuperAdmin();
     }
 
     match /cms_content/{id} {
-      allow read:  if true;
-      allow write: if canEditCMS();
+      allow read: if true;
+      allow write: if isAdmin() || isSuperAdmin();
     }
 
-    match /cms_settings/{id} {
-      allow read:  if true;
-      allow write: if canEditCMS();
+    match /cms_sections/{id} {
+      allow read: if true;
+      allow write: if isAdmin() || isSuperAdmin();
     }
 
-    // ─── DEV / SEED DATA ──────────────────────────────────────────────
-
-    match /seed_logs/{id} {
-      allow read:  if isDeveloper();
-      allow write: if isDeveloper();
+    match /cms_seo/{id} {
+      allow read: if true;
+      allow write: if isAdmin() || isSuperAdmin();
     }
 
-    match /analytics_events/{id} {
-      allow read:  if isDeveloper();
-      allow create: if true;                   // client-side event tracking
-    }
   }
 }
