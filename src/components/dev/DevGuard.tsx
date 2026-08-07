@@ -33,7 +33,15 @@ export default function DevGuard({
       return
     }
 
-    // Check role
+    // Check if user is super admin via env var (same as RoleContext)
+    const superAdminEmails = (process.env.NEXT_PUBLIC_SUPER_ADMIN_EMAILS || '').split(',').map(e => e.trim())
+    if (user.email && superAdminEmails.includes(user.email)) {
+      setAllowed(true)
+      setChecking(false)
+      return
+    }
+
+    // Otherwise check role in Firestore
     getDoc(doc(db, 'user_roles', user.uid))
       .then(snap => {
         if (
