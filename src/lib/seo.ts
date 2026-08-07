@@ -17,19 +17,18 @@ export function generatePageMetadata({
   image?: string;
   noIndex?: boolean;
 }): Metadata {
-  const fullTitle = `${title} | ${siteName}`;
   const desc = description || defaultDescription;
   const url = `${baseUrl}${path}`;
   const ogImage = image || `${baseUrl}/opengraph-image`;
 
   return {
-    title: fullTitle,
+    title, // Layout template adds "| AstroWave" automatically
     description: desc,
     alternates: {
       canonical: url,
     },
     openGraph: {
-      title: fullTitle,
+      title,
       description: desc,
       url,
       siteName,
@@ -46,7 +45,7 @@ export function generatePageMetadata({
     },
     twitter: {
       card: 'summary_large_image',
-      title: fullTitle,
+      title,
       description: desc,
       images: [ogImage],
     },
