@@ -15,8 +15,11 @@ service cloud.firestore {
     function isSuperAdmin() {
       return isSignedIn() &&
         (request.auth.token.email == 'junioraquils143@gmail.com' ||
+         request.auth.token.email in ['junioraquils143@gmail.com'] ||
          (exists(/databases/$(database)/documents/user_roles/$(request.auth.uid)) &&
-          get(/databases/$(database)/documents/user_roles/$(request.auth.uid)).data.role == 'SUPER_ADMIN'));
+          get(/databases/$(database)/documents/user_roles/$(request.auth.uid)).data.role == 'SUPER_ADMIN') ||
+         (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'));
     }
 
     function isDeveloper() {
@@ -30,7 +33,9 @@ service cloud.firestore {
       return isSignedIn() &&
         (isSuperAdmin() ||
          (exists(/databases/$(database)/documents/user_roles/$(request.auth.uid)) &&
-          get(/databases/$(database)/documents/user_roles/$(request.auth.uid)).data.role in ['CMS_EDITOR', 'DEVELOPER', 'SUPER_ADMIN']));
+          get(/databases/$(database)/documents/user_roles/$(request.auth.uid)).data.role in ['CMS_EDITOR', 'DEVELOPER', 'SUPER_ADMIN']) ||
+         (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'editor', 'developer']));
     }
 
     // ─── ROLES ────────────────────────────────────────────────────────
