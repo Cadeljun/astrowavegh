@@ -106,23 +106,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const existing = await getUserDocument(firebaseUser.uid);
 
       if (!existing) {
+        // Check if super admin email - skip onboarding
+        const superAdminEmails = (process.env.NEXT_PUBLIC_SUPER_ADMIN_EMAILS || '').split(',').map(e => e.trim());
+        const isSuperAdmin = firebaseUser.email && superAdminEmails.includes(firebaseUser.email);
+        
         await createUserDocument(firebaseUser.uid, {
           email: firebaseUser.email || '',
           displayName: firebaseUser.displayName || '',
           photoURL: firebaseUser.photoURL || '',
-          role: null,
+          role: isSuperAdmin ? 'admin' : null,
           provider: 'google',
-          onboarded: false,
+          onboarded: !!isSuperAdmin,
           active: true
         });
-        router.push('/auth/onboarding');
+        
+        if (isSuperAdmin) {
+          router.push('/admin/dashboard');
+        } else {
+          router.push('/auth/onboarding');
+        }
       } else if (!existing.onboarded) {
-        router.push('/auth/onboarding');
+        // Check if super admin - skip onboarding
+        const superAdminEmails = (process.env.NEXT_PUBLIC_SUPER_ADMIN_EMAILS || '').split(',').map(e => e.trim());
+        const isSuperAdmin = firebaseUser.email && superAdminEmails.includes(firebaseUser.email);
+        
+        if (isSuperAdmin) {
+          router.push('/admin/dashboard');
+        } else {
+          router.push('/auth/onboarding');
+        }
       } else {
         if (existing.role === 'organizer' || existing.role === 'both') {
           router.push('/organizer/dashboard');
         } else if (existing.role === 'talent') {
           router.push('/talent/dashboard');
+        } else if (existing.role === 'admin') {
+          router.push('/admin/dashboard');
         } else {
           router.push('/auth/onboarding');
         }
