@@ -76,11 +76,17 @@ export default function DevSeedPage() {
     addLog('🚀 INITIATING PLATFORM SEED...');
     try {
       const dj1 = getPlaceholderById('dj-1');
+      const dj2 = getPlaceholderById('dj-2');
       const art1 = getPlaceholderById('artist-1');
+      const defaultTalent = getPlaceholderById('default-talent');
+      const defaultEvent = getPlaceholderById('default-event');
+      const maskMirage = getPlaceholderById('mask-mirage');
+      const splash = getPlaceholderById('splash-seduction');
       
+      // ── TALENT PROFILES ──
       const talents = [
         {
-          uid: 'test-talent-1',
+          uid: 'seed-talent-1',
           displayName: 'Elias Koranteng',
           stageName: 'DJ Horizon',
           email: 'horizon@astrowave.dev',
@@ -93,50 +99,188 @@ export default function DevSeedPage() {
           active: true,
           available: true,
           photoURL: dj1?.imageUrl || '',
+          bio: 'Accra\'s finest selector. Afrobeats, Amapiano, and everything in between.',
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp()
         },
         {
-          uid: 'test-talent-2',
-          displayName: 'Uzy',
-          stageName: 'Uzy',
-          email: 'uzy@astrowave.dev',
-          category: 'Artist',
+          uid: 'seed-talent-2',
+          stageName: 'MC Voltage',
+          displayName: 'Kwame Asante',
+          email: 'voltage@astrowave.dev',
+          category: 'MC',
           city: 'Accra',
-          waveScore: 4.5,
+          waveScore: 4.6,
           averageRating: 4.7,
-          ratingCount: 8,
-          eventCount: 12,
+          ratingCount: 12,
+          eventCount: 35,
           active: true,
           available: true,
           photoURL: art1?.imageUrl || '',
+          bio: 'The hype king of Ghana. From clubs to stadiums.',
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp()
-        }
+        },
+        {
+          uid: 'seed-talent-3',
+          stageName: 'Sefa Live',
+          displayName: 'Sefa Mensah',
+          email: 'sefa@astrowave.dev',
+          category: 'Singer',
+          city: 'Kumasi',
+          waveScore: 4.4,
+          averageRating: 4.5,
+          ratingCount: 8,
+          eventCount: 18,
+          active: true,
+          available: true,
+          photoURL: dj2?.imageUrl || '',
+          bio: 'Highlife meets Afrosoul. Live band vocalist.',
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        },
+        {
+          uid: 'seed-talent-4',
+          stageName: 'Spin Master Q',
+          displayName: 'Quincy Owusu',
+          email: 'qspin@astrowave.dev',
+          category: 'DJ',
+          city: 'Takoradi',
+          waveScore: 4.2,
+          averageRating: 4.3,
+          ratingCount: 6,
+          eventCount: 15,
+          active: true,
+          available: false,
+          photoURL: defaultTalent?.imageUrl || '',
+          bio: 'Western Region\'s top DJ. Amapiano specialist.',
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        },
+        {
+          uid: 'seed-talent-5',
+          stageName: 'Comedy Gold',
+          displayName: 'Nana Yaw Boateng',
+          email: 'gold@astrowave.dev',
+          category: 'Comedian',
+          city: 'Accra',
+          waveScore: 4.1,
+          averageRating: 4.4,
+          ratingCount: 10,
+          eventCount: 22,
+          active: true,
+          available: true,
+          photoURL: defaultTalent?.imageUrl || '',
+          bio: 'Stand-up comedy that hits different. MC & comedian.',
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        },
+        {
+          uid: 'seed-talent-6',
+          stageName: 'Rhythm Section',
+          displayName: 'The Rhythm Section Band',
+          email: 'rhythm@astrowave.dev',
+          category: 'Band',
+          city: 'Accra',
+          waveScore: 4.7,
+          averageRating: 4.8,
+          ratingCount: 14,
+          eventCount: 30,
+          active: true,
+          available: true,
+          photoURL: defaultTalent?.imageUrl || '',
+          bio: '5-piece live band. Highlife, Afrobeats, Jazz fusion.',
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        },
       ];
 
       for (const t of talents) {
         await setDoc(doc(db, 'talent_profiles', t.uid), t);
-        addLog(`✓ Seeded Talent: ${t.stageName}`);
+        addLog(`✓ Seeded Talent: ${t.stageName} (${t.category})`);
       }
 
-      const testEvent = {
-        organizerId: 'test-org-1',
-        title: 'Midnight Mirage 2025',
-        category: 'Nightlife',
-        venue: 'The Labadi Beach',
-        status: 'open',
-        talentCategory: 'DJ',
-        city: 'Accra',
-        date: serverTimestamp(),
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp()
-      };
-      await setDoc(doc(collection(db, 'platform_events')), testEvent);
-      addLog(`✓ Seeded Platform Event: ${testEvent.title}`);
+      // ── EVENTS ──
+      const events = [
+        {
+          title: 'Mask Mirage Party',
+          category: 'Nightlife',
+          venue: 'Sky Bar, Accra',
+          city: 'Accra',
+          shortDescription: 'An elegant masquerade experience with premium vibes. DJs, cocktails, and mystery.',
+          coverImage: maskMirage?.imageUrl || '',
+          active: true,
+          startDate: new Date('2026-10-10T21:00:00'),
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        },
+        {
+          title: 'Splash & Seduction',
+          category: 'Parties',
+          venue: 'Labadi Beach Hotel',
+          city: 'Accra',
+          shortDescription: 'The ultimate poolside day party. Live DJs, water games, and summer energy.',
+          coverImage: splash?.imageUrl || '',
+          active: true,
+          startDate: new Date('2026-11-15T12:00:00'),
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        },
+        {
+          title: 'Afrobeats Carnival',
+          category: 'Concerts',
+          venue: 'National Theatre',
+          city: 'Accra',
+          shortDescription: 'A celebration of Ghanaian music. Live performances from top artists.',
+          coverImage: defaultEvent?.imageUrl || '',
+          active: true,
+          startDate: new Date('2026-12-20T18:00:00'),
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        },
+      ];
+
+      for (const e of events) {
+        await setDoc(doc(collection(db, 'events')), e);
+        addLog(`✓ Seeded Event: ${e.title}`);
+      }
+
+      // ── PLATFORM EVENTS ──
+      const platformEvents = [
+        {
+          organizerId: 'seed-org-1',
+          title: 'Midnight Mirage 2026',
+          category: 'Nightlife',
+          venue: 'The Labadi Beach Hotel',
+          status: 'open',
+          talentCategory: 'DJ',
+          city: 'Accra',
+          date: new Date('2026-10-10T21:00:00'),
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        },
+        {
+          organizerId: 'seed-org-1',
+          title: 'Corporate End of Year Party',
+          category: 'Networking',
+          venue: 'Kempinski Hotel',
+          status: 'open',
+          talentCategory: 'Band',
+          city: 'Accra',
+          date: new Date('2026-12-15T19:00:00'),
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        },
+      ];
+
+      for (const pe of platformEvents) {
+        await setDoc(doc(collection(db, 'platform_events')), pe);
+        addLog(`✓ Seeded Platform Event: ${pe.title}`);
+      }
 
       addLog('✨ PLATFORM SEED COMPLETE');
-      toast({ title: 'Platform Data Seeded' });
+      addLog(`   ${talents.length} talents · ${events.length} events · ${platformEvents.length} platform events`);
+      toast({ title: 'Platform Data Seeded', description: `${talents.length} talents, ${events.length} events added` });
     } catch (e: any) {
       addLog(`❌ ERR: ${e.message}`);
     } finally {
