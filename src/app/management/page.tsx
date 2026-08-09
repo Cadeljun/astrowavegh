@@ -54,7 +54,7 @@ export default function ManagementPage() {
   });
 
   const talentQuery = useMemoFirebase(() => {
-    return query(collection(db, 'talent'), where('active', '==', true));
+    return query(collection(db, 'talent_profiles'), where('active', '==', true));
   }, [db]);
 
   const { data: talent, loading: talentLoading } = useCollection(talentQuery);
@@ -119,7 +119,7 @@ export default function ManagementPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 min-h-[300px]">
             {talentLoading ? [1, 2, 3].map(i => <div key={i} className="aspect-square bg-white/5 animate-pulse rounded-md border border-white/5" />) : talent && talent.length > 0 ? (
               <motion.div variants={staggerContainer} initial="hidden" whileInView="show" viewport={{ once: true }} className="contents">
-                {talent.map((item: any) => <motion.div key={item.id} variants={scaleIn}><TalentCard name={item.name} role={item.role as any} bio={item.bio} imageUrl={item.imageUrl || 'https://picsum.photos/seed/talent/400/400'} /></motion.div>)}
+                {talent.map((item: any) => <motion.div key={item.id} variants={scaleIn}><TalentCard name={item.stageName || item.name} role={item.category || item.role} bio={item.bio || 'Professional creative talent on the AstroWave roster.'} imageUrl={item.photoURL || item.imageUrl || 'https://picsum.photos/seed/talent/400/400'} /></motion.div>)}
               </motion.div>
             ) : <div className="col-span-full text-center py-20"><p className="body-lg text-muted italic">Roster details coming soon.</p></div>}
           </div>
@@ -141,7 +141,7 @@ export default function ManagementPage() {
                   <input required className="w-full bg-white/5 border border-border rounded-sm p-4 font-body text-white focus:outline-none focus:border-gold text-sm" placeholder="Stage Name" value={formData.stageName} onChange={e => setFormData({...formData, stageName: e.target.value})} />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <select className="w-full bg-[#111118] border border-border rounded-sm p-4 font-body text-white focus:outline-none focus:border-gold text-sm" value={formData.role} onChange={e => setFormData({...formData, role: e.target.value})}><option value="DJ">DJ</option><option value="Artist">Artist</option><option value="Influencer">Influencer</option></select>
+                  <select className="w-full bg-[#111118] border border-border rounded-sm p-4 font-body text-white focus:outline-none focus:border-gold text-sm" value={formData.role} onChange={e => setFormData({...formData, role: e.target.value})}><option value="DJ">DJ</option><option value="MC">MC</option><option value="Singer">Singer</option><option value="Band">Band</option><option value="Dancer">Dancer</option><option value="Comedian">Comedian</option><option value="Influencer">Influencer</option></select>
                   <input required type="email" className="w-full bg-white/5 border border-border rounded-sm p-4 font-body text-white focus:outline-none focus:border-gold text-sm" placeholder="Email Address" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} />
                 </div>
                 <textarea required rows={4} className="w-full bg-white/5 border border-border rounded-sm p-4 font-body text-white focus:outline-none focus:border-gold resize-none text-sm" placeholder="Describe your sound..." value={formData.bio} onChange={e => setFormData({...formData, bio: e.target.value})} />
