@@ -48,3 +48,7 @@ AstroWave uses a weighted multi-factor calculation to rank talent:
 
 ---
 © 2025 AstroWave Ghana. Developed for the next generation of African creators.
+
+## Staging Environment
+This is the staging branch for testing before production.
+URL: https://staging.astrowavegh.com
