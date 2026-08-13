@@ -1,23 +1,6 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-// Routes allowed on main domain (admin, dev, api)
-const MAIN_ALLOWED = [
-  '/admin',
-  '/dev',
-  '/api',
-  '/auth',
-  '/_next',
-  '/favicon',
-  '/logo',
-]
-
-// Routes allowed on tickets subdomain
-const TICKET_ROUTES = ['/tickets', '/tickets/verify', '/tickets/preview', '/_next', '/api/paystack', '/api/tickets']
-
-// Routes allowed on scan subdomain
-const SCAN_ROUTES = ['/scan', '/scan/login', '/_next', '/api/tickets']
-
 // Protected API routes
 const protectedApiRoutes = [
   '/api/admin/create-user',
@@ -36,7 +19,7 @@ export function middleware(request: NextRequest) {
 
   // ── SCAN SUBDOMAIN ────────────────────────────────────────────
   if (isScanSubdomain) {
-    const isAllowed = SCAN_ROUTES.some(r => pathname.startsWith(r)) || pathname.includes('.')
+    const isAllowed = ['/scan', '/scan/login', '/_next', '/api/tickets'].some(r => pathname.startsWith(r)) || pathname.includes('.')
     if (!isAllowed) {
       return NextResponse.redirect(new URL('/scan', request.url))
     }
@@ -45,23 +28,17 @@ export function middleware(request: NextRequest) {
 
   // ── TICKETS SUBDOMAIN ─────────────────────────────────────────
   if (isTicketSubdomain) {
-    const isAllowed = TICKET_ROUTES.some(r => pathname.startsWith(r)) || pathname.includes('.')
+    const isAllowed = ['/tickets', '/tickets/verify', '/tickets/preview', '/_next', '/api/paystack', '/api/tickets'].some(r => pathname.startsWith(r)) || pathname.includes('.')
     if (!isAllowed) {
       return NextResponse.redirect(new URL('/tickets', request.url))
     }
     return addSecurityHeaders(NextResponse.next())
   }
 
-  // ── MAIN DOMAIN LOCKDOWN ──────────────────────────────────────
-  // Only admin, dev, api, auth routes allowed on main domain
-  const isAllowed = MAIN_ALLOWED.some(r => pathname.startsWith(r)) || pathname.includes('.')
-  
-  if (!isAllowed) {
-    // Redirect everything else to tickets subdomain
-    return NextResponse.redirect(new URL('https://tickets.astrowavegh.com/tickets', request.url))
-  }
+  // ── MAIN DOMAIN — UNLOCKED ────────────────────────────────────
+  // All pages accessible on main domain
 
-  // ── API AUTH CHECK ────────────────────────────────────────────
+  // API auth check
   const isProtectedApi = protectedApiRoutes.some(r => pathname.startsWith(r))
   if (isProtectedApi) {
     const authHeader = request.headers.get('authorization')
@@ -79,6 +56,11 @@ function addSecurityHeaders(response: NextResponse) {
   response.headers.set('X-Frame-Options', 'SAMEORIGIN')
   response.headers.set('X-XSS-Protection', '1; mode=block')
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
+  response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()')
+  response.headers.set(
+    'Content-Security-Policy',
+    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com https://*.firebaseio.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' https://res.cloudinary.com https://images.unsplash.com https://picsum.photos https://placehold.co data: blob:; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://api.cloudinary.com; frame-src 'self' https://*.firebaseapp.com;"
+  )
   return response
 }
 
