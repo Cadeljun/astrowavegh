@@ -21,6 +21,13 @@ const TICKET_TYPES = [
     badge: 'Save GH¢20',
     fixedQty: 4,
   },
+  {
+    id: 'complimentary',
+    name: 'Complimentary',
+    price: 0,
+    unit: 'invite only',
+    badge: 'Free',
+  },
 ];
 
 export default function TicketsPage() {
