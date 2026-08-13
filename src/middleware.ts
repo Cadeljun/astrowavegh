@@ -1,6 +1,17 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
+// Routes that should NOT be redirected to /tickets
+const ALLOWED_ROUTES = [
+  '/tickets',
+  '/admin',
+  '/dev',
+  '/api',
+  '/auth',
+  '/_next',
+  '/favicon',
+]
+
 // Protected routes that require authentication
 const protectedRoutes = [
   '/admin',
@@ -29,26 +40,21 @@ const protectedApiRoutes = [
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  // Check if the route is protected
-  const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route))
+  // ── TICKET LOCKDOWN ──────────────────────────────────────────────
+  // Redirect all public pages to /tickets
+  const isAllowedRoute = ALLOWED_ROUTES.some(route => pathname.startsWith(route))
+  
+  if (!isAllowedRoute) {
+    return NextResponse.redirect(new URL('/tickets', request.url))
+  }
+
+  // ── API AUTH CHECK ───────────────────────────────────────────────
   const isProtectedApi = protectedApiRoutes.some(route => pathname.startsWith(route))
 
-  // For API routes, check for authorization header
   if (isProtectedApi) {
     const authHeader = request.headers.get('authorization')
     
-    // In production, you should verify the Firebase ID token here
-    // For now, we'll block requests without auth header
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      // Allow GET requests to some endpoints
-      if (request.method === 'GET' && pathname.includes('/folders')) {
-        // Still need auth for folders
-        return NextResponse.json(
-          { error: 'Unauthorized. Authentication required.' },
-          { status: 401 }
-        )
-      }
-      
       return NextResponse.json(
         { error: 'Unauthorized. Authentication required.' },
         { status: 401 }
@@ -56,14 +62,12 @@ export function middleware(request: NextRequest) {
     }
   }
 
-  // For admin pages, we can't verify auth server-side without Firebase Admin
-  // But we can add security headers
+  // ── SECURITY HEADERS ─────────────────────────────────────────────
   const response = NextResponse.next()
 
-  // Add security headers to all responses
   response.headers.set('X-DNS-Prefetch-Control', 'on')
   response.headers.set('X-Content-Type-Options', 'nosniff')
-  response.headers.set('X-Frame-Options', 'SAMEORIGIN') // Allow same-origin iframes (CMS preview)
+  response.headers.set('X-Frame-Options', 'SAMEORIGIN')
   response.headers.set('X-XSS-Protection', '1; mode=block')
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
   response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()')
@@ -72,12 +76,13 @@ export function middleware(request: NextRequest) {
     "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com https://*.firebaseio.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' https://res.cloudinary.com https://images.unsplash.com https://picsum.photos https://placehold.co data: blob:; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://api.cloudinary.com; frame-src 'self' https://*.firebaseapp.com;"
   )
 
-  // Add CORS headers for API routes
+  // ── CORS FOR API ROUTES ──────────────────────────────────────────
   if (pathname.startsWith('/api/')) {
     const origin = request.headers.get('origin')
     const allowedOrigins = [
       'https://astrowavegh.com',
       'https://www.astrowavegh.com',
+      'https://staging.astrowavegh.com',
       'https://astrowaveegh.netlify.app',
       'http://localhost:3000',
       'http://localhost:9003',
@@ -86,7 +91,6 @@ export function middleware(request: NextRequest) {
     if (origin && allowedOrigins.includes(origin)) {
       response.headers.set('Access-Control-Allow-Origin', origin)
     } else {
-      // For same-origin requests (no origin header)
       response.headers.set('Access-Control-Allow-Origin', 'https://astrowavegh.com')
     }
     
@@ -95,7 +99,6 @@ export function middleware(request: NextRequest) {
     response.headers.set('Access-Control-Max-Age', '86400')
   }
 
-  // Handle preflight requests
   if (request.method === 'OPTIONS') {
     return new NextResponse(null, { status: 200, headers: response.headers })
   }
@@ -105,13 +108,6 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public folder files
-     */
     '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 }
