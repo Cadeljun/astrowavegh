@@ -16,10 +16,12 @@ export function middleware(request: NextRequest) {
 
   const isTicketSubdomain = hostname.includes('tickets.astrowavegh.com')
   const isScanSubdomain = hostname.includes('scan.astrowavegh.com')
+  const isAdminSubdomain = hostname.includes('admin.astrowavegh.com')
+  const isDevSubdomain = hostname.includes('dev.astrowavegh.com')
 
   // ── SCAN SUBDOMAIN ────────────────────────────────────────────
   if (isScanSubdomain) {
-    const isAllowed = ['/scan', '/scan/login', '/_next', '/api/tickets'].some(r => pathname.startsWith(r)) || pathname.includes('.')
+    const isAllowed = ['/scan', '/scan/login', '/_next', '/api/tickets', '/api/paystack'].some(r => pathname.startsWith(r)) || pathname.includes('.')
     if (!isAllowed) {
       return NextResponse.redirect(new URL('/scan', request.url))
     }
@@ -35,8 +37,26 @@ export function middleware(request: NextRequest) {
     return addSecurityHeaders(NextResponse.next())
   }
 
-  // ── MAIN DOMAIN — UNLOCKED ────────────────────────────────────
-  // All pages accessible on main domain
+  // ── ADMIN SUBDOMAIN ───────────────────────────────────────────
+  if (isAdminSubdomain) {
+    const isAllowed = ['/admin', '/auth', '/_next', '/api'].some(r => pathname.startsWith(r)) || pathname.includes('.')
+    if (!isAllowed) {
+      return NextResponse.redirect(new URL('/admin/dashboard', request.url))
+    }
+    return addSecurityHeaders(NextResponse.next())
+  }
+
+  // ── DEV SUBDOMAIN ─────────────────────────────────────────────
+  if (isDevSubdomain) {
+    const isAllowed = ['/dev', '/_next', '/api'].some(r => pathname.startsWith(r)) || pathname.includes('.')
+    if (!isAllowed) {
+      return NextResponse.redirect(new URL('/dev', request.url))
+    }
+    return addSecurityHeaders(NextResponse.next())
+  }
+
+  // ── MAIN DOMAIN ───────────────────────────────────────────────
+  // All pages accessible, admin/dev still work on main domain too
 
   // API auth check
   const isProtectedApi = protectedApiRoutes.some(r => pathname.startsWith(r))
@@ -61,6 +81,8 @@ function addSecurityHeaders(response: NextResponse) {
     'Content-Security-Policy',
     "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com https://*.firebaseio.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' https://res.cloudinary.com https://images.unsplash.com https://picsum.photos https://placehold.co data: blob:; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://api.cloudinary.com; frame-src 'self' https://*.firebaseapp.com;"
   )
+  // CORS for all subdomains
+  response.headers.set('Access-Control-Allow-Origin', '*')
   return response
 }
 
