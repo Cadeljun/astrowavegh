@@ -17,6 +17,7 @@ const navItems = [
   { label: 'Overview',        href: '/dev',              icon: Terminal,        group: 'SYSTEM' },
   { label: 'Analytics',       href: '/dev/analytics',    icon: BarChart3,       group: 'SYSTEM', superAdmin: true },
   { label: 'Firestore',       href: '/dev/firestore',    icon: TableProperties, group: 'SYSTEM', superAdmin: true },
+  { label: 'DB Health',       href: '/dev/firestore-health', icon: Database, group: 'SYSTEM', superAdmin: true },
   { label: 'Wave Score',      href: '/dev/wave-score',   icon: Waves,           group: 'SYSTEM', superAdmin: true },
   { label: 'Match Engine',    href: '/dev/match-engine', icon: Shuffle,         group: 'SYSTEM', superAdmin: true },
   { label: 'Permissions',     href: '/dev/permissions',  icon: ShieldCheck,     group: 'SYSTEM', superAdmin: true },
