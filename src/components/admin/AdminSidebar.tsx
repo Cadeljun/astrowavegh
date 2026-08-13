@@ -9,7 +9,7 @@ import {
   LayoutDashboard, Users, Image as ImageIcon, Upload,
   Mail, Bell, FileText, LogOut, ExternalLink, Edit3,
   Terminal, Calendar, BookOpen, Star, BarChart2, Mic,
-  ChevronRight, Settings, Menu, X
+  ChevronRight, Settings, Menu, X, Ticket
 } from 'lucide-react'
 import Logo from '@/components/ui/Logo'
 import { cn } from '@/lib/utils'
@@ -20,6 +20,7 @@ const navGroups = [
     color: '#FFD166',
     items: [
       { label: 'Dashboard',       href: '/admin/dashboard',        icon: LayoutDashboard },
+      { label: 'Tickets',         href: '/admin/tickets',          icon: Ticket },
       { label: 'CMS Content',     href: '/admin/cms',              icon: Edit3 },
       { label: 'Brand & Media',   href: '/dev/brand-assets',       icon: ImageIcon },
     ]
