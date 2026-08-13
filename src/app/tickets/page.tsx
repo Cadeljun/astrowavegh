@@ -11,26 +11,20 @@ const TICKETS = [
   {
     id: 'standard',
     name: 'Standard',
-    price: 150,
+    price: 50,
+    perUnit: 'per person',
     description: 'General admission',
     features: ['Entry to event', 'Access to main area', 'Complimentary mask'],
     popular: false,
   },
   {
-    id: 'vip',
-    name: 'VIP',
-    price: 350,
-    description: 'Premium experience',
-    features: ['Priority entry', 'VIP lounge access', 'Premium mask & gift bag', '2 complimentary drinks'],
+    id: 'group',
+    name: 'Group of 4',
+    price: 180,
+    perUnit: 'per group',
+    description: 'Squad deal — save GHS 20',
+    features: ['4 entries', 'Priority entry for group', 'Complimentary masks', 'Save GHS 20'],
     popular: true,
-  },
-  {
-    id: 'vvip',
-    name: 'VVIP',
-    price: 600,
-    description: 'Ultimate experience',
-    features: ['Exclusive entry', 'Private lounge', 'Premium bottle service', 'Meet & greet', 'Gift bag & mask'],
-    popular: false,
   },
 ];
 
@@ -258,6 +252,7 @@ export default function TicketsPage() {
                   <div className="text-right ml-4">
                     <p className="text-[0.55rem] font-bold text-white/40 uppercase">Price</p>
                     <p className="font-display text-2xl text-white">GHS {ticket.price}</p>
+                    <p className="text-white/40 text-[0.55rem]">{ticket.perUnit}</p>
                   </div>
                 </div>
               </motion.button>
@@ -347,6 +342,19 @@ export default function TicketsPage() {
               </motion.div>
             )}
           </AnimatePresence>
+
+          {/* Table Reservation - Coming Soon */}
+          <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 mb-8">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-display text-lg text-white uppercase tracking-wider mb-1">Table Reservation</h3>
+                <p className="text-white/50 text-xs">Premium tables with bottle service</p>
+              </div>
+              <span className="px-3 py-1.5 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400 text-[0.6rem] font-bold uppercase tracking-widest">
+                Coming Soon
+              </span>
+            </div>
+          </div>
 
           {/* Social follow */}
           <div className="text-center space-y-4 mb-8">
