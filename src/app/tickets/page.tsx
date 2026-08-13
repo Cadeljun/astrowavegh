@@ -114,11 +114,20 @@ export default function TicketsPage() {
 
   return (
     <div className="min-h-screen bg-[#020B18] flex flex-col">
+      {/* Background image */}
+      <div className="fixed inset-0 z-0">
+        <img
+          src="https://res.cloudinary.com/dmd5bq3va/image/upload/v1786593422/gkbqxs9qvggzxd0ocy77.jpg"
+          alt=""
+          className="w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-[#020B18]/85 backdrop-blur-sm" />
+      </div>
+
       {/* Background effects */}
       <div className="fixed inset-0 z-0 pointer-events-none">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-purple-500/5 blur-[150px] rounded-full" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-purple-500/10 blur-[150px] rounded-full" />
         <div className="absolute bottom-0 left-1/4 w-[400px] h-[400px] bg-[#00C853]/5 blur-[120px] rounded-full" />
-        <div className="absolute top-1/3 right-1/4 w-[300px] h-[300px] bg-blue-500/5 blur-[100px] rounded-full" />
       </div>
 
       {/* Grid pattern */}
@@ -157,6 +166,20 @@ export default function TicketsPage() {
               <span className="text-[0.6rem] font-bold text-purple-400 uppercase tracking-widest">Upcoming Event</span>
             </div>
           </div>
+
+          {/* Flyer */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.8 }}
+            className="mb-8 rounded-2xl overflow-hidden border border-white/10 shadow-2xl"
+          >
+            <img
+              src="https://res.cloudinary.com/dmd5bq3va/image/upload/v1786593422/gkbqxs9qvggzxd0ocy77.jpg"
+              alt="Mask Mirage Party Flyer"
+              className="w-full h-auto"
+            />
+          </motion.div>
 
           {/* Title */}
           <div className="text-center mb-8">
