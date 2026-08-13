@@ -123,10 +123,13 @@ export default function TicketsPage() {
               <Clock size={14} style={{ color: '#DAAF48' }} />
               <span className="text-sm font-medium" style={{ color: '#F5F5F5' }}>9:00 PM</span>
             </div>
-            <div className="flex items-center gap-2">
+            <a href="https://maps.google.com/?q=Coaches+Lounge+East+Legon+Accra+Ghana"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 hover:opacity-80 transition-opacity">
               <MapPin size={14} style={{ color: '#DAAF48' }} />
-              <span className="text-sm font-medium" style={{ color: '#F5F5F5' }}>COACHES LOUNGE, EAST LEGON</span>
-            </div>
+              <span className="text-sm font-medium underline" style={{ color: '#F5F5F5' }}>COACHES LOUNGE, EAST LEGON</span>
+            </a>
           </div>
 
           {/* Countdown */}

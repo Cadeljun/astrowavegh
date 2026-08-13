@@ -79,7 +79,7 @@ export function generateOrganizationSchema() {
     contactPoint: {
       '@type': 'ContactPoint',
       contactType: 'customer service',
-      email: 'info@astrowave.live',
+      email: 'astrowaveevent@gmail.com',
     },
     sameAs: [],
   };
@@ -94,7 +94,7 @@ export function generateLocalBusinessSchema() {
     image: `${baseUrl}/logo/astrowave-logo.png`,
     url: baseUrl,
     telephone: '',
-    email: 'info@astrowave.live',
+      email: 'astrowaveevent@gmail.com',
     address: {
       '@type': 'PostalAddress',
       streetAddress: 'Accra',

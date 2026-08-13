@@ -108,7 +108,7 @@ const organizationSchema = {
   contactPoint: {
     '@type': 'ContactPoint',
     contactType: 'customer service',
-    email: 'info@astrowave.live',
+    email: 'astrowaveevent@gmail.com',
   },
 };
 
@@ -133,7 +133,7 @@ const localBusinessSchema = {
   name: 'AstroWave',
   image: 'https://astrowavegh.com/logo/astrowave-logo.png',
   url: 'https://astrowavegh.com',
-  email: 'info@astrowave.live',
+    email: 'astrowaveevent@gmail.com',
   address: {
     '@type': 'PostalAddress',
     addressLocality: 'Accra',
