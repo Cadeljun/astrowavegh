@@ -1,31 +1,24 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Calendar, MapPin, Clock, Ticket, Users, Music, ArrowRight, Loader2, CheckCircle, Instagram, ExternalLink, X, CreditCard } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Calendar, MapPin, Clock, Ticket, ArrowRight, Loader2, CheckCircle, X, CreditCard, Instagram } from 'lucide-react';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
-import MaskMirageTicket from '@/components/tickets/MaskMirageTicket';
-import { generateTicketId } from '@/lib/tickets';
 
-// Ticket types
 const TICKETS = [
   {
     id: 'standard',
-    name: 'GENERAL ADMISSION',
+    name: 'Standard',
     price: 50,
-    perUnit: 'per person',
-    description: 'Standard entry',
-    features: ['Entry to event', 'Access to main area', 'Complimentary mask'],
+    unit: 'per person',
   },
   {
     id: 'group',
-    name: 'GROUP OF 4',
+    name: 'Group of 4',
     price: 180,
-    perUnit: 'per group',
-    description: 'Squad deal — save GH¢20',
-    features: ['4 entries', 'Priority entry', 'Complimentary masks', 'Save GH¢20'],
-    popular: true,
+    unit: 'per group',
+    badge: 'Save GH¢20',
   },
 ];
 
@@ -36,9 +29,7 @@ export default function TicketsPage() {
   const [showCheckout, setShowCheckout] = useState(false);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({ name: '', email: '', phone: '' });
-  const [previewTicketId] = useState(generateTicketId());
 
-  // Countdown
   useEffect(() => {
     const eventDate = new Date('2026-10-10T21:00:00').getTime();
     const timer = setInterval(() => {
@@ -56,11 +47,6 @@ export default function TicketsPage() {
   }, []);
 
   const selectedTicketData = TICKETS.find(t => t.id === selectedTicket);
-
-  const handleSelectTicket = (ticketId: string) => {
-    setSelectedTicket(ticketId);
-    setShowCheckout(true);
-  };
 
   const handlePayment = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -92,239 +78,214 @@ export default function TicketsPage() {
 
   return (
     <div className="min-h-screen" style={{ background: '#090909' }}>
-      {/* Subtle golden glow background */}
+      {/* Subtle glow */}
       <div className="fixed inset-0 z-0 pointer-events-none">
-        <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[800px] h-[800px] opacity-20" style={{ background: 'radial-gradient(circle, rgba(218,175,72,0.3) 0%, transparent 70%)' }} />
+        <div className="absolute right-0 top-1/3 w-[600px] h-[600px]" style={{ background: 'radial-gradient(circle, rgba(218,175,72,0.06) 0%, transparent 70%)' }} />
       </div>
 
-      {/* Content */}
-      <div className="relative z-10 max-w-6xl mx-auto px-6 py-12">
+      <div className="relative z-10 max-w-2xl mx-auto px-6 py-12">
 
-        {/* ── HEADER ──────────────────────────────────────── */}
+        {/* ── FLYER ───────────────────────────────────────── */}
         <motion.div
-          initial={{ opacity: 0, y: -20 }}
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-16"
+          className="mb-10"
         >
-          <p className="text-[18px] font-semibold tracking-[0.25em] uppercase mb-6" style={{ color: '#DAAF48' }}>
-            ASTROWAVE EVENTS
-          </p>
-          <h1 className="font-display uppercase leading-[0.9] mb-4" style={{ fontSize: 'clamp(4rem, 12vw, 10rem)', color: '#F5F5F5', letterSpacing: '-0.02em' }}>
-            MASK<br />MIRAGE
+          <div className="rounded-2xl overflow-hidden" style={{ border: '1px solid rgba(218,175,72,0.15)' }}>
+            <img
+              src="https://res.cloudinary.com/dmd5bq3va/image/upload/v1786593422/gkbqxs9qvggzxd0ocy77.jpg"
+              alt="Mask Mirage Party"
+              className="w-full h-auto"
+            />
+          </div>
+        </motion.div>
+
+        {/* ── EVENT INFO ──────────────────────────────────── */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="text-center mb-10"
+        >
+          <h1 className="font-display text-4xl sm:text-5xl uppercase leading-[0.9] mb-3" style={{ color: '#F5F5F5', letterSpacing: '-0.02em' }}>
+            MASK MIRAGE
           </h1>
-          <p className="text-[22px] font-bold uppercase tracking-[0.15em] mb-8" style={{ color: '#DAAF48' }}>
+          <p className="text-sm font-semibold uppercase tracking-[0.2em] mb-6" style={{ color: '#DAAF48' }}>
             THE MASK MIRAGE PARTY 🎭
           </p>
 
-          {/* Event details */}
-          <div className="flex flex-wrap justify-center gap-8 mb-10">
-            <div className="flex items-center gap-3">
-              <Calendar size={18} style={{ color: '#DAAF48' }} />
-              <span className="text-[28px] font-semibold" style={{ color: '#F5F5F5', letterSpacing: '0.05em' }}>10 OCTOBER 2026</span>
+          <div className="flex flex-wrap justify-center gap-6 mb-8">
+            <div className="flex items-center gap-2">
+              <Calendar size={14} style={{ color: '#DAAF48' }} />
+              <span className="text-sm font-medium" style={{ color: '#F5F5F5' }}>10 OCT 2026</span>
             </div>
-            <div className="flex items-center gap-3">
-              <Clock size={18} style={{ color: '#DAAF48' }} />
-              <span className="text-[28px] font-semibold" style={{ color: '#F5F5F5', letterSpacing: '0.05em' }}>9:00 PM</span>
+            <div className="flex items-center gap-2">
+              <Clock size={14} style={{ color: '#DAAF48' }} />
+              <span className="text-sm font-medium" style={{ color: '#F5F5F5' }}>9:00 PM</span>
             </div>
-            <div className="flex items-center gap-3">
-              <MapPin size={18} style={{ color: '#DAAF48' }} />
-              <span className="text-[28px] font-semibold" style={{ color: '#F5F5F5', letterSpacing: '0.05em' }}>COACHES LOUNGE, EAST LEGON</span>
+            <div className="flex items-center gap-2">
+              <MapPin size={14} style={{ color: '#DAAF48' }} />
+              <span className="text-sm font-medium" style={{ color: '#F5F5F5' }}>COACHES LOUNGE, EAST LEGON</span>
             </div>
           </div>
 
           {/* Countdown */}
-          <div className="flex justify-center gap-4 mb-12">
+          <div className="flex justify-center gap-3">
             {[
-              { value: timeLeft.days, label: 'Days' },
-              { value: timeLeft.hours, label: 'Hours' },
-              { value: timeLeft.minutes, label: 'Mins' },
-              { value: timeLeft.seconds, label: 'Secs' },
+              { value: timeLeft.days, label: 'D' },
+              { value: timeLeft.hours, label: 'H' },
+              { value: timeLeft.minutes, label: 'M' },
+              { value: timeLeft.seconds, label: 'S' },
             ].map((item) => (
               <div key={item.label} className="text-center">
-                <div className="w-20 h-20 rounded-lg flex items-center justify-center mb-2" style={{ background: 'rgba(218,175,72,0.05)', border: '1px solid rgba(218,175,72,0.15)' }}>
-                  <span className="font-display text-3xl" style={{ color: '#F5F5F5' }}>{String(item.value).padStart(2, '0')}</span>
+                <div className="w-14 h-14 rounded-lg flex items-center justify-center mb-1" style={{ background: 'rgba(218,175,72,0.05)', border: '1px solid rgba(218,175,72,0.12)' }}>
+                  <span className="font-display text-xl" style={{ color: '#F5F5F5' }}>{String(item.value).padStart(2, '0')}</span>
                 </div>
-                <p className="text-[0.55rem] font-bold uppercase tracking-widest" style={{ color: '#B4B4B4' }}>{item.label}</p>
+                <p className="text-[0.5rem] font-bold uppercase" style={{ color: '#B4B4B4' }}>{item.label}</p>
               </div>
             ))}
           </div>
         </motion.div>
 
-        {/* ── TICKET PREVIEW ───────────────────────────────── */}
+        {/* ── TICKETS ──────────────────────────────────────── */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="flex justify-center mb-16"
+          transition={{ delay: 0.4 }}
+          className="space-y-3 mb-8"
         >
-          <div className="transform scale-75 lg:scale-90 origin-top">
-            <MaskMirageTicket
-              ticketId={previewTicketId}
-              name="Your Name"
-              ticketType="GENERAL ADMISSION"
-            />
-          </div>
-        </motion.div>
+          <p className="text-center text-xs font-bold uppercase tracking-[0.3em] mb-4" style={{ color: '#DAAF48' }}>SELECT TICKET</p>
 
-        {/* ── TICKET SELECTION ─────────────────────────────── */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-          className="max-w-2xl mx-auto"
-        >
-          <div className="text-center mb-8">
-            <p className="text-[14px] font-semibold uppercase tracking-[0.25em] mb-2" style={{ color: '#DAAF48' }}>ADMISSION</p>
-            <h2 className="font-display text-3xl uppercase" style={{ color: '#F5F5F5' }}>GET YOUR TICKET</h2>
-          </div>
-
-          <div className="space-y-4 mb-8">
-            {TICKETS.map((ticket) => (
-              <motion.button
-                key={ticket.id}
-                onClick={() => handleSelectTicket(ticket.id)}
-                whileHover={{ scale: 1.01 }}
-                whileTap={{ scale: 0.99 }}
-                className="w-full text-left p-6 rounded-xl transition-all"
-                style={{
-                  background: selectedTicket === ticket.id ? 'rgba(218,175,72,0.08)' : 'rgba(255,255,255,0.03)',
-                  border: `1px solid ${selectedTicket === ticket.id ? 'rgba(218,175,72,0.4)' : 'rgba(255,255,255,0.08)'}`,
-                }}
-              >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="flex items-center gap-3 mb-2">
-                      <h3 className="font-display text-xl uppercase tracking-wider" style={{ color: '#F5F5F5' }}>{ticket.name}</h3>
-                      {ticket.popular && (
-                        <span className="px-3 py-1 rounded-full text-[0.55rem] font-bold uppercase tracking-widest" style={{ background: 'rgba(218,175,72,0.1)', color: '#DAAF48', border: '1px solid rgba(218,175,72,0.2)' }}>
-                          Popular
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-sm mb-3" style={{ color: '#B4B4B4' }}>{ticket.description}</p>
-                    <div className="space-y-1">
-                      {ticket.features.map((f, i) => (
-                        <div key={i} className="flex items-center gap-2">
-                          <CheckCircle size={12} style={{ color: '#DAAF48' }} />
-                          <span className="text-[0.7rem]" style={{ color: '#B4B4B4' }}>{f}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="text-right ml-6">
-                    <p className="text-[0.55rem] font-bold uppercase tracking-widest mb-1" style={{ color: '#B4B4B4' }}>Price</p>
-                    <p className="font-display text-3xl" style={{ color: '#F5F5F5' }}>GH¢{ticket.price}</p>
-                    <p className="text-[0.55rem]" style={{ color: '#B4B4B4' }}>{ticket.perUnit}</p>
-                  </div>
+          {TICKETS.map((ticket) => (
+            <button
+              key={ticket.id}
+              onClick={() => { setSelectedTicket(ticket.id); setShowCheckout(true); }}
+              className="w-full text-left p-5 rounded-xl flex items-center justify-between transition-all"
+              style={{
+                background: 'rgba(255,255,255,0.03)',
+                border: '1px solid rgba(255,255,255,0.08)',
+              }}
+            >
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="font-display text-lg uppercase tracking-wider" style={{ color: '#F5F5F5' }}>{ticket.name}</h3>
+                  {ticket.badge && (
+                    <span className="px-2 py-0.5 rounded-full text-[0.5rem] font-bold uppercase" style={{ background: 'rgba(218,175,72,0.1)', color: '#DAAF48' }}>
+                      {ticket.badge}
+                    </span>
+                  )}
                 </div>
-              </motion.button>
-            ))}
-          </div>
+                <p className="text-xs mt-1" style={{ color: '#B4B4B4' }}>{ticket.unit}</p>
+              </div>
+              <div className="flex items-center gap-4">
+                <span className="font-display text-2xl" style={{ color: '#F5F5F5' }}>GH¢{ticket.price}</span>
+                <ArrowRight size={16} style={{ color: '#B4B4B4' }} />
+              </div>
+            </button>
+          ))}
 
           {/* Table reservation */}
-          <div className="p-5 rounded-xl flex items-center justify-between" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}>
+          <div className="p-5 rounded-xl flex items-center justify-between" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
             <div>
-              <h3 className="font-display text-lg uppercase tracking-wider" style={{ color: '#F5F5F5' }}>Table Reservation</h3>
+              <h3 className="font-display text-base uppercase tracking-wider" style={{ color: '#F5F5F5' }}>Table Reservation</h3>
               <p className="text-xs" style={{ color: '#B4B4B4' }}>Premium tables with bottle service</p>
             </div>
-            <span className="px-4 py-2 rounded-full text-[0.6rem] font-bold uppercase tracking-widest" style={{ background: 'rgba(218,175,72,0.08)', color: '#DAAF48', border: '1px solid rgba(218,175,72,0.15)' }}>
+            <span className="px-3 py-1.5 rounded-full text-[0.55rem] font-bold uppercase" style={{ background: 'rgba(218,175,72,0.06)', color: '#DAAF48' }}>
               Coming Soon
             </span>
           </div>
         </motion.div>
 
-        {/* ── CHECKOUT ─────────────────────────────────────── */}
-        <AnimatePresence>
-          {showCheckout && selectedTicketData && (
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -30 }}
-              className="fixed inset-0 z-50 flex items-center justify-center p-6"
-            >
-              <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setShowCheckout(false)} />
-              <div className="relative z-10 w-full max-w-md rounded-2xl p-8" style={{ background: '#090909', border: '1px solid rgba(218,175,72,0.2)' }}>
-                <button onClick={() => setShowCheckout(false)} className="absolute top-4 right-4" style={{ color: '#B4B4B4' }}>
-                  <X size={20} />
-                </button>
-
-                <div className="text-center mb-6">
-                  <p className="text-[0.6rem] font-bold uppercase tracking-[0.3em] mb-2" style={{ color: '#DAAF48' }}>Complete Your Purchase</p>
-                  <h3 className="font-display text-2xl uppercase" style={{ color: '#F5F5F5' }}>{selectedTicketData.name}</h3>
-                  <p className="font-display text-3xl mt-2" style={{ color: '#DAAF48' }}>GH¢{selectedTicketData.price}</p>
-                </div>
-
-                <form onSubmit={handlePayment} className="space-y-4">
-                  <div>
-                    <label className="text-[0.55rem] font-bold uppercase tracking-widest block mb-2" style={{ color: '#B4B4B4' }}>Full Name</label>
-                    <input
-                      required
-                      className="w-full p-4 rounded-lg text-sm outline-none"
-                      style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', color: '#F5F5F5' }}
-                      placeholder="Your name"
-                      value={formData.name}
-                      onChange={e => setFormData({...formData, name: e.target.value})}
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[0.55rem] font-bold uppercase tracking-widest block mb-2" style={{ color: '#B4B4B4' }}>Email</label>
-                    <input
-                      required
-                      type="email"
-                      className="w-full p-4 rounded-lg text-sm outline-none"
-                      style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', color: '#F5F5F5' }}
-                      placeholder="you@email.com"
-                      value={formData.email}
-                      onChange={e => setFormData({...formData, email: e.target.value})}
-                    />
-                    <p className="text-[0.5rem] mt-1" style={{ color: '#B4B4B4' }}>Your ticket will be sent here</p>
-                  </div>
-                  <div>
-                    <label className="text-[0.55rem] font-bold uppercase tracking-widest block mb-2" style={{ color: '#B4B4B4' }}>Phone (Optional)</label>
-                    <input
-                      className="w-full p-4 rounded-lg text-sm outline-none"
-                      style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', color: '#F5F5F5' }}
-                      placeholder="+233 xxx xxx xxxx"
-                      value={formData.phone}
-                      onChange={e => setFormData({...formData, phone: e.target.value})}
-                    />
-                  </div>
-
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="w-full h-14 rounded-lg font-bold text-sm uppercase tracking-[0.15em] text-black transition-all"
-                    style={{ background: '#DAAF48' }}
-                  >
-                    {loading ? <Loader2 className="animate-spin mx-auto" /> : `PAY GH¢${selectedTicketData.price}`}
-                  </button>
-
-                  <p className="text-center text-[0.5rem]" style={{ color: '#B4B4B4' }}>
-                    Secure payment powered by Paystack
-                  </p>
-                </form>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* ── FOOTER ────────────────────────────────────────── */}
-        <div className="text-center mt-16 space-y-4">
+        {/* ── FOOTER ───────────────────────────────────────── */}
+        <div className="text-center pt-8 space-y-4">
           <a
             href="https://instagram.com/astrowaveevent"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-lg text-xs uppercase tracking-widest transition-all"
-            style={{ border: '1px solid rgba(218,175,72,0.2)', color: '#DAAF48' }}
+            className="inline-flex items-center gap-2 text-xs uppercase tracking-widest transition-all"
+            style={{ color: '#B4B4B4' }}
           >
             <Instagram size={14} />
-            FOLLOW @ASTROWAVEEVENT
+            @ASTROWAVEEVENT
           </a>
-          <p className="text-[0.5rem] uppercase tracking-widest" style={{ color: 'rgba(180,180,180,0.3)' }}>
-            © 2026 AstroWave Entertainment • Accra, Ghana
+          <p className="text-[0.45rem] uppercase tracking-widest" style={{ color: 'rgba(180,180,180,0.25)' }}>
+            © 2026 AstroWave Entertainment
           </p>
         </div>
       </div>
+
+      {/* ── CHECKOUT MODAL ────────────────────────────────── */}
+      {showCheckout && selectedTicketData && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
+          <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setShowCheckout(false)} />
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="relative z-10 w-full max-w-md rounded-2xl p-8"
+            style={{ background: '#0A0A0A', border: '1px solid rgba(218,175,72,0.15)' }}
+          >
+            <button onClick={() => setShowCheckout(false)} className="absolute top-4 right-4" style={{ color: '#B4B4B4' }}>
+              <X size={18} />
+            </button>
+
+            <div className="text-center mb-6">
+              <p className="text-[0.55rem] font-bold uppercase tracking-[0.3em] mb-2" style={{ color: '#DAAF48' }}>Complete Purchase</p>
+              <h3 className="font-display text-2xl uppercase" style={{ color: '#F5F5F5' }}>{selectedTicketData.name}</h3>
+              <p className="font-display text-3xl mt-2" style={{ color: '#DAAF48' }}>GH¢{selectedTicketData.price}</p>
+            </div>
+
+            <form onSubmit={handlePayment} className="space-y-4">
+              <div>
+                <label className="text-[0.5rem] font-bold uppercase tracking-widest block mb-2" style={{ color: '#B4B4B4' }}>Full Name</label>
+                <input
+                  required
+                  className="w-full px-4 py-3 rounded-lg text-sm outline-none"
+                  style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: '#F5F5F5' }}
+                  placeholder="Your name"
+                  value={formData.name}
+                  onChange={e => setFormData({...formData, name: e.target.value})}
+                />
+              </div>
+              <div>
+                <label className="text-[0.5rem] font-bold uppercase tracking-widest block mb-2" style={{ color: '#B4B4B4' }}>Email</label>
+                <input
+                  required
+                  type="email"
+                  className="w-full px-4 py-3 rounded-lg text-sm outline-none"
+                  style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: '#F5F5F5' }}
+                  placeholder="you@email.com"
+                  value={formData.email}
+                  onChange={e => setFormData({...formData, email: e.target.value})}
+                />
+                <p className="text-[0.45rem] mt-1" style={{ color: '#B4B4B4' }}>Ticket will be sent here</p>
+              </div>
+              <div>
+                <label className="text-[0.5rem] font-bold uppercase tracking-widest block mb-2" style={{ color: '#B4B4B4' }}>Phone (Optional)</label>
+                <input
+                  className="w-full px-4 py-3 rounded-lg text-sm outline-none"
+                  style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: '#F5F5F5' }}
+                  placeholder="+233 xxx xxx xxxx"
+                  value={formData.phone}
+                  onChange={e => setFormData({...formData, phone: e.target.value})}
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full h-12 rounded-lg font-bold text-sm uppercase tracking-widest transition-all"
+                style={{ background: '#DAAF48', color: '#090909' }}
+              >
+                {loading ? <Loader2 size={16} className="animate-spin mx-auto" /> : `PAY GH¢${selectedTicketData.price}`}
+              </button>
+
+              <p className="text-center text-[0.45rem]" style={{ color: '#B4B4B4' }}>
+                Secure payment by Paystack
+              </p>
+            </form>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 }
