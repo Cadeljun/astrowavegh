@@ -1,9 +1,38 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Calendar, MapPin, Clock, Ticket, Users, Music, ArrowRight, Loader2, CheckCircle, Instagram, ExternalLink } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Calendar, MapPin, Clock, Ticket, Users, Music, ArrowRight, Loader2, CheckCircle, Instagram, ExternalLink, X, CreditCard } from 'lucide-react';
 import Link from 'next/link';
+import { useToast } from '@/hooks/use-toast';
+
+// Ticket types
+const TICKETS = [
+  {
+    id: 'standard',
+    name: 'Standard',
+    price: 150,
+    description: 'General admission',
+    features: ['Entry to event', 'Access to main area', 'Complimentary mask'],
+    popular: false,
+  },
+  {
+    id: 'vip',
+    name: 'VIP',
+    price: 350,
+    description: 'Premium experience',
+    features: ['Priority entry', 'VIP lounge access', 'Premium mask & gift bag', '2 complimentary drinks'],
+    popular: true,
+  },
+  {
+    id: 'vvip',
+    name: 'VVIP',
+    price: 600,
+    description: 'Ultimate experience',
+    features: ['Exclusive entry', 'Private lounge', 'Premium bottle service', 'Meet & greet', 'Gift bag & mask'],
+    popular: false,
+  },
+];
 
 // Event details
 const EVENT = {
@@ -13,18 +42,15 @@ const EVENT = {
   time: '9:00 PM - Till Late',
   venue: 'TBA — Accra, Ghana',
   description: 'An unforgettable night of mystery, music, and premium vibes. DJs, live performances, cocktails, and an atmosphere like no other. Masks on. Lights low. Let the night take over.',
-  highlights: [
-    { icon: Music, text: 'Live DJs & Performers' },
-    { icon: Users, text: 'Exclusive Guest List' },
-    { icon: Ticket, text: 'Limited Tickets Available' },
-  ],
-  socials: {
-    instagram: 'https://instagram.com/astrowaveevent',
-  }
 };
 
 export default function TicketsPage() {
+  const { toast } = useToast();
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+  const [selectedTicket, setSelectedTicket] = useState<string | null>(null);
+  const [showCheckout, setShowCheckout] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState({ name: '', email: '', phone: '' });
 
   // Countdown timer
   useEffect(() => {
@@ -47,6 +73,51 @@ export default function TicketsPage() {
     return () => clearInterval(timer);
   }, []);
 
+  const selectedTicketData = TICKETS.find(t => t.id === selectedTicket);
+
+  const handleSelectTicket = (ticketId: string) => {
+    setSelectedTicket(ticketId);
+    setShowCheckout(true);
+  };
+
+  const handlePayment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!selectedTicketData || !formData.email || !formData.name) {
+      toast({ variant: 'destructive', title: 'Please fill in all fields' });
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      // Initialize Paystack payment
+      const res = await fetch('/api/paystack/initialize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: formData.email,
+          amount: selectedTicketData.price,
+          ticketType: selectedTicketData.name,
+          name: formData.name,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!data.success) {
+        throw new Error(data.error || 'Payment failed');
+      }
+
+      // Redirect to Paystack checkout
+      window.location.href = data.authorization_url;
+    } catch (error: any) {
+      toast({ variant: 'destructive', title: 'Payment Error', description: error.message });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#020B18] flex flex-col">
       {/* Background effects */}
@@ -65,7 +136,7 @@ export default function TicketsPage() {
       />
 
       {/* Content */}
-      <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-6 py-12">
+      <div className="relative z-10 flex flex-col items-center min-h-screen px-6 py-12">
         {/* Logo */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -73,17 +144,17 @@ export default function TicketsPage() {
           transition={{ duration: 0.6 }}
           className="mb-8"
         >
-          <Link href="/" className="flex items-center gap-3">
+          <Link href="/tickets" className="flex items-center gap-3">
             <img src="/logo/astrowave-logo.svg" alt="AstroWave" className="h-8" />
           </Link>
         </motion.div>
 
-        {/* Main card */}
+        {/* Main content */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2 }}
-          className="w-full max-w-lg"
+          className="w-full max-w-2xl"
         >
           {/* Event badge */}
           <div className="flex justify-center mb-6">
@@ -109,55 +180,24 @@ export default function TicketsPage() {
             <p className="text-white/50 text-lg">{EVENT.tagline}</p>
           </div>
 
-          {/* Event details card */}
-          <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 mb-8 space-y-6">
-            {/* Date & Time */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center">
-                  <Calendar size={18} className="text-purple-400" />
-                </div>
-                <div>
-                  <p className="text-[0.6rem] font-bold text-white/40 uppercase tracking-widest">Date</p>
-                  <p className="text-white font-medium">{EVENT.date}</p>
-                </div>
+          {/* Event details */}
+          <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 mb-8">
+            <div className="grid grid-cols-3 gap-4 text-center">
+              <div>
+                <Calendar size={16} className="mx-auto mb-2 text-purple-400" />
+                <p className="text-[0.55rem] font-bold text-white/40 uppercase tracking-widest">Date</p>
+                <p className="text-white text-xs font-medium mt-1">{EVENT.date}</p>
               </div>
-
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-xl bg-[#00C853]/10 flex items-center justify-center">
-                  <Clock size={18} className="text-[#00C853]" />
-                </div>
-                <div>
-                  <p className="text-[0.6rem] font-bold text-white/40 uppercase tracking-widest">Time</p>
-                  <p className="text-white font-medium">{EVENT.time}</p>
-                </div>
+              <div>
+                <Clock size={16} className="mx-auto mb-2 text-[#00C853]" />
+                <p className="text-[0.55rem] font-bold text-white/40 uppercase tracking-widest">Time</p>
+                <p className="text-white text-xs font-medium mt-1">{EVENT.time}</p>
               </div>
-
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center">
-                  <MapPin size={18} className="text-blue-400" />
-                </div>
-                <div>
-                  <p className="text-[0.6rem] font-bold text-white/40 uppercase tracking-widest">Venue</p>
-                  <p className="text-white font-medium">{EVENT.venue}</p>
-                </div>
+              <div>
+                <MapPin size={16} className="mx-auto mb-2 text-blue-400" />
+                <p className="text-[0.55rem] font-bold text-white/40 uppercase tracking-widest">Venue</p>
+                <p className="text-white text-xs font-medium mt-1">{EVENT.venue}</p>
               </div>
-            </div>
-
-            {/* Divider */}
-            <div className="h-px bg-white/10" />
-
-            {/* Description */}
-            <p className="text-white/60 text-sm leading-relaxed">{EVENT.description}</p>
-
-            {/* Highlights */}
-            <div className="grid grid-cols-3 gap-3">
-              {EVENT.highlights.map((h, i) => (
-                <div key={i} className="text-center p-3 rounded-xl bg-white/5">
-                  <h.icon size={16} className="mx-auto mb-2 text-purple-400" />
-                  <p className="text-[0.55rem] font-bold text-white/60 uppercase tracking-wider">{h.text}</p>
-                </div>
-              ))}
             </div>
           </div>
 
@@ -170,41 +210,161 @@ export default function TicketsPage() {
               { value: timeLeft.seconds, label: 'Secs' },
             ].map((item) => (
               <div key={item.label} className="bg-white/5 border border-white/10 rounded-xl p-4 text-center">
-                <p className="font-display text-2xl sm:text-3xl text-white">{String(item.value).padStart(2, '0')}</p>
-                <p className="text-[0.55rem] font-bold text-white/40 uppercase tracking-widest mt-1">{item.label}</p>
+                <p className="font-display text-2xl text-white">{String(item.value).padStart(2, '0')}</p>
+                <p className="text-[0.5rem] font-bold text-white/40 uppercase tracking-widest mt-1">{item.label}</p>
               </div>
             ))}
           </div>
 
-          {/* CTA Buttons */}
-          <div className="space-y-3">
-            <a
-              href="https://instagram.com/astrowaveevent"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center justify-center gap-3 w-full h-14 rounded-xl font-bold text-sm tracking-[0.15em] uppercase text-white transition-all"
-              style={{ background: 'linear-gradient(135deg, #A855F7, #00C853)', boxShadow: '0 0 40px rgba(168,85,247,0.3)' }}
-            >
-              <Instagram size={18} />
-              DM FOR TICKETS
-              <ArrowRight size={16} />
-            </a>
+          {/* Ticket Selection */}
+          <div className="space-y-4 mb-8">
+            <div className="flex items-center gap-3 mb-4">
+              <Ticket size={18} className="text-purple-400" />
+              <h2 className="font-display text-xl text-white uppercase tracking-wider">Select Your Ticket</h2>
+            </div>
 
+            {TICKETS.map((ticket) => (
+              <motion.button
+                key={ticket.id}
+                onClick={() => handleSelectTicket(ticket.id)}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className={`w-full text-left p-6 rounded-2xl border transition-all ${
+                  selectedTicket === ticket.id
+                    ? 'border-purple-500 bg-purple-500/10 shadow-[0_0_30px_rgba(168,85,247,0.15)]'
+                    : 'border-white/10 bg-white/5 hover:border-white/20'
+                }`}
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      <h3 className="font-display text-lg text-white uppercase tracking-wider">{ticket.name}</h3>
+                      {ticket.popular && (
+                        <span className="px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-400 text-[0.55rem] font-bold uppercase tracking-widest">
+                          Popular
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-white/50 text-xs mb-3">{ticket.description}</p>
+                    <div className="space-y-1">
+                      {ticket.features.map((f, i) => (
+                        <div key={i} className="flex items-center gap-2">
+                          <CheckCircle size={10} className="text-[#00C853]" />
+                          <span className="text-white/60 text-[0.65rem]">{f}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="text-right ml-4">
+                    <p className="text-[0.55rem] font-bold text-white/40 uppercase">Price</p>
+                    <p className="font-display text-2xl text-white">GHS {ticket.price}</p>
+                  </div>
+                </div>
+              </motion.button>
+            ))}
+          </div>
+
+          {/* Checkout Form */}
+          <AnimatePresence>
+            {showCheckout && selectedTicketData && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className="bg-white/5 backdrop-blur-xl border border-purple-500/30 rounded-2xl p-6 mb-8"
+              >
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <CreditCard size={18} className="text-purple-400" />
+                    <h3 className="font-display text-lg text-white uppercase tracking-wider">Checkout</h3>
+                  </div>
+                  <button onClick={() => setShowCheckout(false)} className="text-white/40 hover:text-white transition-colors">
+                    <X size={18} />
+                  </button>
+                </div>
+
+                <div className="bg-white/5 rounded-xl p-4 mb-6 flex items-center justify-between">
+                  <div>
+                    <p className="text-white font-medium">{selectedTicketData.name} Ticket</p>
+                    <p className="text-white/50 text-xs">Mask Mirage Party</p>
+                  </div>
+                  <p className="font-display text-xl text-[#00C853]">GHS {selectedTicketData.price}</p>
+                </div>
+
+                <form onSubmit={handlePayment} className="space-y-4">
+                  <div>
+                    <label className="text-[0.6rem] font-bold text-white/40 uppercase tracking-widest mb-2 block">Full Name</label>
+                    <input
+                      required
+                      className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white focus:border-purple-500 focus:ring-1 focus:ring-purple-500/20 outline-none transition-all text-sm"
+                      placeholder="Your name"
+                      value={formData.name}
+                      onChange={e => setFormData({...formData, name: e.target.value})}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[0.6rem] font-bold text-white/40 uppercase tracking-widest mb-2 block">Email</label>
+                    <input
+                      required
+                      type="email"
+                      className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white focus:border-purple-500 focus:ring-1 focus:ring-purple-500/20 outline-none transition-all text-sm"
+                      placeholder="you@email.com"
+                      value={formData.email}
+                      onChange={e => setFormData({...formData, email: e.target.value})}
+                    />
+                    <p className="text-white/30 text-[0.55rem] mt-1">Your ticket will be sent to this email</p>
+                  </div>
+                  <div>
+                    <label className="text-[0.6rem] font-bold text-white/40 uppercase tracking-widest mb-2 block">Phone (Optional)</label>
+                    <input
+                      className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white focus:border-purple-500 focus:ring-1 focus:ring-purple-500/20 outline-none transition-all text-sm"
+                      placeholder="+233 xxx xxx xxxx"
+                      value={formData.phone}
+                      onChange={e => setFormData({...formData, phone: e.target.value})}
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="flex items-center justify-center gap-3 w-full h-14 rounded-xl font-bold text-sm tracking-[0.15em] uppercase text-white transition-all"
+                    style={{ background: 'linear-gradient(135deg, #A855F7, #00C853)', boxShadow: '0 0 40px rgba(168,85,247,0.3)' }}
+                  >
+                    {loading ? (
+                      <Loader2 className="animate-spin" />
+                    ) : (
+                      <>
+                        <CreditCard size={18} />
+                        PAY GHS {selectedTicketData.price}
+                      </>
+                    )}
+                  </button>
+
+                  <p className="text-center text-white/30 text-[0.55rem]">
+                    Secure payment powered by Paystack
+                  </p>
+                </form>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Social follow */}
+          <div className="text-center space-y-4 mb-8">
             <a
               href="https://instagram.com/astrowaveevent"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center justify-center gap-3 w-full h-12 rounded-xl font-bold text-xs tracking-[0.15em] uppercase text-white/60 border border-white/10 hover:border-white/25 hover:text-white transition-all"
             >
-              <ExternalLink size={14} />
+              <Instagram size={14} />
               FOLLOW @ASTROWAVEEVENT FOR UPDATES
             </a>
           </div>
 
           {/* Footer */}
-          <div className="text-center mt-8 space-y-2">
-            <p className="text-[0.55rem] font-bold text-white/20 uppercase tracking-widest">Organized by</p>
-            <p className="text-[0.7rem] font-bold text-white/40 uppercase tracking-wider">AstroWave Entertainment</p>
+          <div className="text-center space-y-2 pb-8">
+            <p className="text-[0.5rem] font-bold text-white/20 uppercase tracking-widest">Organized by</p>
+            <p className="text-[0.65rem] font-bold text-white/40 uppercase tracking-wider">AstroWave Entertainment</p>
           </div>
         </motion.div>
       </div>
