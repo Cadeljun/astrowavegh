@@ -1,25 +1,24 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-// Routes that should NOT be redirected to /tickets on main domain
-const ALLOWED_ROUTES = [
-  '/tickets',
-  '/scanner',
+// Routes allowed on main domain (admin, dev, api)
+const MAIN_ALLOWED = [
   '/admin',
   '/dev',
   '/api',
   '/auth',
   '/_next',
   '/favicon',
+  '/logo',
 ]
 
-// Protected routes that require authentication
-const protectedRoutes = [
-  '/admin',
-  '/dev',
-]
+// Routes allowed on tickets subdomain
+const TICKET_ROUTES = ['/tickets', '/tickets/verify', '/tickets/preview', '/_next', '/api/paystack', '/api/tickets']
 
-// API routes that require authentication
+// Routes allowed on scan subdomain
+const SCAN_ROUTES = ['/scan', '/scan/login', '/_next', '/api/tickets']
+
+// Protected API routes
 const protectedApiRoutes = [
   '/api/admin/create-user',
   '/api/cloudinary/delete',
@@ -32,100 +31,57 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
   const hostname = request.headers.get('host') || ''
 
-  // ── TICKET SUBDOMAIN ──────────────────────────────────────────
-  // If on tickets.astrowavegh.com, serve ticket/scanner pages
   const isTicketSubdomain = hostname.includes('tickets.astrowavegh.com')
+  const isScanSubdomain = hostname.includes('scan.astrowavegh.com')
 
+  // ── SCAN SUBDOMAIN ────────────────────────────────────────────
+  if (isScanSubdomain) {
+    const isAllowed = SCAN_ROUTES.some(r => pathname.startsWith(r)) || pathname.includes('.')
+    if (!isAllowed) {
+      return NextResponse.redirect(new URL('/scan', request.url))
+    }
+    return addSecurityHeaders(NextResponse.next())
+  }
+
+  // ── TICKETS SUBDOMAIN ─────────────────────────────────────────
   if (isTicketSubdomain) {
-    // On ticket subdomain, redirect non-ticket/scanner routes to /tickets
-    const isTicketRoute = pathname.startsWith('/tickets') || 
-                          pathname.startsWith('/scanner') ||
-                          pathname.startsWith('/_next') ||
-                          pathname.startsWith('/api/tickets') ||
-                          pathname.includes('.')
-
-    if (!isTicketRoute) {
+    const isAllowed = TICKET_ROUTES.some(r => pathname.startsWith(r)) || pathname.includes('.')
+    if (!isAllowed) {
       return NextResponse.redirect(new URL('/tickets', request.url))
     }
-
-    // Add security headers
-    const response = NextResponse.next()
-    response.headers.set('X-DNS-Prefetch-Control', 'on')
-    response.headers.set('X-Content-Type-Options', 'nosniff')
-    response.headers.set('X-Frame-Options', 'SAMEORIGIN')
-    response.headers.set('X-XSS-Protection', '1; mode=block')
-    response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
-    return response
+    return addSecurityHeaders(NextResponse.next())
   }
 
   // ── MAIN DOMAIN LOCKDOWN ──────────────────────────────────────
-  // Redirect all public pages to /tickets on main domain
-  const isAllowedRoute = ALLOWED_ROUTES.some(route => pathname.startsWith(route))
+  // Only admin, dev, api, auth routes allowed on main domain
+  const isAllowed = MAIN_ALLOWED.some(r => pathname.startsWith(r)) || pathname.includes('.')
   
-  if (!isAllowedRoute) {
-    return NextResponse.redirect(new URL('/tickets', request.url))
+  if (!isAllowed) {
+    // Redirect everything else to tickets subdomain
+    return NextResponse.redirect(new URL('https://tickets.astrowavegh.com/tickets', request.url))
   }
 
   // ── API AUTH CHECK ────────────────────────────────────────────
-  const isProtectedApi = protectedApiRoutes.some(route => pathname.startsWith(route))
-
+  const isProtectedApi = protectedApiRoutes.some(r => pathname.startsWith(r))
   if (isProtectedApi) {
     const authHeader = request.headers.get('authorization')
-    
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json(
-        { error: 'Unauthorized. Authentication required.' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
   }
 
-  // ── SECURITY HEADERS ──────────────────────────────────────────
-  const response = NextResponse.next()
+  return addSecurityHeaders(NextResponse.next())
+}
 
+function addSecurityHeaders(response: NextResponse) {
   response.headers.set('X-DNS-Prefetch-Control', 'on')
   response.headers.set('X-Content-Type-Options', 'nosniff')
   response.headers.set('X-Frame-Options', 'SAMEORIGIN')
   response.headers.set('X-XSS-Protection', '1; mode=block')
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
-  response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()')
-  response.headers.set(
-    'Content-Security-Policy',
-    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com https://*.firebaseio.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' https://res.cloudinary.com https://images.unsplash.com https://picsum.photos https://placehold.co data: blob:; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://api.cloudinary.com; frame-src 'self' https://*.firebaseapp.com;"
-  )
-
-  // ── CORS FOR API ROUTES ───────────────────────────────────────
-  if (pathname.startsWith('/api/')) {
-    const origin = request.headers.get('origin')
-    const allowedOrigins = [
-      'https://astrowavegh.com',
-      'https://www.astrowavegh.com',
-      'https://tickets.astrowavegh.com',
-      'https://staging.astrowavegh.com',
-      'http://localhost:3000',
-      'http://localhost:9003',
-    ]
-
-    if (origin && allowedOrigins.includes(origin)) {
-      response.headers.set('Access-Control-Allow-Origin', origin)
-    } else {
-      response.headers.set('Access-Control-Allow-Origin', 'https://astrowavegh.com')
-    }
-    
-    response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
-    response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization')
-    response.headers.set('Access-Control-Max-Age', '86400')
-  }
-
-  if (request.method === 'OPTIONS') {
-    return new NextResponse(null, { status: 200, headers: response.headers })
-  }
-
   return response
 }
 
 export const config = {
-  matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
-  ],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)'],
 }
