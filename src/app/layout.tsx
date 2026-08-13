@@ -78,11 +78,11 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: '/favicon.svg', type: 'image/svg+xml' },
-      { url: '/favicon.png', type: 'image/png' },
-      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/favicon-awe.svg', type: 'image/svg+xml' },
+      { url: '/favicon-awe.png', type: 'image/png' },
+      { url: '/favicon-awe.ico', sizes: 'any' },
     ],
-    apple: '/favicon.png',
+    apple: '/favicon-awe.png',
   },
 };
 
