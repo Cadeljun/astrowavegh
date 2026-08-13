@@ -5,13 +5,18 @@ import React, { useEffect } from 'react';
 export default function ScanLayout({ children }: { children: React.ReactNode }) {
   // Override favicon for scan subdomain
   useEffect(() => {
-    const setFavicon = (href: string) => {
-      const links = document.querySelectorAll("link[rel*='icon']");
-      links.forEach(link => {
-        (link as HTMLLinkElement).href = href;
-      });
+    const setFavicon = () => {
+      // Remove existing favicons
+      document.querySelectorAll("link[rel*='icon']").forEach(el => el.remove());
+      
+      // Add MM favicon
+      const link = document.createElement('link');
+      link.rel = 'icon';
+      link.type = 'image/png';
+      link.href = '/favicon-mm.png';
+      document.head.appendChild(link);
     };
-    setFavicon('/favicon-mm.svg');
+    setFavicon();
   }, []);
 
   return (
