@@ -1,12 +1,12 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Calendar, MapPin, Clock, Ticket, ArrowRight, Loader2, CheckCircle, X, CreditCard, Instagram } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Calendar, MapPin, Clock, Ticket, ArrowRight, Loader2, CheckCircle, X, CreditCard, Instagram, Minus, Plus } from 'lucide-react';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 
-const TICKETS = [
+const TICKET_TYPES = [
   {
     id: 'standard',
     name: 'Standard',
@@ -19,6 +19,7 @@ const TICKETS = [
     price: 180,
     unit: 'per group',
     badge: 'Save GH¢20',
+    fixedQty: 4,
   },
 ];
 
@@ -26,6 +27,7 @@ export default function TicketsPage() {
   const { toast } = useToast();
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   const [selectedTicket, setSelectedTicket] = useState<string | null>(null);
+  const [quantity, setQuantity] = useState(1);
   const [showCheckout, setShowCheckout] = useState(false);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({ name: '', email: '', phone: '' });
@@ -46,7 +48,19 @@ export default function TicketsPage() {
     return () => clearInterval(timer);
   }, []);
 
-  const selectedTicketData = TICKETS.find(t => t.id === selectedTicket);
+  const selectedTicketData = TICKET_TYPES.find(t => t.id === selectedTicket);
+  const isGroup = selectedTicketData?.id === 'group';
+  const ticketQty = isGroup ? 4 : quantity;
+  const totalAmount = selectedTicketData ? (isGroup ? selectedTicketData.price : selectedTicketData.price * quantity) : 0;
+
+  const handleSelectTicket = (ticketId: string) => {
+    setSelectedTicket(ticketId);
+    const ticket = TICKET_TYPES.find(t => t.id === ticketId);
+    if (ticket?.fixedQty) {
+      setQuantity(ticket.fixedQty);
+    }
+    setShowCheckout(true);
+  };
 
   const handlePayment = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,9 +75,10 @@ export default function TicketsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email: formData.email,
-          amount: selectedTicketData.price,
+          amount: totalAmount,
           ticketType: selectedTicketData.name,
           name: formData.name,
+          quantity: ticketQty,
         }),
       });
       const data = await res.json();
@@ -159,10 +174,10 @@ export default function TicketsPage() {
         >
           <p className="text-center text-xs font-bold uppercase tracking-[0.3em] mb-4" style={{ color: '#DAAF48' }}>SELECT TICKET</p>
 
-          {TICKETS.map((ticket) => (
+          {TICKET_TYPES.map((ticket) => (
             <button
               key={ticket.id}
-              onClick={() => { setSelectedTicket(ticket.id); setShowCheckout(true); }}
+              onClick={() => handleSelectTicket(ticket.id)}
               className="w-full text-left p-5 rounded-xl flex items-center justify-between transition-all"
               style={{
                 background: 'rgba(255,255,255,0.03)',
@@ -224,7 +239,7 @@ export default function TicketsPage() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="relative z-10 w-full max-w-md rounded-2xl p-8"
+            className="relative z-10 w-full max-w-md rounded-2xl p-8 max-h-[90vh] overflow-y-auto"
             style={{ background: '#0A0A0A', border: '1px solid rgba(218,175,72,0.15)' }}
           >
             <button onClick={() => setShowCheckout(false)} className="absolute top-4 right-4" style={{ color: '#B4B4B4' }}>
@@ -234,7 +249,41 @@ export default function TicketsPage() {
             <div className="text-center mb-6">
               <p className="text-[0.55rem] font-bold uppercase tracking-[0.3em] mb-2" style={{ color: '#DAAF48' }}>Complete Purchase</p>
               <h3 className="font-display text-2xl uppercase" style={{ color: '#F5F5F5' }}>{selectedTicketData.name}</h3>
-              <p className="font-display text-3xl mt-2" style={{ color: '#DAAF48' }}>GH¢{selectedTicketData.price}</p>
+            </div>
+
+            {/* Quantity selector (only for standard tickets) */}
+            {!isGroup && (
+              <div className="mb-6">
+                <label className="text-[0.5rem] font-bold uppercase tracking-widest block mb-3 text-center" style={{ color: '#B4B4B4' }}>Number of Tickets</label>
+                <div className="flex items-center justify-center gap-6">
+                  <button
+                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                    className="w-12 h-12 rounded-lg flex items-center justify-center transition-all"
+                    style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
+                  >
+                    <Minus size={18} style={{ color: '#F5F5F5' }} />
+                  </button>
+                  <span className="font-display text-4xl w-16 text-center" style={{ color: '#F5F5F5' }}>{quantity}</span>
+                  <button
+                    onClick={() => setQuantity(Math.min(10, quantity + 1))}
+                    className="w-12 h-12 rounded-lg flex items-center justify-center transition-all"
+                    style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
+                  >
+                    <Plus size={18} style={{ color: '#F5F5F5' }} />
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Price summary */}
+            <div className="p-4 rounded-xl mb-6 text-center" style={{ background: 'rgba(218,175,72,0.05)', border: '1px solid rgba(218,175,72,0.1)' }}>
+              <p className="text-[0.5rem] font-bold uppercase tracking-widest mb-1" style={{ color: '#B4B4B4' }}>
+                {isGroup ? 'Group of 4' : `${quantity} × GH¢${selectedTicketData.price}`}
+              </p>
+              <p className="font-display text-3xl" style={{ color: '#DAAF48' }}>GH¢{totalAmount}</p>
+              {quantity > 1 && !isGroup && (
+                <p className="text-[0.5rem] mt-1" style={{ color: '#B4B4B4' }}>{quantity} tickets will be generated</p>
+              )}
             </div>
 
             <form onSubmit={handlePayment} className="space-y-4">
@@ -260,11 +309,14 @@ export default function TicketsPage() {
                   value={formData.email}
                   onChange={e => setFormData({...formData, email: e.target.value})}
                 />
-                <p className="text-[0.45rem] mt-1" style={{ color: '#B4B4B4' }}>Ticket will be sent here</p>
+                <p className="text-[0.45rem] mt-1" style={{ color: '#B4B4B4' }}>
+                  {quantity > 1 ? `${quantity} tickets will be sent to this email` : 'Your ticket will be sent here'}
+                </p>
               </div>
               <div>
-                <label className="text-[0.5rem] font-bold uppercase tracking-widest block mb-2" style={{ color: '#B4B4B4' }}>Phone (Optional)</label>
+                <label className="text-[0.5rem] font-bold uppercase tracking-widest block mb-2" style={{ color: '#B4B4B4' }}>Phone</label>
                 <input
+                  required
                   className="w-full px-4 py-3 rounded-lg text-sm outline-none"
                   style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: '#F5F5F5' }}
                   placeholder="+233 xxx xxx xxxx"
@@ -279,7 +331,7 @@ export default function TicketsPage() {
                 className="w-full h-12 rounded-lg font-bold text-sm uppercase tracking-widest transition-all"
                 style={{ background: '#DAAF48', color: '#090909' }}
               >
-                {loading ? <Loader2 size={16} className="animate-spin mx-auto" /> : `PAY GH¢${selectedTicketData.price}`}
+                {loading ? <Loader2 size={16} className="animate-spin mx-auto" /> : `PAY GH¢${totalAmount}`}
               </button>
 
               <p className="text-center text-[0.45rem]" style={{ color: '#B4B4B4' }}>

@@ -3,34 +3,19 @@
 import React, { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { CheckCircle, XCircle, Loader2, ArrowLeft, Download } from 'lucide-react';
+import { CheckCircle, XCircle, Loader2, ArrowLeft, Download, Ticket } from 'lucide-react';
 import Link from 'next/link';
 import MaskMirageTicket from '@/components/tickets/MaskMirageTicket';
-import { generateTicketId } from '@/lib/tickets';
 
 function VerifyContent() {
   const searchParams = useSearchParams();
   const reference = searchParams.get('reference');
-  const ticketId = searchParams.get('id');
-  
+
   const [status, setStatus] = useState<'loading' | 'success' | 'failed'>('loading');
-  const [ticket, setTicket] = useState<any>(null);
+  const [data, setData] = useState<any>(null);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    // If just viewing a ticket by ID
-    if (ticketId && !reference) {
-      setStatus('success');
-      setTicket({
-        ticketId: ticketId,
-        name: 'Ticket Holder',
-        email: '',
-        ticketType: 'GENERAL ADMISSION',
-        amount: 50,
-      });
-      return;
-    }
-
     if (!reference) {
       setStatus('failed');
       setError('No payment reference found');
@@ -40,18 +25,14 @@ function VerifyContent() {
     const verifyPayment = async () => {
       try {
         const res = await fetch(`/api/paystack/verify?reference=${reference}`);
-        const data = await res.json();
+        const result = await res.json();
 
-        if (data.success) {
-          const newTicketId = generateTicketId();
+        if (result.success) {
           setStatus('success');
-          setTicket({
-            ...data.ticket,
-            ticketId: newTicketId,
-          });
+          setData(result);
         } else {
           setStatus('failed');
-          setError(data.error || 'Payment verification failed');
+          setError(result.error || 'Payment verification failed');
         }
       } catch (err: any) {
         setStatus('failed');
@@ -60,66 +41,74 @@ function VerifyContent() {
     };
 
     verifyPayment();
-  }, [reference, ticketId]);
+  }, [reference]);
 
   return (
-    <div className="min-h-screen bg-[#090909] flex flex-col items-center justify-center px-6 py-12">
-      <div className="relative z-10 w-full max-w-[1500px]">
+    <div className="min-h-screen" style={{ background: '#090909' }}>
+      <div className="max-w-[1500px] mx-auto px-6 py-12">
         {/* Back link */}
         <div className="mb-8">
-          <Link href="/tickets" className="inline-flex items-center gap-2 text-white/40 hover:text-white transition-colors">
+          <Link href="/tickets" className="inline-flex items-center gap-2 text-sm" style={{ color: '#B4B4B4' }}>
             <ArrowLeft size={14} />
-            <span className="text-xs">Back to Tickets</span>
+            Back to Tickets
           </Link>
         </div>
 
         {/* Loading */}
         {status === 'loading' && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-center py-20"
-          >
-            <Loader2 size={48} className="animate-spin text-[#DAAF48] mx-auto mb-4" />
-            <h2 className="font-display text-xl text-white uppercase mb-2">Verifying Payment</h2>
-            <p className="text-white/50 text-sm">Please wait while we confirm your ticket...</p>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-20">
+            <Loader2 size={48} className="animate-spin mx-auto mb-4" style={{ color: '#DAAF48' }} />
+            <h2 className="font-display text-xl uppercase" style={{ color: '#F5F5F5' }}>Verifying Payment</h2>
+            <p className="text-sm mt-2" style={{ color: '#B4B4B4' }}>Please wait...</p>
           </motion.div>
         )}
 
         {/* Success */}
-        {status === 'success' && ticket && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-          >
-            {/* Success message */}
-            <div className="text-center mb-8">
-              <div className="w-16 h-16 rounded-full bg-[#DAAF48]/10 flex items-center justify-center mx-auto mb-4">
-                <CheckCircle size={32} className="text-[#DAAF48]" />
+        {status === 'success' && data && (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+            <div className="text-center mb-10">
+              <div className="w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center" style={{ background: 'rgba(218,175,72,0.1)' }}>
+                <CheckCircle size={32} style={{ color: '#DAAF48' }} />
               </div>
-              <h2 className="font-display text-3xl text-white uppercase mb-2">Ticket Confirmed</h2>
-              {ticket.email && (
-                <p className="text-white/50 text-sm">Your ticket has been sent to {ticket.email}</p>
-              )}
+              <h2 className="font-display text-3xl uppercase mb-2" style={{ color: '#F5F5F5' }}>
+                {data.quantity > 1 ? 'Tickets Confirmed' : 'Ticket Confirmed'}
+              </h2>
+              <p style={{ color: '#B4B4B4' }}>
+                {data.quantity > 1
+                  ? `${data.quantity} tickets sent to ${data.email}`
+                  : `Ticket sent to ${data.email}`}
+              </p>
             </div>
 
-            {/* Ticket */}
-            <div className="flex justify-center">
-              <MaskMirageTicket
-                ticketId={ticket.ticketId}
-                name={ticket.name || 'Ticket Holder'}
-                ticketType={ticket.ticketType || 'GENERAL ADMISSION'}
-              />
+            {/* Tickets */}
+            <div className="space-y-8">
+              {data.tickets.map((ticket: any, index: number) => (
+                <div key={ticket.ticketId}>
+                  {data.quantity > 1 && (
+                    <p className="text-center text-xs font-bold uppercase tracking-widest mb-4" style={{ color: '#B4B4B4' }}>
+                      Ticket {index + 1} of {data.quantity}
+                    </p>
+                  )}
+                  <div className="flex justify-center">
+                    <MaskMirageTicket
+                      ticketId={ticket.ticketId}
+                      name={data.name}
+                      ticketType={ticket.ticketType}
+                    />
+                  </div>
+                </div>
+              ))}
             </div>
 
             {/* Actions */}
-            <div className="flex justify-center mt-8 gap-4">
+            <div className="flex justify-center mt-10 gap-4">
               <button
                 onClick={() => window.print()}
-                className="flex items-center gap-2 px-6 py-3 rounded-lg bg-white/5 border border-white/10 text-white/60 hover:text-white hover:border-[#DAAF48] transition-all text-sm"
+                className="flex items-center gap-2 px-6 py-3 rounded-lg text-sm uppercase tracking-widest"
+                style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#F5F5F5' }}
               >
                 <Download size={14} />
-                Save Ticket
+                Save All Tickets
               </button>
             </div>
           </motion.div>
@@ -127,21 +116,12 @@ function VerifyContent() {
 
         {/* Failed */}
         {status === 'failed' && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-center py-20"
-          >
-            <div className="w-20 h-20 rounded-full bg-red-500/10 flex items-center justify-center mx-auto mb-6">
-              <XCircle size={40} className="text-red-400" />
-            </div>
-            <h2 className="font-display text-2xl text-white uppercase mb-2">Payment Failed</h2>
-            <p className="text-white/50 text-sm mb-8">{error || 'Something went wrong.'}</p>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-20">
+            <XCircle size={48} className="mx-auto mb-4" style={{ color: '#EF4444' }} />
+            <h2 className="font-display text-2xl uppercase mb-2" style={{ color: '#F5F5F5' }}>Payment Failed</h2>
+            <p className="mb-8" style={{ color: '#B4B4B4' }}>{error}</p>
             <Link href="/tickets">
-              <button
-                className="px-8 py-3 rounded-lg font-bold text-sm text-white uppercase"
-                style={{ background: 'linear-gradient(135deg, #DAAF48, #B8943F)' }}
-              >
+              <button className="px-8 py-3 rounded-lg font-bold text-sm uppercase" style={{ background: '#DAAF48', color: '#090909' }}>
                 Try Again
               </button>
             </Link>
@@ -155,8 +135,8 @@ function VerifyContent() {
 export default function VerifyTicketPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-[#090909] flex items-center justify-center">
-        <Loader2 size={32} className="animate-spin text-[#DAAF48]" />
+      <div className="min-h-screen flex items-center justify-center" style={{ background: '#090909' }}>
+        <Loader2 size={32} className="animate-spin" style={{ color: '#DAAF48' }} />
       </div>
     }>
       <VerifyContent />

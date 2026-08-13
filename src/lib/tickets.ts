@@ -2,7 +2,7 @@
 
 /**
  * Generate a unique Mask Mirage ticket ID
- * Format: MM26-XXXXXXXX (8 alphanumeric characters)
+ * Format: MM26-XXXXXXXX (8 hex characters)
  * Example: MM26-9DD3A956
  */
 export function generateTicketId(): string {
@@ -25,56 +25,20 @@ export function isValidTicketIdFormat(id: string): boolean {
 }
 
 /**
- * Generate QR code data for a ticket
- * Just encodes the ticket ID for maximum scannability
- */
-export function getQRData(ticketId: string): string {
-  return ticketId;
-}
-
-/**
  * Ticket types and pricing
  */
 export const TICKET_TYPES = {
   STANDARD: {
     id: 'standard',
-    name: 'GENERAL ADMISSION',
+    name: 'Standard',
     price: 50,
     currency: 'GHS',
   },
   GROUP: {
     id: 'group',
-    name: 'GROUP OF 4',
+    name: 'Group of 4',
     price: 180,
     currency: 'GHS',
+    fixedQty: 4,
   },
 } as const;
-
-/**
- * Generate a complete ticket object
- */
-export function createTicket(
-  name: string,
-  email: string,
-  type: keyof typeof TICKET_TYPES,
-  paymentReference: string
-) {
-  const ticketId = generateTicketId();
-  const ticketType = TICKET_TYPES[type];
-  
-  return {
-    ticketId,
-    name,
-    email,
-    type: ticketType.id,
-    typeName: ticketType.name,
-    price: ticketType.price,
-    currency: ticketType.currency,
-    event: 'Mask Mirage Party',
-    eventDate: '2026-10-10',
-    venue: 'Coaches Lounge, East Legon',
-    paymentReference,
-    status: 'valid' as const,
-    createdAt: new Date().toISOString(),
-  };
-}
