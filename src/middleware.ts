@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-// Routes that should NOT be redirected to /tickets
+// Routes that should NOT be redirected to /tickets on main domain
 const ALLOWED_ROUTES = [
   '/tickets',
   '/scanner',
@@ -16,16 +16,6 @@ const ALLOWED_ROUTES = [
 // Protected routes that require authentication
 const protectedRoutes = [
   '/admin',
-  '/admin/dashboard',
-  '/admin/events',
-  '/admin/users',
-  '/admin/cms',
-  '/admin/gallery',
-  '/admin/talent',
-  '/admin/contacts',
-  '/admin/inquiries',
-  '/admin/uploads',
-  '/admin/platform',
   '/dev',
 ]
 
@@ -40,16 +30,43 @@ const protectedApiRoutes = [
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
+  const hostname = request.headers.get('host') || ''
 
-  // ── TICKET LOCKDOWN ──────────────────────────────────────────────
-  // Redirect all public pages to /tickets
+  // ── TICKET SUBDOMAIN ──────────────────────────────────────────
+  // If on ticket.astrowavegh.com, serve ticket/scanner pages
+  const isTicketSubdomain = hostname.includes('ticket.astrowavegh.com')
+
+  if (isTicketSubdomain) {
+    // On ticket subdomain, redirect non-ticket/scanner routes to /tickets
+    const isTicketRoute = pathname.startsWith('/tickets') || 
+                          pathname.startsWith('/scanner') ||
+                          pathname.startsWith('/_next') ||
+                          pathname.startsWith('/api/tickets') ||
+                          pathname.includes('.')
+
+    if (!isTicketRoute) {
+      return NextResponse.redirect(new URL('/tickets', request.url))
+    }
+
+    // Add security headers
+    const response = NextResponse.next()
+    response.headers.set('X-DNS-Prefetch-Control', 'on')
+    response.headers.set('X-Content-Type-Options', 'nosniff')
+    response.headers.set('X-Frame-Options', 'SAMEORIGIN')
+    response.headers.set('X-XSS-Protection', '1; mode=block')
+    response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
+    return response
+  }
+
+  // ── MAIN DOMAIN LOCKDOWN ──────────────────────────────────────
+  // Redirect all public pages to /tickets on main domain
   const isAllowedRoute = ALLOWED_ROUTES.some(route => pathname.startsWith(route))
   
   if (!isAllowedRoute) {
     return NextResponse.redirect(new URL('/tickets', request.url))
   }
 
-  // ── API AUTH CHECK ───────────────────────────────────────────────
+  // ── API AUTH CHECK ────────────────────────────────────────────
   const isProtectedApi = protectedApiRoutes.some(route => pathname.startsWith(route))
 
   if (isProtectedApi) {
@@ -63,7 +80,7 @@ export function middleware(request: NextRequest) {
     }
   }
 
-  // ── SECURITY HEADERS ─────────────────────────────────────────────
+  // ── SECURITY HEADERS ──────────────────────────────────────────
   const response = NextResponse.next()
 
   response.headers.set('X-DNS-Prefetch-Control', 'on')
@@ -77,14 +94,14 @@ export function middleware(request: NextRequest) {
     "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com https://*.firebaseio.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' https://res.cloudinary.com https://images.unsplash.com https://picsum.photos https://placehold.co data: blob:; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://api.cloudinary.com; frame-src 'self' https://*.firebaseapp.com;"
   )
 
-  // ── CORS FOR API ROUTES ──────────────────────────────────────────
+  // ── CORS FOR API ROUTES ───────────────────────────────────────
   if (pathname.startsWith('/api/')) {
     const origin = request.headers.get('origin')
     const allowedOrigins = [
       'https://astrowavegh.com',
       'https://www.astrowavegh.com',
+      'https://ticket.astrowavegh.com',
       'https://staging.astrowavegh.com',
-      'https://astrowaveegh.netlify.app',
       'http://localhost:3000',
       'http://localhost:9003',
     ]
