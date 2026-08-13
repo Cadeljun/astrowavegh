@@ -4,6 +4,7 @@ import type { NextRequest } from 'next/server'
 // Routes that should NOT be redirected to /tickets
 const ALLOWED_ROUTES = [
   '/tickets',
+  '/scanner',
   '/admin',
   '/dev',
   '/api',

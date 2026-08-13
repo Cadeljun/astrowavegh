@@ -1,13 +1,11 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Camera, X, CheckCircle, XCircle, AlertTriangle, Loader2, LogOut, Users, Ticket, Clock, Zap } from 'lucide-react';
-import { useAuth } from '@/context/AuthContext';
+import { Camera, CheckCircle, XCircle, AlertTriangle, Loader2, LogOut, Users, Ticket, Zap } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { collection, query, where, onSnapshot, getCountFromServer } from 'firebase/firestore';
+import { collection, onSnapshot } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
-import Link from 'next/link';
 
 type ScanResult = {
   status: 'VALID' | 'USED' | 'INVALID' | 'ERROR';
@@ -21,23 +19,31 @@ type ScanResult = {
 } | null;
 
 export default function ScannerPage() {
-  const { user, loading: authLoading, logout } = useAuth();
   const router = useRouter();
   const db = useFirestore();
 
-  const [scanning, setScanning] = useState(false);
+  const [authenticated, setAuthenticated] = useState(false);
   const [manualInput, setManualInput] = useState('');
   const [verifying, setVerifying] = useState(false);
   const [result, setResult] = useState<ScanResult>(null);
   const [recentScans, setRecentScans] = useState<any[]>([]);
   const [stats, setStats] = useState({ total: 0, checkedIn: 0, remaining: 0 });
 
+  // Check scanner auth
+  useEffect(() => {
+    const isAuth = sessionStorage.getItem('scanner_auth');
+    if (!isAuth) {
+      router.replace('/scanner/login');
+    } else {
+      setAuthenticated(true);
+    }
+  }, [router]);
+
   // Load stats
   useEffect(() => {
-    if (!db) return;
+    if (!db || !authenticated) return;
 
-    const q = query(collection(db, 'tickets'));
-    const unsub = onSnapshot(q, (snap) => {
+    const unsub = onSnapshot(collection(db, 'tickets'), (snap) => {
       const tickets = snap.docs.map(d => d.data());
       const total = tickets.length;
       const checkedIn = tickets.filter(t => t.status === 'used').length;
@@ -45,14 +51,13 @@ export default function ScannerPage() {
     });
 
     return () => unsub();
-  }, [db]);
+  }, [db, authenticated]);
 
-  // Auth check
-  useEffect(() => {
-    if (!authLoading && !user) {
-      router.replace('/admin/login');
-    }
-  }, [user, authLoading, router]);
+  const handleLogout = () => {
+    sessionStorage.removeItem('scanner_auth');
+    sessionStorage.removeItem('scanner_user');
+    router.push('/scanner/login');
+  };
 
   const verifyTicket = async (ticketId: string) => {
     setVerifying(true);
@@ -68,10 +73,9 @@ export default function ScannerPage() {
       const data = await res.json();
       setResult(data);
 
-      // Add to recent scans
       if (data.status === 'VALID' || data.status === 'USED') {
         setRecentScans(prev => [{
-          id: ticketId,
+          id: ticketId.toUpperCase(),
           status: data.status,
           name: data.ticket?.name || 'Unknown',
           ticketType: data.ticket?.ticketType || 'Standard',
@@ -93,14 +97,7 @@ export default function ScannerPage() {
     }
   };
 
-  // Placeholder for camera scanning (requires additional library)
-  const startScanning = () => {
-    setScanning(true);
-    // Camera scanning would use html5-qrcode or similar
-    // For now, show manual input
-  };
-
-  if (authLoading) {
+  if (!authenticated) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: '#090909' }}>
         <Loader2 size={32} className="animate-spin" style={{ color: '#DAAF48' }} />
@@ -122,7 +119,7 @@ export default function ScannerPage() {
               <p className="text-[0.5rem] uppercase tracking-widest" style={{ color: '#B4B4B4' }}>Mask Mirage Party</p>
             </div>
           </div>
-          <button onClick={logout} className="flex items-center gap-2 text-xs" style={{ color: '#B4B4B4' }}>
+          <button onClick={handleLogout} className="flex items-center gap-2 text-xs" style={{ color: '#B4B4B4' }}>
             <LogOut size={14} />
             Sign Out
           </button>
@@ -152,16 +149,6 @@ export default function ScannerPage() {
           <h2 className="font-display text-xl uppercase mb-2" style={{ color: '#F5F5F5' }}>Scan Ticket QR</h2>
           <p className="text-sm mb-6" style={{ color: '#B4B4B4' }}>Point camera at ticket QR code or enter ID manually</p>
 
-          {/* Camera scan button */}
-          <button
-            onClick={startScanning}
-            className="w-full max-w-xs h-14 rounded-xl font-bold text-sm uppercase tracking-widest mb-6 transition-all"
-            style={{ background: '#DAAF48', color: '#090909' }}
-          >
-            <Camera size={18} className="inline mr-2" />
-            Open Camera Scanner
-          </button>
-
           {/* Manual input */}
           <form onSubmit={handleManualSubmit} className="flex gap-3 max-w-md mx-auto">
             <input
@@ -176,7 +163,7 @@ export default function ScannerPage() {
               type="submit"
               disabled={verifying || !manualInput.trim()}
               className="px-6 py-3 rounded-lg font-bold text-sm uppercase"
-              style={{ background: 'rgba(218,175,72,0.1)', border: '1px solid rgba(218,175,72,0.3)', color: '#DAAF48' }}
+              style={{ background: '#DAAF48', color: '#090909' }}
             >
               {verifying ? <Loader2 size={16} className="animate-spin" /> : 'Verify'}
             </button>
@@ -207,9 +194,9 @@ export default function ScannerPage() {
               {(result.status === 'INVALID' || result.status === 'ERROR') && <XCircle size={64} className="mx-auto mb-4" style={{ color: '#EF4444' }} />}
 
               <h2 className="font-display text-3xl uppercase mb-2" style={{ color: '#F5F5F5' }}>
-                {result.status === 'VALID' ? 'VALID' :
-                 result.status === 'USED' ? 'ALREADY USED' :
-                 'INVALID'}
+                {result.status === 'VALID' ? '✓ VALID' :
+                 result.status === 'USED' ? '⚠ ALREADY USED' :
+                 '✗ INVALID'}
               </h2>
               <p className="text-sm mb-4" style={{ color: '#B4B4B4' }}>{result.message}</p>
 
