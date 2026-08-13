@@ -33,8 +33,8 @@ export function middleware(request: NextRequest) {
   const hostname = request.headers.get('host') || ''
 
   // ── TICKET SUBDOMAIN ──────────────────────────────────────────
-  // If on ticket.astrowavegh.com, serve ticket/scanner pages
-  const isTicketSubdomain = hostname.includes('ticket.astrowavegh.com')
+  // If on tickets.astrowavegh.com, serve ticket/scanner pages
+  const isTicketSubdomain = hostname.includes('tickets.astrowavegh.com')
 
   if (isTicketSubdomain) {
     // On ticket subdomain, redirect non-ticket/scanner routes to /tickets
@@ -100,7 +100,7 @@ export function middleware(request: NextRequest) {
     const allowedOrigins = [
       'https://astrowavegh.com',
       'https://www.astrowavegh.com',
-      'https://ticket.astrowavegh.com',
+      'https://tickets.astrowavegh.com',
       'https://staging.astrowavegh.com',
       'http://localhost:3000',
       'http://localhost:9003',
