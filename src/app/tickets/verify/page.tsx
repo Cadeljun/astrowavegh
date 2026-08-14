@@ -9,7 +9,7 @@ import MaskMirageTicket from '@/components/tickets/MaskMirageTicket';
 
 function VerifyContent() {
   const searchParams = useSearchParams();
-  const reference = searchParams.get('reference');
+  const reference = searchParams.get('reference') || searchParams.get('trxref');
 
   const [status, setStatus] = useState<'loading' | 'success' | 'failed'>('loading');
   const [data, setData] = useState<any>(null);
@@ -38,11 +38,13 @@ function VerifyContent() {
         }
       } catch (err: any) {
         setStatus('failed');
-        setError('Could not verify payment');
+        setError('Could not verify payment. Please contact support with your payment reference.');
       }
     };
 
-    verifyPayment();
+    // Small delay to ensure Paystack has processed
+    const timer = setTimeout(verifyPayment, 2000);
+    return () => clearTimeout(timer);
   }, [reference]);
 
   const saveTicketAsImage = async (index: number) => {
