@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useEffect, useState, Suspense } from 'react';
+import React, { useEffect, useState, Suspense, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { CheckCircle, XCircle, Loader2, ArrowLeft, Download, Ticket } from 'lucide-react';
+import { CheckCircle, XCircle, Loader2, ArrowLeft, Download, Share2, Image } from 'lucide-react';
 import Link from 'next/link';
 import MaskMirageTicket from '@/components/tickets/MaskMirageTicket';
 
@@ -14,6 +14,8 @@ function VerifyContent() {
   const [status, setStatus] = useState<'loading' | 'success' | 'failed'>('loading');
   const [data, setData] = useState<any>(null);
   const [error, setError] = useState('');
+  const [saving, setSaving] = useState<number | null>(null);
+  const [saved, setSaved] = useState<number[]>([]);
 
   useEffect(() => {
     if (!reference) {
@@ -43,6 +45,41 @@ function VerifyContent() {
     verifyPayment();
   }, [reference]);
 
+  const saveTicketAsImage = async (index: number) => {
+    setSaving(index);
+    try {
+      const { toPng } = await import('html-to-image');
+      const ticketEl = document.getElementById(`ticket-${index}`);
+      if (!ticketEl) return;
+
+      const dataUrl = await toPng(ticketEl, {
+        quality: 1,
+        pixelRatio: 2,
+        backgroundColor: '#090909',
+      });
+
+      // Download
+      const link = document.createElement('a');
+      link.download = `Mask-Mirage-Ticket-${data?.tickets[index]?.ticketId || index + 1}.png`;
+      link.href = dataUrl;
+      link.click();
+
+      setSaved(prev => [...prev, index]);
+    } catch (err) {
+      console.error('Save failed:', err);
+    } finally {
+      setSaving(null);
+    }
+  };
+
+  const saveAllTickets = async () => {
+    if (!data?.tickets) return;
+    for (let i = 0; i < data.tickets.length; i++) {
+      await saveTicketAsImage(i);
+      await new Promise(resolve => setTimeout(resolve, 500));
+    }
+  };
+
   return (
     <div className="min-h-screen" style={{ background: '#090909' }}>
       <div className="max-w-[1500px] mx-auto px-6 py-12">
@@ -66,6 +103,7 @@ function VerifyContent() {
         {/* Success */}
         {status === 'success' && data && (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+            {/* Success header */}
             <div className="text-center mb-10">
               <div className="w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center" style={{ background: 'rgba(218,175,72,0.1)' }}>
                 <CheckCircle size={32} style={{ color: '#DAAF48' }} />
@@ -78,10 +116,27 @@ function VerifyContent() {
                   ? `${data.quantity} tickets sent to ${data.email}`
                   : `Ticket sent to ${data.email}`}
               </p>
+              {data.emailSent && (
+                <p className="text-xs mt-2" style={{ color: '#00C853' }}>✓ Confirmation email sent</p>
+              )}
             </div>
 
+            {/* Save All Button */}
+            {data.quantity > 1 && (
+              <div className="flex justify-center mb-8">
+                <button
+                  onClick={saveAllTickets}
+                  className="flex items-center gap-2 px-8 py-3 rounded-lg font-bold text-sm uppercase tracking-widest"
+                  style={{ background: '#DAAF48', color: '#090909' }}
+                >
+                  <Download size={16} />
+                  Save All Tickets ({data.quantity})
+                </button>
+              </div>
+            )}
+
             {/* Tickets */}
-            <div className="space-y-8">
+            <div className="space-y-12">
               {data.tickets.map((ticket: any, index: number) => (
                 <div key={ticket.ticketId}>
                   {data.quantity > 1 && (
@@ -89,27 +144,61 @@ function VerifyContent() {
                       Ticket {index + 1} of {data.quantity}
                     </p>
                   )}
-                  <div className="flex justify-center">
+                  
+                  {/* Ticket with ID for screenshot */}
+                  <div id={`ticket-${index}`} className="flex justify-center">
                     <MaskMirageTicket
                       ticketId={ticket.ticketId}
                       name={data.name}
                       ticketType={ticket.ticketType}
                     />
                   </div>
+
+                  {/* Save button for each ticket */}
+                  <div className="flex justify-center mt-4 gap-3">
+                    <button
+                      onClick={() => saveTicketAsImage(index)}
+                      disabled={saving === index}
+                      className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-xs uppercase tracking-widest transition-all"
+                      style={{
+                        background: saved.includes(index) ? 'rgba(0,200,83,0.1)' : 'rgba(255,255,255,0.05)',
+                        border: `1px solid ${saved.includes(index) ? 'rgba(0,200,83,0.3)' : 'rgba(255,255,255,0.1)'}`,
+                        color: saved.includes(index) ? '#00C853' : '#B4B4B4',
+                      }}
+                    >
+                      {saving === index ? (
+                        <Loader2 size={14} className="animate-spin" />
+                      ) : saved.includes(index) ? (
+                        <CheckCircle size={14} />
+                      ) : (
+                        <Image size={14} />
+                      )}
+                      {saved.includes(index) ? 'Saved' : 'Save as Image'}
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(ticket.ticketId);
+                        alert('Ticket ID copied!');
+                      }}
+                      className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-xs uppercase tracking-widest"
+                      style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#B4B4B4' }}
+                    >
+                      Copy ID
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
 
-            {/* Actions */}
-            <div className="flex justify-center mt-10 gap-4">
-              <button
-                onClick={() => window.print()}
-                className="flex items-center gap-2 px-6 py-3 rounded-lg text-sm uppercase tracking-widest"
-                style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#F5F5F5' }}
-              >
-                <Download size={14} />
-                Save All Tickets
-              </button>
+            {/* Footer note */}
+            <div className="text-center mt-12 space-y-3">
+              <p className="text-xs" style={{ color: '#B4B4B4' }}>
+                Screenshot or save your tickets. Show the QR code or Ticket ID at the entrance.
+              </p>
+              <p className="text-xs" style={{ color: 'rgba(180,180,180,0.5)' }}>
+                A confirmation email has been sent to {data.email}
+              </p>
             </div>
           </motion.div>
         )}
