@@ -1,6 +1,17 @@
 import { NextResponse } from 'next/server'
+import { sendTicketEmail } from '@/lib/email'
 
 const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY
+
+function generateTicketId(): string {
+  const prefix = 'MM26'
+  const chars = '0123456789ABCDEF'
+  let id = ''
+  for (let i = 0; i < 8; i++) {
+    id += chars.charAt(Math.floor(Math.random() * chars.length))
+  }
+  return `${prefix}-${id}`
+}
 
 export async function GET(request: Request) {
   try {
@@ -43,6 +54,15 @@ export async function GET(request: Request) {
       tickets.push({ ticketId, ticketType })
     }
 
+    // Send email with tickets
+    const emailResult = await sendTicketEmail({
+      name,
+      email,
+      tickets,
+      amount,
+      quantity,
+    })
+
     return NextResponse.json({
       success: true,
       tickets,
@@ -51,19 +71,10 @@ export async function GET(request: Request) {
       ticketType,
       amount,
       quantity,
+      emailSent: emailResult.success,
     })
   } catch (error: any) {
     console.error('Verify error:', error)
     return NextResponse.json({ error: 'Verification failed' }, { status: 500 })
   }
-}
-
-function generateTicketId(): string {
-  const prefix = 'MM26'
-  const chars = '0123456789ABCDEF'
-  let id = ''
-  for (let i = 0; i < 8; i++) {
-    id += chars.charAt(Math.floor(Math.random() * chars.length))
-  }
-  return `${prefix}-${id}`
 }
