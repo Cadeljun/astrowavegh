@@ -24,9 +24,9 @@ const TICKET_TYPES = [
   {
     id: 'complimentary',
     name: 'Complimentary',
-    price: 0,
+    price: 0.20,
     unit: 'invite only',
-    badge: 'Free',
+    badge: 'Invite',
   },
 ];
 
