@@ -1,13 +1,11 @@
 import { NextResponse } from 'next/server'
 
-// Paystack configuration
 const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY
 
 export async function POST(request: Request) {
   try {
-    const { email, amount, ticketType, name } = await request.json()
+    const { email, amount, ticketType, name, quantity } = await request.json()
 
-    // Validate
     if (!email || !amount || !ticketType) {
       return NextResponse.json(
         { error: 'Email, amount, and ticket type are required' },
@@ -22,7 +20,9 @@ export async function POST(request: Request) {
       )
     }
 
-    // Initialize Paystack transaction
+    // Get the origin from the request header
+    const origin = request.headers.get('origin') || 'https://tickets.astrowavegh.com'
+
     const response = await fetch('https://api.paystack.co/transaction/initialize', {
       method: 'POST',
       headers: {
@@ -31,14 +31,15 @@ export async function POST(request: Request) {
       },
       body: JSON.stringify({
         email,
-        amount: amount * 100, // Paystack uses pesewas (GHS * 100)
+        amount: Math.round(amount * 100), // Paystack uses pesewas
         currency: 'GHS',
         metadata: {
           ticketType,
           name,
+          quantity: quantity || 1,
           event: 'Mask Mirage Party',
         },
-        callback_url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://astrowavegh.com'}/tickets/verify`,
+        callback_url: `${origin}/tickets/verify`,
       }),
     })
 

@@ -1,7 +1,4 @@
 import { NextResponse } from 'next/server'
-import { db } from '@/firebase'
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore'
-import { generateTicketId } from '@/lib/tickets'
 
 const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY
 
@@ -26,13 +23,16 @@ export async function GET(request: Request) {
     const data = await response.json()
 
     if (!data.status || data.data.status !== 'success') {
-      return NextResponse.json({ error: 'Payment failed' }, { status: 400 })
+      return NextResponse.json({ 
+        error: 'Payment not successful', 
+        status: data.data?.status 
+      }, { status: 400 })
     }
 
-    const metadata = data.data.metadata
+    const metadata = data.data.metadata || {}
     const quantity = metadata.quantity || 1
     const name = metadata.name || ''
-    const email = data.data.customer.email || ''
+    const email = data.data.customer?.email || ''
     const ticketType = metadata.ticketType || 'Standard'
     const amount = data.data.amount / 100
 
@@ -40,18 +40,6 @@ export async function GET(request: Request) {
     const tickets = []
     for (let i = 0; i < quantity; i++) {
       const ticketId = generateTicketId()
-      const ticket = {
-        ticketId,
-        name,
-        email,
-        ticketType,
-        price: amount / quantity,
-        paymentReference: reference,
-        status: 'valid',
-        createdAt: serverTimestamp(),
-        checkedInAt: null,
-      }
-      await setDoc(doc(db, 'tickets', ticketId), ticket)
       tickets.push({ ticketId, ticketType })
     }
 
@@ -68,4 +56,14 @@ export async function GET(request: Request) {
     console.error('Verify error:', error)
     return NextResponse.json({ error: 'Verification failed' }, { status: 500 })
   }
+}
+
+function generateTicketId(): string {
+  const prefix = 'MM26'
+  const chars = '0123456789ABCDEF'
+  let id = ''
+  for (let i = 0; i < 8; i++) {
+    id += chars.charAt(Math.floor(Math.random() * chars.length))
+  }
+  return `${prefix}-${id}`
 }
