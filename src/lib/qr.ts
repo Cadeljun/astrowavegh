@@ -10,7 +10,7 @@ export function generateTicketId(): string {
 
 export function getQRCodeUrl(ticketId: string): string {
   // Encode ticket ID into QR code using free API
-  const encoded = encodeURIComponent(`https://astrowavegh.com/tickets/verify?id=${ticketId}`);
+  const encoded = encodeURIComponent(`https://tickets.astrowavegh.com/tickets/verify?id=${ticketId}`);
   return `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encoded}&color=A855F7&bgcolor=020B18`;
 }
 
@@ -23,6 +23,6 @@ export function getTicketQRData(ticketId: string, name: string, ticketType: stri
     type: ticketType,
     name: name,
     email: email,
-    verify: `https://astrowavegh.com/tickets/verify?id=${ticketId}`,
+    verify: `https://tickets.astrowavegh.com/tickets/verify?id=${ticketId}`,
   });
 }

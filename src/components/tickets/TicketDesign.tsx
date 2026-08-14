@@ -15,7 +15,7 @@ interface TicketDesignProps {
 
 export default function TicketDesign({ ticketId, name, email, ticketType, amount, flyerUrl }: TicketDesignProps) {
   // QR code encodes verification URL
-  const qrData = `https://astrowavegh.com/tickets/verify?id=${ticketId}`;
+  const qrData = `https://tickets.astrowavegh.com/tickets/verify?id=${ticketId}`;
 
   return (
     <div className="w-full max-w-[340px] mx-auto">
