@@ -1,295 +1,294 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useRef, useCallback } from 'react';
+import { toPng } from 'html-to-image';
+import { QRCodeSVG } from 'qrcode.react';
+import { Calendar, MapPin, Clock, Download } from 'lucide-react';
 
 interface MaskMirageTicketProps {
   ticketId: string;
-  name?: string;
-  ticketType?: string;
+  name: string;
+  ticketType: string;
+  index?: number;
+  total?: number;
 }
 
-// Generate QR code as SVG using a simple pattern
-function QRCodeSVG({ data, size = 330 }: { data: string; size?: number }) {
-  // Use a deterministic pattern based on data
-  const modules = 33; // QR version 3 = 33x33
-  const moduleSize = size / modules;
-  
-  // Generate a deterministic pattern from the data string
-  const pattern = useMemo(() => {
-    const grid: boolean[][] = [];
-    let hash = 0;
-    for (let i = 0; i < data.length; i++) {
-      hash = ((hash << 5) - hash) + data.charCodeAt(i);
-      hash = hash & hash;
-    }
-    
-    for (let y = 0; y < modules; y++) {
-      grid[y] = [];
-      for (let x = 0; x < modules; x++) {
-        // Finder patterns (top-left, top-right, bottom-left)
-        const isFinderTL = x < 7 && y < 7;
-        const isFinderTR = x >= modules - 7 && y < 7;
-        const isFinderBL = x < 7 && y >= modules - 7;
-        
-        if (isFinderTL || isFinderTR || isFinderBL) {
-          // Finder pattern border
-          const lx = isFinderTR ? x - (modules - 7) : x;
-          const ly = isFinderBL ? y - (modules - 7) : y;
-          
-          if (lx === 0 || lx === 6 || ly === 0 || ly === 6) {
-            grid[y][x] = true;
-          } else if (lx >= 2 && lx <= 4 && ly >= 2 && ly <= 4) {
-            grid[y][x] = true;
-          } else {
-            grid[y][x] = false;
-          }
-        } else {
-          // Data area - use deterministic pattern
-          const seed = (hash + x * 31 + y * 37 + data.charCodeAt(x % data.length)) & 0xFFFF;
-          grid[y][x] = (seed % 3) !== 0;
-        }
-      }
-    }
-    return grid;
-  }, [data]);
+// Ticket component (used for rendering + download)
+export function TicketVisual({ ticketId, name, ticketType }: { ticketId: string; name: string; ticketType: string }) {
+  const qrData = JSON.stringify({
+    id: ticketId,
+    event: 'Mask Mirage Party',
+    date: '2026-10-10',
+    type: ticketType,
+    name: name,
+  });
 
-  return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} xmlns="http://www.w3.org/2000/svg">
-      {/* White background */}
-      <rect width={size} height={size} fill="#FFFFFF" rx="4" />
-      
-      {/* QR modules */}
-      {pattern.map((row, y) =>
-        row.map((cell, x) =>
-          cell ? (
-            <rect
-              key={`${x}-${y}`}
-              x={x * moduleSize}
-              y={y * moduleSize}
-              width={moduleSize}
-              height={moduleSize}
-              fill="#090909"
-            />
-          ) : null
-        )
-      )}
-    </svg>
-  );
-}
-
-export default function MaskMirageTicket({ ticketId, name, ticketType = 'GENERAL ADMISSION' }: MaskMirageTicketProps) {
   return (
     <div style={{
       width: '1400px',
       height: '700px',
-      background: '#090909',
+      background: 'linear-gradient(135deg, #090909 0%, #0f0f1a 50%, #090909 100%)',
       position: 'relative',
       overflow: 'hidden',
       fontFamily: "'Inter', 'Helvetica Neue', Arial, sans-serif",
-      borderRadius: '16px',
+      borderRadius: '20px',
+      display: 'flex',
     }}>
-      {/* ── SUBTLE GOLDEN GLOW (right side) ──────────────────── */}
+      {/* Background effects */}
       <div style={{
         position: 'absolute',
-        right: '-100px',
+        right: '-50px',
         top: '50%',
         transform: 'translateY(-50%)',
-        width: '600px',
-        height: '600px',
-        background: 'radial-gradient(circle, rgba(218,175,72,0.08) 0%, transparent 70%)',
+        width: '500px',
+        height: '500px',
+        background: 'radial-gradient(circle, rgba(218,175,72,0.06) 0%, transparent 70%)',
         pointerEvents: 'none',
       }} />
-      
-      {/* Very faint atmospheric particles */}
       <div style={{
         position: 'absolute',
-        inset: 0,
-        background: 'radial-gradient(ellipse at 80% 50%, rgba(218,175,72,0.03) 0%, transparent 50%)',
+        left: '-30px',
+        top: '-30px',
+        width: '300px',
+        height: '300px',
+        background: 'radial-gradient(circle, rgba(218,175,72,0.03) 0%, transparent 70%)',
         pointerEvents: 'none',
       }} />
 
-      {/* ── LEFT SECTION (Event Info) ────────────────────────── */}
+      {/* ── LEFT SECTION ──────────────────────────────────── */}
       <div style={{
-        position: 'absolute',
-        left: '80px',
-        top: '60px',
-        width: '780px',
-        height: '580px',
+        flex: 1,
+        padding: '60px 50px',
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'space-between',
+        position: 'relative',
+        zIndex: 1,
       }}>
-        {/* Top: Organizer + Title */}
+        {/* Top: Event Info */}
         <div>
           {/* Organizer */}
           <p style={{
-            fontSize: '18px',
+            fontSize: '14px',
             fontWeight: 600,
             color: '#DAAF48',
-            letterSpacing: '0.25em',
+            letterSpacing: '0.3em',
             textTransform: 'uppercase',
-            marginBottom: '24px',
+            marginBottom: '20px',
+            opacity: 0.8,
           }}>
             ASTROWAVE EVENTS
           </p>
 
-          {/* Main Title */}
+          {/* Event Name */}
           <h1 style={{
-            fontSize: '110px',
+            fontSize: '72px',
             fontWeight: 800,
-            color: '#F5F5F5',
+            color: '#FFFFFF',
             textTransform: 'uppercase',
             letterSpacing: '-0.02em',
-            lineHeight: 0.9,
-            marginBottom: '20px',
-            fontFamily: "'Inter', 'Helvetica Neue', Arial, sans-serif",
+            lineHeight: 0.95,
+            marginBottom: '8px',
           }}>
-            MASK<br />MIRAGE
+            MASK
           </h1>
-
-          {/* Event Descriptor */}
-          <p style={{
-            fontSize: '22px',
-            fontWeight: 700,
+          <h1 style={{
+            fontSize: '72px',
+            fontWeight: 800,
             color: '#DAAF48',
             textTransform: 'uppercase',
+            letterSpacing: '-0.02em',
+            lineHeight: 0.95,
+            marginBottom: '16px',
+          }}>
+            MIRAGE
+          </h1>
+
+          {/* Subtitle */}
+          <p style={{
+            fontSize: '16px',
+            fontWeight: 600,
+            color: 'rgba(218,175,72,0.7)',
+            textTransform: 'uppercase',
             letterSpacing: '0.15em',
-            marginBottom: '48px',
           }}>
             THE MASK MIRAGE PARTY 🎭
           </p>
         </div>
 
         {/* Middle: Event Details */}
-        <div style={{ marginBottom: '40px' }}>
-          <p style={{
-            fontSize: '28px',
-            fontWeight: 600,
-            color: '#F5F5F5',
-            marginBottom: '14px',
-            letterSpacing: '0.05em',
-          }}>
-            10 OCTOBER 2026
-          </p>
-          <p style={{
-            fontSize: '28px',
-            fontWeight: 600,
-            color: '#F5F5F5',
-            marginBottom: '14px',
-            letterSpacing: '0.05em',
-          }}>
-            COACHES LOUNGE, EAST LEGON
-          </p>
-          <p style={{
-            fontSize: '28px',
-            fontWeight: 600,
-            color: '#F5F5F5',
-            letterSpacing: '0.05em',
-          }}>
-            ADMISSION • GH¢50
-          </p>
+        <div style={{ display: 'flex', gap: '40px' }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+              <Calendar size={14} color="#DAAF48" />
+              <span style={{ fontSize: '10px', color: 'rgba(180,180,180,0.5)', textTransform: 'uppercase', letterSpacing: '0.15em' }}>Date</span>
+            </div>
+            <p style={{ fontSize: '20px', fontWeight: 600, color: '#F5F5F5' }}>10 OCTOBER 2026</p>
+          </div>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+              <Clock size={14} color="#DAAF48" />
+              <span style={{ fontSize: '10px', color: 'rgba(180,180,180,0.5)', textTransform: 'uppercase', letterSpacing: '0.15em' }}>Time</span>
+            </div>
+            <p style={{ fontSize: '20px', fontWeight: 600, color: '#F5F5F5' }}>9:00 PM</p>
+          </div>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+              <MapPin size={14} color="#DAAF48" />
+              <span style={{ fontSize: '10px', color: 'rgba(180,180,180,0.5)', textTransform: 'uppercase', letterSpacing: '0.15em' }}>Venue</span>
+            </div>
+            <p style={{ fontSize: '20px', fontWeight: 600, color: '#F5F5F5' }}>COACHES LOUNGE, EAST LEGON</p>
+          </div>
         </div>
 
-        {/* Bottom: Ticket ID */}
-        <div>
-          <p style={{
-            fontSize: '14px',
-            fontWeight: 500,
-            color: '#B4B4B4',
-            textTransform: 'uppercase',
-            letterSpacing: '0.15em',
-            marginBottom: '6px',
-          }}>
-            Ticket ID
-          </p>
-          <p style={{
-            fontSize: '22px',
-            fontWeight: 700,
-            color: '#F5F5F5',
-            fontFamily: "'Courier New', monospace",
-            letterSpacing: '0.1em',
-          }}>
-            {ticketId}
-          </p>
+        {/* Bottom: Attendee + Ticket ID */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+          <div>
+            <p style={{ fontSize: '10px', color: 'rgba(180,180,180,0.5)', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: '4px' }}>Attendee</p>
+            <p style={{ fontSize: '18px', fontWeight: 600, color: '#F5F5F5' }}>{name}</p>
+          </div>
+          <div style={{ textAlign: 'right' }}>
+            <p style={{ fontSize: '10px', color: 'rgba(180,180,180,0.5)', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: '4px' }}>Ticket ID</p>
+            <p style={{ fontSize: '16px', fontWeight: 700, color: '#F5F5F5', fontFamily: 'monospace', letterSpacing: '0.1em' }}>{ticketId}</p>
+          </div>
         </div>
       </div>
 
-      {/* ── VERTICAL DIVIDER ─────────────────────────────────── */}
+      {/* ── DIVIDER ───────────────────────────────────────── */}
       <div style={{
-        position: 'absolute',
-        left: '940px',
-        top: '60px',
         width: '1px',
-        height: '580px',
-        background: 'rgba(180, 180, 180, 0.15)',
+        margin: '50px 0',
+        background: 'rgba(180,180,180,0.1)',
       }} />
 
-      {/* ── RIGHT SECTION (QR Code) ──────────────────────────── */}
+      {/* ── RIGHT SECTION (QR) ────────────────────────────── */}
       <div style={{
-        position: 'absolute',
-        right: '80px',
-        top: '50%',
-        transform: 'translateY(-50%)',
+        width: '380px',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        gap: '28px',
+        justifyContent: 'center',
+        padding: '50px 40px',
+        position: 'relative',
+        zIndex: 1,
       }}>
+        {/* Ticket Type Badge */}
+        <div style={{
+          padding: '6px 20px',
+          borderRadius: '100px',
+          background: 'rgba(218,175,72,0.1)',
+          border: '1px solid rgba(218,175,72,0.2)',
+          marginBottom: '24px',
+        }}>
+          <span style={{
+            fontSize: '11px',
+            fontWeight: 700,
+            color: '#DAAF48',
+            textTransform: 'uppercase',
+            letterSpacing: '0.2em',
+          }}>
+            {ticketType}
+          </span>
+        </div>
+
         {/* QR Code */}
         <div style={{
           background: '#FFFFFF',
-          padding: '20px',
-          borderRadius: '12px',
-          boxShadow: '0 0 40px rgba(218, 175, 72, 0.1)',
+          padding: '24px',
+          borderRadius: '16px',
+          boxShadow: '0 8px 40px rgba(0,0,0,0.3)',
         }}>
-          <QRCodeSVG data={ticketId} size={330} />
+          <QRCodeSVG
+            value={ticketId}
+            size={240}
+            level="H"
+            fgColor="#090909"
+            bgColor="#FFFFFF"
+          />
         </div>
 
         {/* Scan instruction */}
         <p style={{
-          fontSize: '18px',
+          fontSize: '12px',
           fontWeight: 600,
-          color: '#DAAF48',
+          color: 'rgba(218,175,72,0.6)',
           textTransform: 'uppercase',
           letterSpacing: '0.2em',
+          marginTop: '20px',
           textAlign: 'center',
         }}>
-          SCAN TO VERIFY TICKET
+          SCAN TO VERIFY
         </p>
       </div>
 
-      {/* ── BOTTOM BAR ───────────────────────────────────────── */}
+      {/* ── BOTTOM BAR ────────────────────────────────────── */}
       <div style={{
         position: 'absolute',
-        bottom: '24px',
-        left: '80px',
+        bottom: '16px',
+        left: '50px',
+        right: '50px',
         display: 'flex',
+        justifyContent: 'space-between',
         alignItems: 'center',
-        gap: '24px',
       }}>
-        <p style={{
-          fontSize: '12px',
-          fontWeight: 500,
-          color: 'rgba(180, 180, 180, 0.5)',
-          textTransform: 'uppercase',
-          letterSpacing: '0.15em',
-        }}>
+        <p style={{ fontSize: '10px', color: 'rgba(180,180,180,0.3)', textTransform: 'uppercase', letterSpacing: '0.15em' }}>
           VALID ONLY FOR 10 OCTOBER 2026
         </p>
-        <span style={{
-          fontSize: '12px',
-          color: 'rgba(180, 180, 180, 0.3)',
-        }}>•</span>
-        <p style={{
-          fontSize: '12px',
-          fontWeight: 600,
-          color: 'rgba(218, 175, 72, 0.6)',
-          textTransform: 'uppercase',
-          letterSpacing: '0.15em',
-        }}>
-          {ticketType}
+        <p style={{ fontSize: '10px', color: 'rgba(180,180,180,0.3)', textTransform: 'uppercase', letterSpacing: '0.15em' }}>
+          ASTROWAVEGH.COM
         </p>
       </div>
+    </div>
+  );
+}
+
+// Download button component
+export default function MaskMirageTicket({ ticketId, name, ticketType, index = 0, total = 1 }: MaskMirageTicketProps) {
+  const ticketRef = useRef<HTMLDivElement>(null);
+
+  const handleDownload = useCallback(async () => {
+    if (!ticketRef.current) return;
+
+    try {
+      const { toPng } = await import('html-to-image');
+      const dataUrl = await toPng(ticketRef.current, {
+        quality: 1,
+        pixelRatio: 2,
+        backgroundColor: '#090909',
+      });
+
+      const link = document.createElement('a');
+      link.download = `Mask-Mirage-${ticketId}.png`;
+      link.href = dataUrl;
+      link.click();
+    } catch (err) {
+      console.error('Download failed:', err);
+    }
+  }, [ticketId]);
+
+  return (
+    <div className="text-center">
+      {/* Hidden ticket for rendering */}
+      <div style={{ position: 'absolute', left: '-9999px', top: '-9999px' }}>
+        <div ref={ticketRef}>
+          <TicketVisual ticketId={ticketId} name={name} ticketType={ticketType} />
+        </div>
+      </div>
+
+      {/* Download button */}
+      <button
+        onClick={handleDownload}
+        className="inline-flex items-center gap-3 px-8 py-4 rounded-xl font-bold text-sm uppercase tracking-widest transition-all"
+        style={{ background: '#DAAF48', color: '#090909' }}
+      >
+        <Download size={18} />
+        Download Ticket {total > 1 ? `${index + 1}` : ''}
+      </button>
+
+      {/* Ticket ID */}
+      <p className="mt-3 font-mono text-xs" style={{ color: '#B4B4B4' }}>
+        {ticketId}
+      </p>
     </div>
   );
 }
