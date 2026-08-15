@@ -56,9 +56,6 @@ export function middleware(request: NextRequest) {
   }
 
   // ── MAIN DOMAIN ───────────────────────────────────────────────
-  // All pages accessible, admin/dev still work on main domain too
-
-  // API auth check
   const isProtectedApi = protectedApiRoutes.some(r => pathname.startsWith(r))
   if (isProtectedApi) {
     const authHeader = request.headers.get('authorization')
@@ -87,11 +84,9 @@ function addSecurityHeaders(response: NextResponse) {
     'https://tickets.astrowavegh.com',
     'https://scan.astrowavegh.com',
     'https://admin.astrowavegh.com',
-  ];
-  const origin = request.headers.get('origin');
-  if (origin && allowedOrigins.includes(origin)) {
-    response.headers.set('Access-Control-Allow-Origin', origin);
-  }
+  ]
+  // Note: Can't read request headers in addSecurityHeaders function
+  // CORS will be handled by individual API routes if needed
   return response
 }
 
