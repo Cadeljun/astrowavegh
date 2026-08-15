@@ -20,6 +20,21 @@ export async function POST(request: Request) {
       )
     }
 
+    // Validate price server-side (prevent tampering)
+    const validPrices: Record<string, number> = {
+      'Standard': 50,
+      'Group of 4': 180,
+      'Complimentary': 0.20,
+    };
+    const expectedPrice = validPrices[ticketType];
+    if (expectedPrice === undefined) {
+      return NextResponse.json({ error: 'Invalid ticket type' }, { status: 400 });
+    }
+    const expectedTotal = expectedPrice * (quantity || 1);
+    if (Math.abs(amount - expectedTotal) > 0.01) {
+      return NextResponse.json({ error: 'Price mismatch' }, { status: 400 });
+    }
+
     // Get the origin from the request header
     const origin = request.headers.get('origin') || 'https://tickets.astrowavegh.com'
 
