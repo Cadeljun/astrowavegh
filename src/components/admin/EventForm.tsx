@@ -13,26 +13,28 @@ interface EventFormProps {
 }
 
 interface EventData {
-  name: string
+  title: string
   category: string
   date: string
   venue: string
+  city: string
   ticketLink: string
   shortDescription: string
   fullDescription: string
-  imageUrl: string
+  coverImage: string
   active: boolean
 }
 
 const defaultData: EventData = {
-  name: '',
+  title: '',
   category: 'Nightlife',
   date: '',
   venue: '',
+  city: 'Accra',
   ticketLink: '',
   shortDescription: '',
   fullDescription: '',
-  imageUrl: '',
+  coverImage: '',
   active: true
 }
 
@@ -58,17 +60,18 @@ export default function EventForm({ eventId }: EventFormProps) {
         if (event) {
           const e = event as any
           setData({
-            name: e.name || '',
+            title: e.title || '',
             category: e.category || 'Nightlife',
             date: e.date?.toDate ? e.date.toDate().toISOString().slice(0, 16) : e.date || '',
             venue: e.venue || '',
+            city: e.city || 'Accra',
             ticketLink: e.ticketLink || '',
             shortDescription: e.shortDescription || '',
             fullDescription: e.fullDescription || '',
-            imageUrl: e.imageUrl || '',
+            coverImage: e.coverImage || '',
             active: e.active ?? true
           })
-          if (e.imageUrl) setImagePreview(e.imageUrl)
+          if (e.coverImage) setImagePreview(e.coverImage)
         }
       } catch {
         toast({ variant: "destructive", title: "Error", description: "Failed to load event" })
@@ -84,7 +87,7 @@ export default function EventForm({ eventId }: EventFormProps) {
     if (!file) return
     setImageFile(file)
     setImagePreview(URL.createObjectURL(file))
-    update('imageUrl', '') // Clear existing URL to prioritize upload
+    update('coverImage', '') // Clear existing URL to prioritize upload
   }
 
   const uploadImage = async (file: File): Promise<string> => {
@@ -102,19 +105,19 @@ export default function EventForm({ eventId }: EventFormProps) {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
-    if (!data.name || !data.venue) {
+    if (!data.title || !data.venue) {
       toast({ variant: "destructive", title: "Error", description: "Please fill all required fields" })
       return
     }
 
     setLoading(true)
     try {
-      let imageUrl = data.imageUrl
+      let imageUrl = data.coverImage
       if (imageFile) {
         imageUrl = await uploadImage(imageFile)
       }
 
-      const eventData = { ...data, imageUrl, date: data.date ? new Date(data.date) : null }
+      const eventData = { ...data, coverImage: imageUrl, date: data.date ? new Date(data.date) : null }
 
       if (isEdit && eventId) {
         updateDocument('events', eventId, eventData)
@@ -147,7 +150,7 @@ export default function EventForm({ eventId }: EventFormProps) {
           <div className="admin-card space-y-6">
             <div className="space-y-4">
               <label className="admin-label">Event Name *</label>
-              <input type="text" value={data.name} onChange={e => update('name', e.target.value)} required className="admin-input" />
+              <input type="text" value={data.title} onChange={e => update('title', e.target.value)} required className="admin-input" />
               
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -212,7 +215,7 @@ export default function EventForm({ eventId }: EventFormProps) {
         isOpen={isPickerOpen} 
         onClose={() => setIsPickerOpen(false)} 
         onSelect={(url) => {
-          update('imageUrl', url);
+          update('coverImage', url);
           setImagePreview(url);
           setImageFile(null);
         }}
