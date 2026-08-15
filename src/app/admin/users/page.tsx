@@ -2,19 +2,10 @@
 
 import React, { useState, useMemo } from 'react';
 import { 
-  Users, 
-  Search, 
-  Shield,
-  Mail,
-  Calendar,
-  Trash2,
-  Eye,
-  Loader2,
-  UserPlus,
-  CheckCircle,
-  XCircle
+  Users, Search, Shield, Mail, Calendar, Trash2, Loader2,
+  UserPlus, CheckCircle, XCircle, Eye, EyeOff
 } from 'lucide-react';
-import { collection, query, orderBy, doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { collection, query, orderBy, doc, updateDoc, deleteDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { Card } from '@/components/ui/Card';
@@ -30,6 +21,9 @@ export default function UserManagementPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilter, setActiveFilter] = useState('All');
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [adding, setAdding] = useState(false);
+  const [newUser, setNewUser] = useState({ email: '', displayName: '', role: 'user' });
 
   const usersQuery = useMemoFirebase(() => {
     return query(collection(db, 'users'), orderBy('createdAt', 'desc'));
@@ -47,7 +41,7 @@ export default function UserManagementPage() {
         (user.email || '').toLowerCase().includes(searchTerm.toLowerCase());
       const matchesFilter = 
         activeFilter === 'All' || 
-        (activeFilter === 'Active' && user.active !== false) ||
+        (activeFilter === 'Active' && user.active !== false) || 
         (activeFilter === 'Inactive' && user.active === false);
       return matchesSearch && matchesFilter;
     });
@@ -62,9 +56,43 @@ export default function UserManagementPage() {
     };
   }, [users]);
 
+  const handleAddUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newUser.email || !newUser.displayName) {
+      toast({ variant: 'destructive', title: 'Please fill in all fields' });
+      return;
+    }
+
+    setAdding(true);
+    try {
+      // Create user document in Firestore
+      const userRef = doc(collection(db, 'users'));
+      await setDoc(userRef, {
+        email: newUser.email,
+        displayName: newUser.displayName,
+        role: newUser.role,
+        active: true,
+        onboarded: true,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+
+      toast({ title: 'User added', description: `${newUser.displayName} has been added` });
+      setNewUser({ email: '', displayName: '', role: 'user' });
+      setShowAddModal(false);
+    } catch (error) {
+      toast({ variant: 'destructive', title: 'Failed to add user' });
+    } finally {
+      setAdding(false);
+    }
+  };
+
   const handleToggleActive = async (userId: string, currentActive: boolean) => {
     try {
-      await updateDoc(doc(db, 'users', userId), { active: !currentActive });
+      await updateDoc(doc(db, 'users', userId), { 
+        active: !currentActive,
+        updatedAt: serverTimestamp(),
+      });
       toast({ title: currentActive ? 'User deactivated' : 'User activated' });
     } catch (error) {
       toast({ variant: 'destructive', title: 'Failed to update user' });
@@ -82,6 +110,18 @@ export default function UserManagementPage() {
     }
   };
 
+  const handleUpdateRole = async (userId: string, newRole: string) => {
+    try {
+      await updateDoc(doc(db, 'users', userId), { 
+        role: newRole,
+        updatedAt: serverTimestamp(),
+      });
+      toast({ title: 'Role updated', description: `Changed to ${newRole}` });
+    } catch (error) {
+      toast({ variant: 'destructive', title: 'Failed to update role' });
+    }
+  };
+
   return (
     <div>
       {/* Header */}
@@ -90,7 +130,7 @@ export default function UserManagementPage() {
           <h1 className="font-display text-3xl text-[#0B1F14] uppercase tracking-wider">Users</h1>
           <p className="text-[0.7rem] text-[#567060] mt-1">Manage platform users and access</p>
         </div>
-        <Button href="/api/admin/create-user" size="sm">
+        <Button onClick={() => setShowAddModal(true)} size="sm">
           <UserPlus size={14} className="mr-2" /> ADD USER
         </Button>
       </div>
@@ -151,6 +191,9 @@ export default function UserManagementPage() {
           <p className="text-[0.8rem] text-[#567060]">
             {searchTerm ? 'Try adjusting your search' : 'No users have been added yet'}
           </p>
+          <Button onClick={() => setShowAddModal(true)} className="mt-4">
+            <UserPlus size={14} className="mr-2" /> Add First User
+          </Button>
         </Card>
       ) : (
         <div className="overflow-x-auto rounded-xl border border-[#C8E6D4]">
@@ -159,6 +202,7 @@ export default function UserManagementPage() {
               <tr className="bg-[#F0FAF5] border-b border-[#C8E6D4]">
                 <th className="text-left p-4 text-[0.65rem] font-bold text-[#567060] uppercase tracking-wider">User</th>
                 <th className="text-left p-4 text-[0.65rem] font-bold text-[#567060] uppercase tracking-wider">Email</th>
+                <th className="text-left p-4 text-[0.65rem] font-bold text-[#567060] uppercase tracking-wider">Role</th>
                 <th className="text-left p-4 text-[0.65rem] font-bold text-[#567060] uppercase tracking-wider">Status</th>
                 <th className="text-left p-4 text-[0.65rem] font-bold text-[#567060] uppercase tracking-wider">Joined</th>
                 <th className="text-right p-4 text-[0.65rem] font-bold text-[#567060] uppercase tracking-wider">Actions</th>
@@ -176,6 +220,17 @@ export default function UserManagementPage() {
                     </div>
                   </td>
                   <td className="p-4 text-[0.8rem] text-[#567060]">{user.email}</td>
+                  <td className="p-4">
+                    <select
+                      value={user.role || 'user'}
+                      onChange={e => handleUpdateRole(user.id, e.target.value)}
+                      className="text-[0.7rem] px-2 py-1 rounded border border-[#C8E6D4] bg-white focus:border-[#00C853] outline-none"
+                    >
+                      <option value="user">User</option>
+                      <option value="editor">Editor</option>
+                      <option value="admin">Admin</option>
+                    </select>
+                  </td>
                   <td className="p-4">
                     <Badge variant={user.active !== false ? 'default' : 'destructive'}>
                       {user.active !== false ? 'Active' : 'Inactive'}
@@ -205,6 +260,61 @@ export default function UserManagementPage() {
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* Add User Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setShowAddModal(false)} />
+          <div className="relative z-10 w-full max-w-md bg-white rounded-2xl p-8 shadow-2xl">
+            <h2 className="font-display text-2xl text-[#0B1F14] uppercase mb-6">Add New User</h2>
+            <form onSubmit={handleAddUser} className="space-y-4">
+              <div>
+                <label className="text-[0.6rem] font-bold text-[#567060] uppercase tracking-widest mb-2 block">Full Name</label>
+                <input
+                  required
+                  type="text"
+                  value={newUser.displayName}
+                  onChange={e => setNewUser({...newUser, displayName: e.target.value})}
+                  className="w-full px-4 py-3 rounded-lg border border-[#C8E6D4] focus:border-[#00C853] outline-none"
+                  placeholder="John Doe"
+                />
+              </div>
+              <div>
+                <label className="text-[0.6rem] font-bold text-[#567060] uppercase tracking-widest mb-2 block">Email</label>
+                <input
+                  required
+                  type="email"
+                  value={newUser.email}
+                  onChange={e => setNewUser({...newUser, email: e.target.value})}
+                  className="w-full px-4 py-3 rounded-lg border border-[#C8E6D4] focus:border-[#00C853] outline-none"
+                  placeholder="john@example.com"
+                />
+              </div>
+              <div>
+                <label className="text-[0.6rem] font-bold text-[#567060] uppercase tracking-widest mb-2 block">Role</label>
+                <select
+                  value={newUser.role}
+                  onChange={e => setNewUser({...newUser, role: e.target.value})}
+                  className="w-full px-4 py-3 rounded-lg border border-[#C8E6D4] focus:border-[#00C853] outline-none"
+                >
+                  <option value="user">User</option>
+                  <option value="editor">Editor</option>
+                  <option value="admin">Admin</option>
+                </select>
+              </div>
+              <div className="flex gap-3 pt-4">
+                <Button type="button" variant="ghost" onClick={() => setShowAddModal(false)} className="flex-1">
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={adding} className="flex-1">
+                  {adding ? <Loader2 className="animate-spin mr-2" size={16} /> : null}
+                  Add User
+                </Button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
 
