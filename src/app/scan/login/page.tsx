@@ -5,10 +5,11 @@ import { motion } from 'framer-motion';
 import { Zap, Loader2, Lock, AlertCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
-const SCANNER_CREDENTIALS = {
-  username: 'astrowave',
-  password: 'maskmirage2026',
-};
+// Scanner credentials
+const SCANNER_CREDENTIALS = [
+  { username: 'astrowave', password: 'maskmirage2026' },
+  { username: 'astrowavegh', password: 'astrowavegh2026' },
+];
 
 export default function ScanLoginPage() {
   const router = useRouter();
@@ -23,7 +24,11 @@ export default function ScanLoginPage() {
     setError('');
 
     setTimeout(() => {
-      if (username === SCANNER_CREDENTIALS.username && password === SCANNER_CREDENTIALS.password) {
+      const validUser = SCANNER_CREDENTIALS.find(
+        c => c.username === username && c.password === password
+      );
+      
+      if (validUser) {
         sessionStorage.setItem('scanner_auth', 'true');
         sessionStorage.setItem('scanner_user', username);
         router.push('/scan');
