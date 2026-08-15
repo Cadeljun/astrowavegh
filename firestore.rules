@@ -163,5 +163,13 @@ service cloud.firestore {
       allow write: if isAdmin() || isSuperAdmin();
     }
 
+    // ── TICKETS ─────────────────────────────────────────────────────
+    match /tickets/{ticketId} {
+      allow read: if isAuthenticated(); // Admin and scanner can read
+      allow create: if isAuthenticated(); // Client creates after payment
+      allow update: if isAuthenticated(); // Scanner marks as 'used'
+      allow delete: if isAdmin();
+    }
+
   }
 }
