@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server'
 import { sendTicketEmail } from '@/lib/email'
+import { db } from '@/firebase'
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore'
 
 const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY
 
@@ -47,10 +49,29 @@ export async function GET(request: Request) {
     const ticketType = metadata.ticketType || 'Standard'
     const amount = data.data.amount / 100
 
-    // Generate tickets
+    // Generate tickets and save to Firestore
     const tickets = []
     for (let i = 0; i < quantity; i++) {
       const ticketId = generateTicketId()
+      
+      // Save ticket to Firestore
+      try {
+        await setDoc(doc(db, 'tickets', ticketId), {
+          ticketId,
+          name,
+          email,
+          ticketType,
+          price: amount / quantity,
+          paymentReference: reference,
+          status: 'valid',
+          createdAt: serverTimestamp(),
+          checkedInAt: null,
+        })
+      } catch (firestoreError) {
+        console.error('Firestore save error:', firestoreError)
+        // Continue even if Firestore fails - tickets will still be returned
+      }
+      
       tickets.push({ ticketId, ticketType })
     }
 
