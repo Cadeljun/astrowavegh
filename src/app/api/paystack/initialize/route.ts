@@ -1,8 +1,18 @@
 import { NextResponse } from 'next/server'
+import { purchaseLimiter, checkRateLimit } from '@/lib/rate-limit'
 
 const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY
 
 export async function POST(request: Request) {
+  // Rate limit: 5 purchases per 15 min per IP
+  const rateLimit = await checkRateLimit(purchaseLimiter, request);
+  if (!rateLimit.allowed) {
+    return NextResponse.json(
+      { error: `Too many attempts. Try again in ${rateLimit.retryAfter} seconds.` },
+      { status: 429 }
+    );
+  }
+
   try {
     const { email, amount, ticketType, name, quantity } = await request.json()
 
@@ -20,7 +30,7 @@ export async function POST(request: Request) {
       )
     }
 
-    // Validate price server-side (prevent tampering)
+    // Validate price server-side
     const validPrices: Record<string, number> = {
       'Standard': 50,
       'Group of 4': 180,
@@ -35,7 +45,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Price mismatch' }, { status: 400 });
     }
 
-    // Get the origin from the request header
     const origin = request.headers.get('origin') || 'https://tickets.astrowavegh.com'
 
     const response = await fetch('https://api.paystack.co/transaction/initialize', {
@@ -46,7 +55,7 @@ export async function POST(request: Request) {
       },
       body: JSON.stringify({
         email,
-        amount: Math.round(amount * 100), // Paystack uses pesewas
+        amount: Math.round(amount * 100),
         currency: 'GHS',
         metadata: {
           ticketType,
