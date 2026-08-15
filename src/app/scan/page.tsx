@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Camera, CheckCircle, XCircle, AlertTriangle, Loader2, LogOut, Users, Ticket, Zap, X, Video, VideoOff } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { collection, onSnapshot } from 'firebase/firestore';
+import { collection, onSnapshot, doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
 
 type ScanResult = {
@@ -63,9 +63,8 @@ export default function ScanPage() {
     router.push('/scan/login');
   };
 
-  // Verify ticket
+  // Verify ticket directly via Firestore (client-side)
   const verifyTicket = useCallback(async (ticketId: string) => {
-    // Prevent duplicate scans
     const cleanId = ticketId.trim().toUpperCase();
     if (cleanId === lastScanned) return;
     setLastScanned(cleanId);
@@ -73,29 +72,82 @@ export default function ScanPage() {
 
     setVerifying(true);
     setResult(null);
+
     try {
-      const res = await fetch('/api/tickets/verify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ticketId: cleanId }),
-      });
-      const data = await res.json();
-      setResult(data);
-      if (data.status === 'VALID' || data.status === 'USED') {
-        setRecentScans(prev => [{
-          id: cleanId,
-          status: data.status,
-          name: data.ticket?.name || 'Unknown',
-          ticketType: data.ticket?.ticketType || 'Standard',
-          time: new Date().toLocaleTimeString(),
-        }, ...prev].slice(0, 20));
+      // Validate format
+      if (!/^MM26-[0-9A-F]{8}$/.test(cleanId)) {
+        setResult({ status: 'INVALID', message: 'Invalid ticket format' });
+        setVerifying(false);
+        return;
       }
+
+      // Look up ticket directly in Firestore
+      const ticketRef = doc(db, 'tickets', cleanId);
+      const ticketSnap = await getDoc(ticketRef);
+
+      if (!ticketSnap.exists()) {
+        setResult({ status: 'INVALID', message: 'Ticket not found' });
+        setVerifying(false);
+        return;
+      }
+
+      const ticket = ticketSnap.data();
+
+      // Check if already used
+      if (ticket.status === 'used') {
+        setResult({
+          status: 'USED',
+          message: 'Ticket already scanned',
+          ticket: {
+            id: cleanId,
+            name: ticket.name,
+            ticketType: ticket.ticketType,
+            checkedInAt: ticket.checkedInAt,
+          },
+        });
+        setVerifying(false);
+        return;
+      }
+
+      // Check if cancelled
+      if (ticket.status === 'cancelled') {
+        setResult({ status: 'INVALID', message: 'Ticket has been cancelled' });
+        setVerifying(false);
+        return;
+      }
+
+      // Mark as used
+      await updateDoc(ticketRef, {
+        status: 'used',
+        checkedInAt: serverTimestamp(),
+      });
+
+      setResult({
+        status: 'VALID',
+        message: 'Ticket valid — entry confirmed',
+        ticket: {
+          id: cleanId,
+          name: ticket.name,
+          ticketType: ticket.ticketType,
+        },
+      });
+
+      // Add to recent scans
+      setRecentScans(prev => [{
+        id: cleanId,
+        status: 'VALID',
+        name: ticket.name || 'Unknown',
+        ticketType: ticket.ticketType || 'Standard',
+        time: new Date().toLocaleTimeString(),
+      }, ...prev].slice(0, 20));
+
     } catch (err) {
-      setResult({ status: 'ERROR', message: 'Network error — try again' });
+      console.error('Verify error:', err);
+      setResult({ status: 'ERROR', message: 'Verification failed — try again' });
     } finally {
       setVerifying(false);
     }
-  }, [lastScanned]);
+  }, [db, lastScanned]);
 
   // Start camera scanner
   const startCamera = async () => {
