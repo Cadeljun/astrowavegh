@@ -6,6 +6,8 @@ import { motion } from 'framer-motion';
 import { CheckCircle, XCircle, Loader2, ArrowLeft, Download, Ticket, Mail, Copy } from 'lucide-react';
 import Link from 'next/link';
 import MaskMirageTicket from '@/components/tickets/MaskMirageTicket';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { db } from '@/firebase';
 
 function VerifyContent() {
   const searchParams = useSearchParams();
@@ -29,6 +31,25 @@ function VerifyContent() {
         const result = await res.json();
 
         if (result.success) {
+          // Save tickets to Firestore from client side
+          for (const ticket of result.tickets) {
+            try {
+              await setDoc(doc(db, 'tickets', ticket.ticketId), {
+                ticketId: ticket.ticketId,
+                name: result.name,
+                email: result.email,
+                ticketType: ticket.ticketType,
+                price: ticket.price,
+                paymentReference: reference,
+                status: 'valid',
+                createdAt: serverTimestamp(),
+                checkedInAt: null,
+              });
+            } catch (firestoreError) {
+              console.error('Failed to save ticket to Firestore:', firestoreError);
+            }
+          }
+
           setStatus('success');
           setData(result);
         } else {
