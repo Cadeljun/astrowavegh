@@ -1,28 +1,42 @@
-// QR Code generation for tickets
-// Uses QR Server API (free, no API key needed)
+// QR Code and Ticket ID generation
 
+/**
+ * Generate a unique Mask Mirage ticket ID
+ * Format: MM26-XXXXXXXX (8 hex characters)
+ */
 export function generateTicketId(): string {
-  const prefix = 'MMP'; // Mask Mirage Party
-  const timestamp = Date.now().toString(36).toUpperCase();
-  const random = Math.random().toString(36).substring(2, 6).toUpperCase();
-  return `${prefix}-${timestamp}-${random}`;
+  const prefix = 'MM26'
+  const chars = '0123456789ABCDEF'
+  let id = ''
+  for (let i = 0; i < 8; i++) {
+    id += chars.charAt(Math.floor(Math.random() * chars.length))
+  }
+  return `${prefix}-${id}`
 }
 
-export function getQRCodeUrl(ticketId: string): string {
-  // Encode ticket ID into QR code using free API
-  const encoded = encodeURIComponent(`https://tickets.astrowavegh.com/tickets/verify?id=${ticketId}`);
-  return `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encoded}&color=A855F7&bgcolor=020B18`;
+/**
+ * Generate a unique QR code ID
+ * Format: QR-XXXXXXXX (8 alphanumeric)
+ */
+export function generateQRCodeId(): string {
+  const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+  let id = ''
+  for (let i = 0; i < 8; i++) {
+    id += chars.charAt(Math.floor(Math.random() * chars.length))
+  }
+  return `QR-${id}`
 }
 
-export function getTicketQRData(ticketId: string, name: string, ticketType: string, email: string): string {
-  // Structured data for QR code
-  return JSON.stringify({
-    id: ticketId,
-    event: 'Mask Mirage Party',
-    date: '2026-10-10',
-    type: ticketType,
-    name: name,
-    email: email,
-    verify: `https://tickets.astrowavegh.com/tickets/verify?id=${ticketId}`,
-  });
+/**
+ * Validate ticket ID format
+ */
+export function isValidTicketId(id: string): boolean {
+  return /^MM26-[0-9A-F]{8}$/.test(id)
+}
+
+/**
+ * Validate QR code ID format
+ */
+export function isValidQRCodeId(id: string): boolean {
+  return /^QR-[A-Z0-9]{8}$/.test(id)
 }

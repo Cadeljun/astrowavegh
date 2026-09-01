@@ -7,6 +7,7 @@ import { Calendar, MapPin, Clock, Download } from 'lucide-react';
 
 interface MaskMirageTicketProps {
   ticketId: string;
+  qrCodeId?: string;
   name: string;
   ticketType: string;
   index?: number;
@@ -14,14 +15,9 @@ interface MaskMirageTicketProps {
 }
 
 // Ticket component (used for rendering + download)
-export function TicketVisual({ ticketId, name, ticketType }: { ticketId: string; name: string; ticketType: string }) {
-  const qrData = JSON.stringify({
-    id: ticketId,
-    event: 'Mask Mirage Party',
-    date: '2026-10-10',
-    type: ticketType,
-    name: name,
-  });
+export function TicketVisual({ ticketId, qrCodeId, name, ticketType }: { ticketId: string; qrCodeId?: string; name: string; ticketType: string }) {
+  // QR code encodes the QR code ID (scanner looks up QR → gets ticket)
+  const qrValue = qrCodeId || ticketId;
 
   return (
     <div style={{
@@ -199,7 +195,7 @@ export function TicketVisual({ ticketId, name, ticketType }: { ticketId: string;
           boxShadow: '0 8px 40px rgba(0,0,0,0.3)',
         }}>
           <QRCodeSVG
-            value={ticketId}
+            value={qrValue}
             size={240}
             level="H"
             fgColor="#090909"
@@ -243,7 +239,7 @@ export function TicketVisual({ ticketId, name, ticketType }: { ticketId: string;
 }
 
 // Download button component
-export default function MaskMirageTicket({ ticketId, name, ticketType, index = 0, total = 1 }: MaskMirageTicketProps) {
+export default function MaskMirageTicket({ ticketId, qrCodeId, name, ticketType, index = 0, total = 1 }: MaskMirageTicketProps) {
   const ticketRef = useRef<HTMLDivElement>(null);
 
   const handleDownload = useCallback(async () => {
@@ -271,7 +267,7 @@ export default function MaskMirageTicket({ ticketId, name, ticketType, index = 0
       {/* Hidden ticket for rendering */}
       <div style={{ position: 'absolute', left: '-9999px', top: '-9999px' }}>
         <div ref={ticketRef}>
-          <TicketVisual ticketId={ticketId} name={name} ticketType={ticketType} />
+          <TicketVisual ticketId={ticketId} qrCodeId={qrCodeId} name={name} ticketType={ticketType} />
         </div>
       </div>
 

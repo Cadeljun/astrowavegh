@@ -8,6 +8,7 @@ import Link from 'next/link';
 import MaskMirageTicket from '@/components/tickets/MaskMirageTicket';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/firebase';
+import { generateQRCodeId } from '@/lib/qr';
 
 function VerifyContent() {
   const searchParams = useSearchParams();
@@ -31,11 +32,16 @@ function VerifyContent() {
         const result = await res.json();
 
         if (result.success) {
-          // Save tickets to Firestore from client side
+          // Save tickets and QR codes to Firestore
           for (const ticket of result.tickets) {
             try {
+              // Generate QR code ID
+              const qrCodeId = generateQRCodeId();
+              
+              // Save ticket with QR code reference
               await setDoc(doc(db, 'tickets', ticket.ticketId), {
                 ticketId: ticket.ticketId,
+                qrCodeId: qrCodeId,
                 name: result.name,
                 email: result.email,
                 ticketType: ticket.ticketType,
@@ -45,6 +51,17 @@ function VerifyContent() {
                 createdAt: serverTimestamp(),
                 checkedInAt: null,
               });
+
+              // Save QR code linked to ticket
+              await setDoc(doc(db, 'qrcodes', qrCodeId), {
+                qrCodeId: qrCodeId,
+                ticketId: ticket.ticketId,
+                status: 'active',
+                createdAt: serverTimestamp(),
+              });
+
+              // Store QR code ID on ticket object for display
+              ticket.qrCodeId = qrCodeId;
             } catch (firestoreError) {
               console.error('Failed to save ticket to Firestore:', firestoreError);
             }
@@ -169,6 +186,7 @@ function VerifyContent() {
                   <MaskMirageTicket
                     key={ticket.ticketId}
                     ticketId={ticket.ticketId}
+                    qrCodeId={ticket.qrCodeId}
                     name={data.name}
                     ticketType={ticket.ticketType}
                     index={index}

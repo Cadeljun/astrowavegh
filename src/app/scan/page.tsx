@@ -4,8 +4,9 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Camera, CheckCircle, XCircle, AlertTriangle, Loader2, LogOut, Users, Ticket, Zap, X, Video, VideoOff } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { collection, onSnapshot, doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, onSnapshot, doc, getDoc, updateDoc, serverTimestamp, query, where, getDocs } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
+import { isValidTicketId, isValidQRCodeId } from '@/lib/qr';
 
 type ScanResult = {
   status: 'VALID' | 'USED' | 'INVALID' | 'ERROR';
@@ -63,9 +64,9 @@ export default function ScanPage() {
     router.push('/scan/login');
   };
 
-  // Verify ticket directly via Firestore (client-side)
-  const verifyTicket = useCallback(async (ticketId: string) => {
-    const cleanId = ticketId.trim().toUpperCase();
+  // Verify ticket via QR code or ticket ID
+  const verifyTicket = useCallback(async (inputId: string) => {
+    const cleanId = inputId.trim().toUpperCase();
     if (cleanId === lastScanned) return;
     setLastScanned(cleanId);
     setTimeout(() => setLastScanned(null), 3000);
@@ -74,15 +75,43 @@ export default function ScanPage() {
     setResult(null);
 
     try {
-      // Validate format
-      if (!/^MM26-[0-9A-F]{8}$/.test(cleanId)) {
+      let ticketId = cleanId;
+      let ticketData: any = null;
+
+      // Check if input is a QR code ID
+      if (isValidQRCodeId(cleanId)) {
+        // Step 1: Look up QR code in database
+        const qrRef = doc(db, 'qrcodes', cleanId);
+        const qrSnap = await getDoc(qrRef);
+
+        if (!qrSnap.exists()) {
+          setResult({ status: 'INVALID', message: 'QR code not found' });
+          setVerifying(false);
+          return;
+        }
+
+        const qrData = qrSnap.data();
+
+        // Check if QR code is already used
+        if (qrData.status === 'used') {
+          setResult({ status: 'USED', message: 'This QR code has already been scanned' });
+          setVerifying(false);
+          return;
+        }
+
+        // Step 2: Get ticket linked to this QR code
+        ticketId = qrData.ticketId;
+      }
+
+      // Validate ticket ID format
+      if (!isValidTicketId(ticketId)) {
         setResult({ status: 'INVALID', message: 'Invalid ticket format' });
         setVerifying(false);
         return;
       }
 
-      // Look up ticket directly in Firestore
-      const ticketRef = doc(db, 'tickets', cleanId);
+      // Look up ticket in Firestore
+      const ticketRef = doc(db, 'tickets', ticketId);
       const ticketSnap = await getDoc(ticketRef);
 
       if (!ticketSnap.exists()) {
@@ -91,18 +120,18 @@ export default function ScanPage() {
         return;
       }
 
-      const ticket = ticketSnap.data();
+      ticketData = ticketSnap.data();
 
       // Check if already used
-      if (ticket.status === 'used') {
+      if (ticketData.status === 'used') {
         setResult({
           status: 'USED',
           message: 'Ticket already scanned',
           ticket: {
-            id: cleanId,
-            name: ticket.name,
-            ticketType: ticket.ticketType,
-            checkedInAt: ticket.checkedInAt,
+            id: ticketId,
+            name: ticketData.name,
+            ticketType: ticketData.ticketType,
+            checkedInAt: ticketData.checkedInAt,
           },
         });
         setVerifying(false);
@@ -110,34 +139,44 @@ export default function ScanPage() {
       }
 
       // Check if cancelled
-      if (ticket.status === 'cancelled') {
+      if (ticketData.status === 'cancelled') {
         setResult({ status: 'INVALID', message: 'Ticket has been cancelled' });
         setVerifying(false);
         return;
       }
 
-      // Mark as used
+      // Mark ticket as used
       await updateDoc(ticketRef, {
         status: 'used',
         checkedInAt: serverTimestamp(),
       });
 
+      // Mark QR code as used (if it exists)
+      if (ticketData.qrCodeId) {
+        try {
+          const qrRef = doc(db, 'qrcodes', ticketData.qrCodeId);
+          await updateDoc(qrRef, { status: 'used' });
+        } catch (e) {
+          // QR code update failed, but ticket is still valid
+        }
+      }
+
       setResult({
         status: 'VALID',
         message: 'Ticket valid — entry confirmed',
         ticket: {
-          id: cleanId,
-          name: ticket.name,
-          ticketType: ticket.ticketType,
+          id: ticketId,
+          name: ticketData.name,
+          ticketType: ticketData.ticketType,
         },
       });
 
       // Add to recent scans
       setRecentScans(prev => [{
-        id: cleanId,
+        id: ticketId,
         status: 'VALID',
-        name: ticket.name || 'Unknown',
-        ticketType: ticket.ticketType || 'Standard',
+        name: ticketData.name || 'Unknown',
+        ticketType: ticketData.ticketType || 'Standard',
         time: new Date().toLocaleTimeString(),
       }, ...prev].slice(0, 20));
 

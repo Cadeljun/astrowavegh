@@ -171,5 +171,13 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    // ── QR CODES ───────────────────────────────────────────────────
+    match /qrcodes/{qrCodeId} {
+      allow read: if isAuthenticated(); // Scanner reads to find ticket
+      allow create: if isAuthenticated(); // Client creates with ticket
+      allow update: if isAuthenticated(); // Scanner marks as 'used'
+      allow delete: if isAdmin();
+    }
+
   }
 }
