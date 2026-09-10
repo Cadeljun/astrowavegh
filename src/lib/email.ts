@@ -5,7 +5,7 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 interface TicketEmailData {
   name: string;
   email: string;
-  tickets: { ticketId: string; ticketType: string }[];
+  tickets: { ticketId: string; ticketType: string; qrUrl?: string }[];
   amount: number;
   quantity: number;
 }
@@ -17,12 +17,28 @@ export async function sendTicketEmail(data: TicketEmailData) {
     .map((t, i) => `${i + 1}. ${t.ticketId} (${t.ticketType})`)
     .join('\n');
 
-  const ticketLinks = tickets
-    .map((t, i) => `<tr>
-      <td style="padding:12px 16px;border-bottom:1px solid #1a1a1a;color:#F5F5F5;font-size:14px;">${i + 1}</td>
-      <td style="padding:12px 16px;border-bottom:1px solid #1a1a1a;font-family:monospace;color:#DAAF48;font-size:14px;font-weight:bold;">${t.ticketId}</td>
-      <td style="padding:12px 16px;border-bottom:1px solid #1a1a1a;color:#F5F5F5;font-size:14px;">${t.ticketType}</td>
-    </tr>`)
+  // Generate ticket cards with QR codes
+  const ticketCards = tickets
+    .map((t, i) => `
+      <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:24px;margin-bottom:16px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+          <div>
+            <p style="color:#DAAF48;font-size:11px;text-transform:uppercase;letter-spacing:2px;margin:0 0 4px;">Ticket ${i + 1} of ${quantity}</p>
+            <p style="color:#F5F5F5;font-size:20px;font-weight:bold;margin:0;font-family:monospace;">${t.ticketId}</p>
+          </div>
+          <div style="text-align:right;">
+            <p style="color:#B4B4B4;font-size:11px;text-transform:uppercase;letter-spacing:1px;margin:0;">Type</p>
+            <p style="color:#F5F5F5;font-size:14px;font-weight:600;margin:0;">${t.ticketType}</p>
+          </div>
+        </div>
+        ${t.qrUrl ? `
+          <div style="text-align:center;padding:16px;background:white;border-radius:12px;">
+            <img src="${t.qrUrl}" alt="QR Code for ${t.ticketId}" style="width:200px;height:200px;" />
+            <p style="color:#666;font-size:10px;margin:8px 0 0;">Scan at entrance</p>
+          </div>
+        ` : ''}
+      </div>
+    `)
     .join('');
 
   const html = `
@@ -47,21 +63,10 @@ export async function sendTicketEmail(data: TicketEmailData) {
       <p style="color:#B4B4B4;font-size:14px;margin:0;">${quantity > 1 ? `${quantity} tickets` : 'Your ticket'} ${quantity > 1 ? 'have' : 'has'} been generated</p>
     </div>
 
-    <!-- Ticket Details -->
-    <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:24px;margin-bottom:32px;">
-      <p style="color:#B4B4B4;font-size:11px;text-transform:uppercase;letter-spacing:2px;margin:0 0 16px;">Ticket${quantity > 1 ? 's' : ''}</p>
-      <table style="width:100%;border-collapse:collapse;">
-        <thead>
-          <tr>
-            <th style="padding:8px 16px;text-align:left;color:#B4B4B4;font-size:11px;text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid #1a1a1a;">#</th>
-            <th style="padding:8px 16px;text-align:left;color:#B4B4B4;font-size:11px;text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid #1a1a1a;">Ticket ID</th>
-            <th style="padding:8px 16px;text-align:left;color:#B4B4B4;font-size:11px;text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid #1a1a1a;">Type</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${ticketLinks}
-        </tbody>
-      </table>
+    <!-- Ticket Cards with QR Codes -->
+    <div style="margin-bottom:32px;">
+      <p style="color:#B4B4B4;font-size:11px;text-transform:uppercase;letter-spacing:2px;margin:0 0 16px;">Your Ticket${quantity > 1 ? 's' : ''}</p>
+      ${ticketCards}
     </div>
 
     <!-- Event Info -->
@@ -93,8 +98,8 @@ export async function sendTicketEmail(data: TicketEmailData) {
 
     <!-- Instructions -->
     <div style="text-align:center;margin-bottom:32px;">
-      <p style="color:#F5F5F5;font-size:14px;margin:0 0 8px;">Show your ticket ID at the entrance</p>
-      <p style="color:#B4B4B4;font-size:12px;margin:0;">Screenshot this email or save your ticket IDs</p>
+      <p style="color:#F5F5F5;font-size:14px;margin:0 0 8px;">Show the QR code at the entrance</p>
+      <p style="color:#B4B4B4;font-size:12px;margin:0;">Or save this email on your phone</p>
     </div>
 
     <!-- Footer -->
@@ -114,7 +119,7 @@ export async function sendTicketEmail(data: TicketEmailData) {
       to: email,
       subject: `🎭 Your Mask Mirage Party Ticket${quantity > 1 ? 's' : ''} — ${tickets[0].ticketId}`,
       html,
-      text: `Mask Mirage Party Ticket Confirmation\n\nHi ${name},\n\nYour payment was successful!\n\nTickets:\n${ticketList}\n\nEvent: Mask Mirage Party\nDate: 10 October 2026\nTime: 9:00 PM\nVenue: Coaches Lounge, East Legon\nTotal: GH¢${amount}\n\nShow your ticket ID at the entrance.\n\n© 2026 AstroWave Entertainment`,
+      text: `Mask Mirage Party Ticket Confirmation\n\nHi ${name},\n\nYour payment was successful!\n\nTickets:\n${ticketList}\n\nEvent: Mask Mirage Party\nDate: 10 October 2026\nTime: 9:00 PM\nVenue: Coaches Lounge, East Legon\nTotal: GH¢${amount}\n\nShow your ticket at the entrance.\n\n© 2026 AstroWave Entertainment`,
     });
     return { success: true };
   } catch (error: any) {
