@@ -99,8 +99,8 @@ export default function TicketsPage() {
     }
   };
 
-  // Background image URL - replace with your Cloudinary URL
-  const bgImage = 'https://res.cloudinary.com/dmd5bq3va/image/upload/v1786593422/gkbqxs9qvggzxd0ocy77.jpg';
+  // Background image from Cloudinary
+  const bgImage = 'https://res.cloudinary.com/dmd5bq3va/image/upload/v1789011146/tpjly1tuahsdasbgvzdb.png';
 
   return (
     <div className="min-h-screen relative" style={{ background: '#090909' }}>
