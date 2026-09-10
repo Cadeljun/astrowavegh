@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar, MapPin, Clock, Ticket, ArrowRight, Loader2, CheckCircle, X, CreditCard, Instagram, Minus, Plus } from 'lucide-react';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
+import { trackTicketPurchase } from '@/components/GoogleAnalytics';
 
 const TICKET_TYPES = [
   {
@@ -98,8 +99,21 @@ export default function TicketsPage() {
     }
   };
 
+  // Background image URL - replace with your Cloudinary URL
+  const bgImage = 'https://res.cloudinary.com/dmd5bq3va/image/upload/v1786593422/gkbqxs9qvggzxd0ocy77.jpg';
+
   return (
-    <div className="min-h-screen" style={{ background: '#090909' }}>
+    <div className="min-h-screen relative" style={{ background: '#090909' }}>
+      {/* Background image with reduced opacity */}
+      <div className="fixed inset-0 z-0">
+        <img
+          src={bgImage}
+          alt=""
+          className="w-full h-full object-cover"
+          style={{ opacity: 0.08 }}
+        />
+      </div>
+      
       {/* Subtle glow */}
       <div className="fixed inset-0 z-0 pointer-events-none">
         <div className="absolute right-0 top-1/3 w-[600px] h-[600px]" style={{ background: 'radial-gradient(circle, rgba(218,175,72,0.06) 0%, transparent 70%)' }} />

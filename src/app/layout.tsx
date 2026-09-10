@@ -7,6 +7,7 @@ import { RoleProvider } from '@/context/RoleContext';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
 import ClientLayout from '@/components/layout/ClientLayout';
 import DynamicFavicon from '@/components/ui/DynamicFavicon';
+import GoogleAnalytics from '@/components/GoogleAnalytics';
 import { Toaster } from '@/components/ui/toaster';
 
 const plusJakarta = Plus_Jakarta_Sans({
@@ -157,6 +158,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessSchema) }} />
       </head>
       <body className="antialiased bg-white text-[#0B1F14] min-h-screen selection:bg-[#00C853]/20 selection:text-[#0B1F14]">
+        <GoogleAnalytics />
         <FirebaseClientProvider>
           <AuthProvider>
             <RoleProvider>
