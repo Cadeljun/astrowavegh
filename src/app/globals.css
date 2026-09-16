@@ -4,58 +4,58 @@
 
 @layer base {
   :root {
-    /* ── Core palette: White / Green / Blue ─────────────── */
-    --color-bg:           #FFFFFF;
-    --color-bg-soft:      #F0FAF5;
-    --color-bg-muted:     #E6F4ED;
-    --color-surface:      #FFFFFF;
+    /* ── Core palette: warm editorial neutrals + signal lime ───── */
+    --color-bg:           #F7F4EC;
+    --color-bg-soft:      #ECE9DF;
+    --color-bg-muted:     #E4DED1;
+    --color-surface:      #F7F4EC;
     --color-card:         #FFFFFF;
-    --color-border:       #C8E6D4;
+    --color-border:       #D8D8C9;
 
     /* Green — primary */
-    --color-green:        #00C853;
-    --color-green-light:  #5FFFAC;
-    --color-green-dark:   #007A33;
+    --color-green:        #C7FF51;
+    --color-green-light:  #F2FFC8;
+    --color-green-dark:   #849F28;
 
     /* Blue — secondary */
-    --color-blue:         #0EA5E9;
-    --color-blue-light:   #38BDF8;
-    --color-blue-dark:    #0369A1;
+    --color-blue:         #426A5A;
+    --color-blue-light:   #89A694;
+    --color-blue-dark:    #29483A;
 
     /* Text */
-    --color-text:         #0B1F14;
-    --color-text-soft:    #2A4434;
-    --color-muted:        #567060;
+    --color-text:         #10231D;
+    --color-text-soft:    #354B40;
+    --color-muted:        #68786C;
     --color-white:        #FFFFFF;
 
     /* ── Dark-theme aliases (Navbar, hero overlays still need dark) */
     /* These let old dark-* classes compile without errors */
-    --dark-bg:            #0B1F14;
-    --dark-surface:       #122819;
-    --dark-card:          #162E1C;
-    --dark-border:        rgba(0,200,83,0.15);
-    --dark-text:          #F0FAF5;
-    --dark-subtext:       rgba(240,250,245,0.65);
-    --dark-muted:         rgba(240,250,245,0.35);
+    --dark-bg:            #07110D;
+    --dark-surface:       #10231D;
+    --dark-card:          #132B23;
+    --dark-border:        rgba(199,255,81,0.18);
+    --dark-text:          #F7F4EC;
+    --dark-subtext:       rgba(247,244,236,0.65);
+    --dark-muted:         rgba(247,244,236,0.35);
 
     /* ── Accent aliases ─────────────────────────────────── */
-    --color-gold:         #00C853;   /* remap gold → green */
-    --color-purple:       #0EA5E9;   /* remap purple → blue */
-    --color-cyan:         #38BDF8;
+    --color-gold:         #C7FF51;
+    --color-purple:       #426A5A;
+    --color-cyan:         #89A694;
 
     /* ShadCN compat */
-    --background:         0 0% 100%;
-    --foreground:         150 40% 8%;
-    --primary:            145 100% 39%;
-    --primary-foreground: 0 0% 100%;
-    --secondary:          199 89% 48%;
-    --secondary-foreground: 0 0% 100%;
-    --accent:             145 60% 93%;
-    --accent-foreground:  145 100% 20%;
-    --muted:              145 20% 93%;
-    --muted-foreground:   145 15% 42%;
-    --border:             145 35% 84%;
-    --radius:             10px;
+    --background:         45 33% 95%;
+    --foreground:         155 35% 10%;
+    --primary:            74 100% 66%;
+    --primary-foreground: 155 35% 10%;
+    --secondary:          153 25% 32%;
+    --secondary-foreground: 45 33% 95%;
+    --accent:             74 100% 92%;
+    --accent-foreground:  155 35% 10%;
+    --muted:              45 19% 90%;
+    --muted-foreground:   145 9% 47%;
+    --border:             48 17% 82%;
+    --radius:             16px;
   }
 }
 
@@ -70,8 +70,8 @@
   }
 
   body {
-    background-color: #FFFFFF;
-    color: #0B1F14;
+    background-color: #F7F4EC;
+    color: #10231D;
     font-family: var(--font-body), sans-serif;
     font-weight: 400;
     overflow-x: hidden;
@@ -79,16 +79,16 @@
   }
 
   ::selection {
-    background-color: rgba(0,200,83,0.22);
-    color: #0B1F14;
+    background-color: rgba(199,255,81,0.38);
+    color: #10231D;
   }
 }
 
 /* ── Scrollbar ──────────────────────────────────────────── */
 ::-webkit-scrollbar          { width: 4px; height: 4px; }
-::-webkit-scrollbar-track    { background: #E6F4ED; }
-::-webkit-scrollbar-thumb    { background: #00C853; border-radius: 999px; }
-::-webkit-scrollbar-thumb:hover { background: #0EA5E9; }
+::-webkit-scrollbar-track    { background: #ECE9DF; }
+::-webkit-scrollbar-thumb    { background: #849F28; border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: #10231D; }
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 
@@ -313,3 +313,23 @@
 }
 .animate-accordion-down { animation: accordion-down 0.2s ease-out; }
 .animate-accordion-up   { animation: accordion-up   0.2s ease-out; }
+
+/* ── Landing page texture ───────────────────────────────── */
+.hero-grid {
+  background-image: linear-gradient(rgba(199,255,81,0.12) 1px, transparent 1px), linear-gradient(90deg, rgba(199,255,81,0.12) 1px, transparent 1px);
+  background-size: 72px 72px;
+  mask-image: linear-gradient(to bottom, black 0%, transparent 78%);
+  -webkit-mask-image: linear-gradient(to bottom, black 0%, transparent 78%);
+}
+
+button, a { -webkit-tap-highlight-color: transparent; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
