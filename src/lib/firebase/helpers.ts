@@ -89,43 +89,47 @@ export async function countDocuments(path: string) {
 /**
  * Deletes a document from a collection. (Non-blocking optimistic write)
  */
-export function deleteDocument(path: string, id: string) {
+export async function deleteDocument(path: string, id: string) {
   const docRef = doc(db, path, id);
-  deleteDoc(docRef)
-    .catch(async (serverError) => {
-      const permissionError = new FirestorePermissionError({
-        path: docRef.path,
-        operation: 'delete',
-      });
-      errorEmitter.emit('permission-error', permissionError);
+  try {
+    await deleteDoc(docRef);
+  } catch (serverError) {
+    const permissionError = new FirestorePermissionError({
+      path: docRef.path,
+      operation: 'delete',
     });
+    errorEmitter.emit('permission-error', permissionError);
+    throw serverError;
+  }
 }
 
 /**
  * Updates a document in a collection. (Non-blocking optimistic write)
  */
-export function updateDocument(path: string, id: string, data: any) {
+export async function updateDocument(path: string, id: string, data: any) {
   const docRef = doc(db, path, id);
   const updateData = { 
     ...data, 
     updatedAt: serverTimestamp() 
   };
   
-  updateDoc(docRef, updateData)
-    .catch(async (serverError) => {
-      const permissionError = new FirestorePermissionError({
-        path: docRef.path,
-        operation: 'update',
-        requestResourceData: updateData,
-      });
-      errorEmitter.emit('permission-error', permissionError);
+  try {
+    await updateDoc(docRef, updateData);
+  } catch (serverError) {
+    const permissionError = new FirestorePermissionError({
+      path: docRef.path,
+      operation: 'update',
+      requestResourceData: updateData,
     });
+    errorEmitter.emit('permission-error', permissionError);
+    throw serverError;
+  }
 }
 
 /**
  * Adds a new document to a collection. (Non-blocking optimistic write)
  */
-export function addDocument(path: string, data: any) {
+export async function addDocument(path: string, data: any) {
   const colRef = collection(db, path);
   const addData = {
     ...data,
@@ -133,15 +137,17 @@ export function addDocument(path: string, data: any) {
     updatedAt: serverTimestamp()
   };
 
-  addDoc(colRef, addData)
-    .catch(async (serverError) => {
-      const permissionError = new FirestorePermissionError({
-        path: colRef.path,
-        operation: 'create',
-        requestResourceData: addData,
-      });
-      errorEmitter.emit('permission-error', permissionError);
+  try {
+    return await addDoc(colRef, addData);
+  } catch (serverError) {
+    const permissionError = new FirestorePermissionError({
+      path: colRef.path,
+      operation: 'create',
+      requestResourceData: addData,
     });
+    errorEmitter.emit('permission-error', permissionError);
+    throw serverError;
+  }
 }
 
 /**

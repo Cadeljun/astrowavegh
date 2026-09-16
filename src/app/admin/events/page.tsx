@@ -16,18 +16,33 @@ import {
 import { orderBy } from 'firebase/firestore'
 import ConfirmModal from 
   '@/components/admin/ConfirmModal'
-import { Toast } from '@/components/ui/toast'
 
 interface Event {
   id: string
-  name: string
+  title: string
+  name?: string
   category: string
   date: any
+  startDate?: any
   venue: string
-  imageUrl: string
+  coverImage?: string
+  imageUrl?: string
   active: boolean
+  status?: 'draft' | 'published'
   shortDescription: string
+  description?: string
   createdAt: any
+}
+
+function normalizeEvent(event: any): Event {
+  return {
+    ...event,
+    title: event.title || event.name || 'Untitled event',
+    date: event.date || event.startDate,
+    coverImage: event.coverImage || event.imageUrl || event.bannerUrl || '',
+    active: event.active ?? event.status === 'published',
+    description: event.description || event.shortDescription || '',
+  }
 }
 
 export default function AdminEventsPage() {
@@ -46,8 +61,8 @@ export default function AdminEventsPage() {
   } | null>(null)
 
   const categories = [
-    'All', 'Parties', 'Concerts', 
-    'Nightlife', 'Networking', 'Festivals'
+    'All', 'Parties', 'Concerts',
+    'Nightlife', 'Networking', 'Festivals', 'Corporate', 'Wedding', 'Private', 'Other'
   ]
 
   // Load events from Firestore
@@ -58,7 +73,7 @@ export default function AdminEventsPage() {
         'events', 
         [orderBy('createdAt', 'desc')]
       )
-      setEvents(data as Event[])
+      setEvents((data as Event[]).map(normalizeEvent))
     } catch (error) {
       showToast(
         'Failed to load events', 
@@ -76,7 +91,7 @@ export default function AdminEventsPage() {
     let result = [...events]
     if (search) {
       result = result.filter(e =>
-        e.name.toLowerCase().includes(
+        e.title.toLowerCase().includes(
           search.toLowerCase()
         ) ||
         e.venue?.toLowerCase().includes(
@@ -103,8 +118,10 @@ export default function AdminEventsPage() {
   // Toggle active status
   const toggleActive = async (event: Event) => {
     try {
+      const nextActive = !event.active
       await updateDocument('events', event.id, {
-        active: !event.active
+        active: nextActive,
+        status: nextActive ? 'published' : 'draft',
       })
       setEvents(prev => prev.map(e =>
         e.id === event.id 
@@ -331,10 +348,10 @@ export default function AdminEventsPage() {
                             bg-[#1E1E2E] 
                             flex-shrink-0
                             overflow-hidden">
-                            {event.imageUrl ? (
+                            {event.coverImage ? (
                               <img
-                                src={event.imageUrl}
-                                alt={event.name}
+                                src={event.coverImage}
+                                alt={event.title}
                                 className="w-full h-full 
                                   object-cover"
                               />
@@ -352,7 +369,7 @@ export default function AdminEventsPage() {
                           <span className="
                             font-body font-semibold 
                             text-sm text-[#F8F8FF]">
-                            {event.name}
+                            {event.title}
                           </span>
                         </div>
                       </td>
@@ -478,10 +495,10 @@ export default function AdminEventsPage() {
                       w-12 h-12 rounded-md
                       bg-[#1E1E2E] flex-shrink-0
                       overflow-hidden">
-                      {event.imageUrl ? (
+                      {event.coverImage ? (
                         <img
-                          src={event.imageUrl}
-                          alt={event.name}
+                          src={event.coverImage}
+                          alt={event.title}
                           className="w-full h-full 
                             object-cover"
                         />
@@ -502,7 +519,7 @@ export default function AdminEventsPage() {
                         font-semibold text-sm 
                         text-[#F8F8FF] 
                         truncate">
-                        {event.name}
+                        {event.title}
                       </p>
                       <div className="flex 
                         items-center gap-2 mt-1
@@ -599,8 +616,8 @@ export default function AdminEventsPage() {
       {deleteTarget && (
         <ConfirmModal
           title="Delete Event"
-          message={`Are you sure you want to 
-            delete "${deleteTarget.name}"? 
+          message={`Are you sure you want to
+            delete "${deleteTarget.title}"?
             This cannot be undone.`}
           onConfirm={handleDelete}
           onCancel={() => setDeleteTarget(null)}
@@ -609,11 +626,9 @@ export default function AdminEventsPage() {
 
       {/* Toast */}
       {toast && (
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          onClose={() => setToast(null)}
-        />
+        <div role="status" className={`fixed bottom-6 right-6 z-50 rounded-lg border px-4 py-3 text-sm shadow-lg ${toast.type === 'success' ? 'border-green-400/30 bg-green-400/10 text-green-300' : 'border-red-400/30 bg-red-400/10 text-red-300'}`}>
+          {toast.message}
+        </div>
       )}
     </div>
   )

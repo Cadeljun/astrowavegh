@@ -4,7 +4,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Calendar, MapPin, Users, ArrowRight, X, Zap, Play, Music, Filter } from 'lucide-react';
-import { collection, query, where, orderBy, onSnapshot } from 'firebase/firestore';
+import { collection, query, orderBy, onSnapshot } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
 import { useCMSContent } from '@/lib/cms/useCMS';
 import { cn } from '@/lib/utils';
@@ -30,7 +30,40 @@ const FALLBACKS: Record<string, string> = {
   default:   'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800&q=80',
 };
 
+const MASK_MIRAGE_FALLBACK = {
+  id: 'mask-mirage-2026',
+  title: 'MASK MIRAGE PARTY',
+  category: 'Nightlife',
+  date: new Date('2026-10-10T21:00:00+00:00'),
+  startDate: new Date('2026-10-10T21:00:00+00:00'),
+  venue: 'Coaches Lounge, East Legon',
+  city: 'Accra',
+  description: 'A night of mystery, elegance and unforgettable energy. Standard tickets, group passes and complimentary invites are available now.',
+  coverImage: 'https://res.cloudinary.com/dmd5bq3va/image/upload/v1786593422/gkbqxs9qvggzxd0ocy77.jpg',
+  slug: 'mask-mirage-party',
+  status: 'published',
+  active: true,
+  ticketTiers: [
+    { tierId: 'standard', name: 'Standard', price: 50, quantity: 100, sold: 0 },
+    { tierId: 'group-4', name: 'Group of 4', price: 180, quantity: 25, sold: 0 },
+    { tierId: 'complimentary', name: 'Complimentary Invite', price: 0.2, quantity: 50, sold: 0 },
+  ],
+};
+
+function normalizeEvent(event: any) {
+  const date = event.startDate || event.date;
+  return {
+    ...event,
+    title: event.title || event.name || 'Untitled event',
+    coverImage: event.coverImage || event.imageUrl || event.bannerUrl || '',
+    date,
+    startDate: date,
+    active: event.active ?? event.status === 'published',
+  };
+}
+
 function EventCard({ event }: { event: any }) {
+  event = normalizeEvent(event);
   const status    = getStatus(event);
   const img       = event.coverImage || FALLBACKS[event.category] || FALLBACKS.default;
   const startDate = event.startDate?.toDate?.() ?? new Date(event.startDate);
@@ -130,8 +163,12 @@ export default function EventsPage() {
   const searchRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    const q = query(collection(db, 'events'), where('active', '==', true), orderBy('createdAt', 'desc'));
-    return onSnapshot(q, snap => { setEvents(snap.docs.map(d => ({ id: d.id, ...d.data() }))); setLoading(false); }, () => setLoading(false));
+    const q = query(collection(db, 'events'), orderBy('createdAt', 'desc'));
+    return onSnapshot(q, snap => {
+      const liveEvents = snap.docs.map(d => normalizeEvent({ id: d.id, ...d.data() })).filter(event => event.active);
+      setEvents(liveEvents.some(event => event.slug === MASK_MIRAGE_FALLBACK.slug) ? liveEvents : [MASK_MIRAGE_FALLBACK, ...liveEvents]);
+      setLoading(false);
+    }, () => { setEvents([MASK_MIRAGE_FALLBACK]); setLoading(false); });
   }, [db]);
 
   useEffect(() => { if (searchOpen) setTimeout(() => searchRef.current?.focus(), 50); }, [searchOpen]);
