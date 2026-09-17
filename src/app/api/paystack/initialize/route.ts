@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { purchaseLimiter, checkRateLimit } from '@/lib/rate-limit'
+import { getExpectedAmount } from '@/lib/tickets/server'
 
 const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY
 
@@ -14,7 +15,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { email, amount, ticketType, name, quantity } = await request.json()
+    const { email, amount, ticketType, name, phone, quantity = 1 } = await request.json()
 
     if (!email || !amount || !ticketType) {
       return NextResponse.json(
@@ -30,17 +31,15 @@ export async function POST(request: Request) {
       )
     }
 
-    // Validate price server-side
-    const validPrices: Record<string, number> = {
-      'Standard': 50,
-      'Group of 4': 180,
-      'Complimentary': 0.20,
-    };
-    const expectedPrice = validPrices[ticketType];
-    if (expectedPrice === undefined) {
+    const normalizedQuantity = Number(quantity)
+    if (!Number.isInteger(normalizedQuantity) || normalizedQuantity < 1 || normalizedQuantity > 10) {
+      return NextResponse.json({ error: 'Invalid ticket quantity' }, { status: 400 });
+    }
+
+    const expectedTotal = getExpectedAmount(ticketType, normalizedQuantity)
+    if (expectedTotal === null) {
       return NextResponse.json({ error: 'Invalid ticket type' }, { status: 400 });
     }
-    const expectedTotal = expectedPrice * (quantity || 1);
     if (Math.abs(amount - expectedTotal) > 0.01) {
       return NextResponse.json({ error: 'Price mismatch' }, { status: 400 });
     }
@@ -60,8 +59,9 @@ export async function POST(request: Request) {
         metadata: {
           ticketType,
           name,
-          quantity: quantity || 1,
-          event: 'Mask Mirage Party',
+          phone,
+          quantity: normalizedQuantity,
+          event: 'mask-mirage-party',
         },
         callback_url: `${origin}/tickets/verify`,
       }),

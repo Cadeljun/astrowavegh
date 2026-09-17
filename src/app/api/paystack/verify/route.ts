@@ -1,22 +1,12 @@
 import { NextResponse } from 'next/server'
-import { sendTicketEmail } from '@/lib/email'
+import { fulfillPaystackPayment } from '@/lib/tickets/server'
 
 const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY
-
-function generateTicketId(): string {
-  const prefix = 'MM26'
-  const chars = '0123456789ABCDEF'
-  let id = ''
-  for (let i = 0; i < 8; i++) {
-    id += chars.charAt(Math.floor(Math.random() * chars.length))
-  }
-  return `${prefix}-${id}`
-}
 
 export async function GET(request: Request) {
   try {
     const url = new URL(request.url)
-    const reference = url.searchParams.get('reference')
+    const reference = url.searchParams.get('reference') || url.searchParams.get('trxref')
 
     if (!reference) {
       return NextResponse.json({ error: 'Reference required' }, { status: 400 })
@@ -26,62 +16,38 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Payment not configured' }, { status: 503 })
     }
 
-    // Verify with Paystack
-    const response = await fetch(
-      `https://api.paystack.co/transaction/verify/${reference}`,
-      { headers: { Authorization: `Bearer ${PAYSTACK_SECRET_KEY}` } }
-    )
+    const response = await fetch(`https://api.paystack.co/transaction/verify/${encodeURIComponent(reference)}`, {
+      headers: { Authorization: `Bearer ${PAYSTACK_SECRET_KEY}` },
+      cache: 'no-store',
+    })
     const data = await response.json()
 
-    if (!data.status || data.data.status !== 'success') {
-      return NextResponse.json({ 
-        error: 'Payment not successful', 
-        status: data.data?.status 
+    if (!data.status || data.data?.status !== 'success') {
+      return NextResponse.json({
+        error: 'Payment not successful',
+        status: data.data?.status,
       }, { status: 400 })
     }
 
-    const metadata = data.data.metadata || {}
-    const quantity = metadata.quantity || 1
-    const name = metadata.name || ''
-    const email = data.data.customer?.email || ''
-    const ticketType = metadata.ticketType || 'Standard'
-    const amount = data.data.amount / 100
-
-    // Generate tickets (client will save to Firestore)
-    const tickets = []
-    for (let i = 0; i < quantity; i++) {
-      const ticketId = generateTicketId()
-      tickets.push({ 
-        ticketId, 
-        ticketType,
-        name,
-        email,
-        price: amount / quantity,
-        paymentReference: reference,
-      })
-    }
-
-    // Send email with tickets
-    const emailResult = await sendTicketEmail({
-      name,
-      email,
-      tickets,
-      amount,
-      quantity,
+    const result = await fulfillPaystackPayment({
+      reference,
+      email: data.data.customer?.email || '',
+      amount: Number(data.data.amount || 0) / 100,
+      metadata: data.data.metadata || {},
     })
 
     return NextResponse.json({
       success: true,
-      tickets,
-      email,
-      name,
-      ticketType,
-      amount,
-      quantity,
-      emailSent: emailResult.success,
+      tickets: result.tickets,
+      email: data.data.customer?.email || '',
+      name: data.data.metadata?.name || '',
+      amount: Number(data.data.amount || 0) / 100,
+      quantity: result.tickets.length,
+      emailSent: result.emailSent,
+      alreadyFulfilled: result.alreadyFulfilled,
     })
-  } catch (error: any) {
-    console.error('Verify error:', error)
+  } catch (error) {
+    console.error('Paystack verify error:', error)
     return NextResponse.json({ error: 'Verification failed' }, { status: 500 })
   }
 }

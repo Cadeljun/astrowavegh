@@ -86,6 +86,7 @@ export default function TicketsPage() {
           amount: totalAmount,
           ticketType: selectedTicketData.name,
           name: formData.name,
+          phone: formData.phone,
           quantity: ticketQty,
         }),
       });
