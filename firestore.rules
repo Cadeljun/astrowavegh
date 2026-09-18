@@ -29,6 +29,16 @@ service cloud.firestore {
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'talent';
     }
 
+    function isScanner() {
+      return isAuthenticated() &&
+        (request.auth.token.role == 'scanner' ||
+         request.auth.token.role == 'admin' ||
+         request.auth.token.scanner == true ||
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'scanner' ||
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.scanner == true);
+    }
+
     // ── BOOKINGS ────────────────────────────────────────────────────
     match /bookings/{id} {
       allow read: if isAdmin() || 
@@ -165,18 +175,29 @@ service cloud.firestore {
 
     // ── TICKETS ─────────────────────────────────────────────────────
     match /tickets/{ticketId} {
-      allow read: if isAuthenticated(); // Admin and scanner can read
-      allow create: if isAuthenticated(); // Client creates after payment
-      allow update: if isAuthenticated(); // Scanner marks as 'used'
+      allow read: if isScanner();
+      // Ticket records are created only by trusted server code using Admin SDK.
+      allow create: if false;
+      allow update: if isAdmin() || (isScanner() &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'checkedInAt']) &&
+        resource.data.status == 'valid' &&
+        request.resource.data.status == 'used');
       allow delete: if isAdmin();
     }
 
     // ── QR CODES ───────────────────────────────────────────────────
     match /qrcodes/{qrCodeId} {
-      allow read: if isAuthenticated(); // Scanner reads to find ticket
-      allow create: if isAuthenticated(); // Client creates with ticket
-      allow update: if isAuthenticated(); // Scanner marks as 'used'
+      allow read: if isScanner();
+      allow create: if false;
+      allow update: if isAdmin() || (isScanner() &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status']) &&
+        resource.data.status == 'valid' &&
+        request.resource.data.status == 'used');
       allow delete: if isAdmin();
+    }
+
+    match /payment_events/{paymentReference} {
+      allow read, write: if isAdmin();
     }
 
   }

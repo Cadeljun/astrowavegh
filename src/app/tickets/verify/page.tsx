@@ -5,8 +5,6 @@ import { useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { CheckCircle, XCircle, Loader2, ArrowLeft, Download, Ticket, Mail, Copy, ExternalLink } from 'lucide-react';
 import Link from 'next/link';
-import { collection, query, where, getDocs } from 'firebase/firestore';
-import { db } from '@/firebase';
 import MaskMirageTicket from '@/components/tickets/MaskMirageTicket';
 
 function VerifyContent() {
@@ -37,34 +35,17 @@ function VerifyContent() {
         // The callback is also a safe fulfillment fallback. The server
         // deduplicates by payment reference, so webhook + callback cannot
         // create two sets of tickets.
-        if (attempts === 1) {
-          try {
-            const fulfillment = await fetch(`/api/paystack/verify?reference=${encodeURIComponent(reference)}`, { cache: 'no-store' });
-            const fulfillmentData = await fulfillment.json();
-            if (fulfillment.ok && fulfillmentData.success && fulfillmentData.tickets?.length) {
-              setTickets(fulfillmentData.tickets);
-              setEmailSent(Boolean(fulfillmentData.emailSent));
-              setStatus('success');
-              return;
-            }
-          } catch (fulfillmentError) {
-            console.warn('Payment fulfillment fallback unavailable; continuing to poll.', fulfillmentError);
+        try {
+          const fulfillment = await fetch(`/api/paystack/verify?reference=${encodeURIComponent(reference)}`, { cache: 'no-store' });
+          const fulfillmentData = await fulfillment.json();
+          if (fulfillment.ok && fulfillmentData.success && fulfillmentData.tickets?.length) {
+            setTickets(fulfillmentData.tickets);
+            setEmailSent(Boolean(fulfillmentData.emailSent));
+            setStatus('success');
+            return;
           }
-        }
-        
-        // Look for tickets with this payment reference
-        const q = query(
-          collection(db, 'tickets'),
-          where('paymentReference', '==', reference)
-        );
-        const snap = await getDocs(q);
-
-        if (!snap.empty) {
-          const foundTickets = snap.docs.map(d => d.data());
-          setTickets(foundTickets);
-          setEmailSent(null);
-          setStatus('success');
-          return;
+        } catch (fulfillmentError) {
+          console.warn('Payment verification retry unavailable.', fulfillmentError);
         }
 
         if (attempts < maxAttempts) {

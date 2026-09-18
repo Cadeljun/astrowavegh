@@ -1,83 +1,64 @@
 import { NextResponse } from 'next/server'
-import { db } from '@/firebase'
-import { doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore'
+import { authErrorResponse, requireScanner } from '@/lib/auth/server'
+import { getAdminDb } from '@/lib/firebase/admin'
+import { checkRateLimit, scanLimiter } from '@/lib/rate-limit'
 
-// Verify a ticket by its ID
 export async function POST(request: Request) {
   try {
+    const rateLimit = await checkRateLimit(scanLimiter, request)
+    if (!rateLimit.allowed) return NextResponse.json({ status: 'ERROR', message: 'Too many scans. Try again shortly.' }, { status: 429 })
+    await requireScanner(request)
     const { ticketId } = await request.json()
+    const normalizedId = typeof ticketId === 'string' ? ticketId.trim().toUpperCase() : ''
 
-    if (!ticketId || typeof ticketId !== 'string') {
-      return NextResponse.json(
-        { status: 'INVALID', error: 'No ticket ID provided' },
-        { status: 400 }
-      )
+    if (!/^MM26-[0-9A-F]{8}$/.test(normalizedId)) {
+      return NextResponse.json({ status: 'INVALID', message: 'Invalid ticket format' })
     }
 
-    // Validate ticket ID format
-    if (!/^MM26-[0-9A-F]{8}$/.test(ticketId)) {
-      return NextResponse.json({
-        status: 'INVALID',
-        message: 'Invalid ticket format',
+    const ticketRef = getAdminDb().collection('tickets').doc(normalizedId)
+    const result = await getAdminDb().runTransaction(async (transaction) => {
+      const ticketSnapshot = await transaction.get(ticketRef)
+
+      if (!ticketSnapshot.exists) {
+        return { status: 'INVALID' as const, message: 'Ticket not found' }
+      }
+
+      const ticket = ticketSnapshot.data() || {}
+      if (ticket.status === 'used') {
+        return {
+          status: 'USED' as const,
+          message: 'Ticket already scanned',
+          ticket: {
+            id: normalizedId,
+            name: ticket.name || 'Guest',
+            ticketType: ticket.ticketType || 'Standard',
+            checkedInAt: ticket.checkedInAt || null,
+          },
+        }
+      }
+
+      if (ticket.status === 'cancelled') {
+        return { status: 'INVALID' as const, message: 'Ticket has been cancelled' }
+      }
+
+      transaction.update(ticketRef, {
+        status: 'used',
+        checkedInAt: new Date(),
       })
-    }
 
-    // Look up ticket in Firestore
-    const ticketRef = doc(db, 'tickets', ticketId)
-    const ticketSnap = await getDoc(ticketRef)
-
-    if (!ticketSnap.exists()) {
-      return NextResponse.json({
-        status: 'INVALID',
-        message: 'Ticket not found',
-      })
-    }
-
-    const ticket = ticketSnap.data()
-
-    // Check if already used
-    if (ticket.status === 'used') {
-      return NextResponse.json({
-        status: 'USED',
-        message: 'Ticket already scanned',
+      return {
+        status: 'VALID' as const,
+        message: 'Ticket valid — entry confirmed',
         ticket: {
-          id: ticketId,
-          name: ticket.name,
-          ticketType: ticket.ticketType,
-          checkedInAt: ticket.checkedInAt,
+          id: normalizedId,
+          name: ticket.name || 'Guest',
+          ticketType: ticket.ticketType || 'Standard',
         },
-      })
-    }
-
-    // Check if cancelled
-    if (ticket.status === 'cancelled') {
-      return NextResponse.json({
-        status: 'INVALID',
-        message: 'Ticket has been cancelled',
-      })
-    }
-
-    // Mark as used
-    await updateDoc(ticketRef, {
-      status: 'used',
-      checkedInAt: serverTimestamp(),
+      }
     })
 
-    return NextResponse.json({
-      status: 'VALID',
-      message: 'Ticket valid — entry confirmed',
-      ticket: {
-        id: ticketId,
-        name: ticket.name,
-        ticketType: ticket.ticketType,
-        email: ticket.email,
-      },
-    })
-  } catch (error: any) {
-    console.error('Ticket verification error:', error)
-    return NextResponse.json(
-      { status: 'ERROR', error: 'Verification failed' },
-      { status: 500 }
-    )
+    return NextResponse.json(result)
+  } catch (error) {
+    return authErrorResponse(error)
   }
 }

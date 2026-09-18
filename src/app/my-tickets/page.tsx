@@ -3,12 +3,11 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Search, Ticket, Loader2, Calendar, MapPin, Clock, Download, Copy, CheckCircle } from 'lucide-react';
-import { collection, query, where, getDocs } from 'firebase/firestore';
-import { db } from '@/firebase';
 import Link from 'next/link';
 
 export default function MyTicketsPage() {
   const [email, setEmail] = useState('');
+  const [identifier, setIdentifier] = useState('');
   const [tickets, setTickets] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
@@ -22,13 +21,14 @@ export default function MyTicketsPage() {
     setSearched(true);
 
     try {
-      const q = query(
-        collection(db, 'tickets'),
-        where('email', '==', email.trim().toLowerCase())
-      );
-      const snap = await getDocs(q);
-      const found = snap.docs.map(d => d.data());
-      setTickets(found);
+      const response = await fetch('/api/tickets/lookup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, identifier }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Lookup failed');
+      setTickets(data.tickets || []);
     } catch (err) {
       console.error('Search error:', err);
     } finally {
@@ -59,12 +59,12 @@ export default function MyTicketsPage() {
             ← Back to Tickets
           </Link>
           <h1 className="font-display text-3xl uppercase mb-2" style={{ color: '#F5F5F5' }}>My Tickets</h1>
-          <p className="text-sm" style={{ color: '#B4B4B4' }}>Enter the email you used to purchase</p>
+          <p className="text-sm" style={{ color: '#B4B4B4' }}>Enter your purchase email and ticket ID or payment reference</p>
         </div>
 
         {/* Search */}
         <form onSubmit={handleSearch} className="mb-10">
-          <div className="flex gap-3">
+          <div className="space-y-3">
             <input
               type="email"
               value={email}
@@ -74,13 +74,22 @@ export default function MyTicketsPage() {
               style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#F5F5F5' }}
               required
             />
+            <input
+              type="text"
+              value={identifier}
+              onChange={e => setIdentifier(e.target.value.toUpperCase())}
+              placeholder="MM26-XXXXXXXX or payment reference"
+              className="w-full px-4 py-3 rounded-lg text-sm outline-none font-mono"
+              style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#F5F5F5' }}
+              required
+            />
             <button
               type="submit"
               disabled={loading}
-              className="px-6 py-3 rounded-lg font-bold text-sm uppercase"
+              className="w-full px-6 py-3 rounded-lg font-bold text-sm uppercase flex items-center justify-center"
               style={{ background: '#DAAF48', color: '#090909' }}
             >
-              {loading ? <Loader2 size={16} className="animate-spin" /> : <Search size={16} />}
+              {loading ? <Loader2 size={16} className="animate-spin" /> : <><Search size={16} className="mr-2" /> Find Tickets</>}
             </button>
           </div>
         </form>
