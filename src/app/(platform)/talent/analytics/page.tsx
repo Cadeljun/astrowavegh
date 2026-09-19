@@ -1,4 +1,5 @@
 'use client';
+import { Badge } from '@/components/ui/Badge';
 
 import React, { useMemo } from 'react';
 import { 
@@ -11,7 +12,8 @@ import {
   Loader2, ArrowRight, User, TrendingUp, CheckCircle
 } from 'lucide-react';
 import { collection, query, where, orderBy, limit } from 'firebase/firestore';
-import { useFirestore, useCollection, useAuth, useMemoFirebase } from '@/firebase';
+import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { useAuth } from '@/context/AuthContext';
 import { Card } from '@/components/ui/Card';
 import { SectionHeading } from '@/components/ui/SectionHeading';
 import { SectionLabel } from '@/components/ui/SectionLabel';

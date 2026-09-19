@@ -1,11 +1,13 @@
 'use client';
+import { SectionLabel } from '@/components/ui/SectionLabel';
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Loader2, CheckCircle, Waves, Star, Search } from 'lucide-react';
 import { doc, getDoc } from 'firebase/firestore';
-import { db, useAuth } from '@/firebase';
+import { db } from '@/firebase';
+import { useAuth } from '@/context/AuthContext';
 import RatingForm from '@/components/platform/RatingForm';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';

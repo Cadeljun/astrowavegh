@@ -32,7 +32,7 @@ export default function LoginPage() {
     if (!user || processing) return;
     setProcessing(true);
     try {
-      await getOrCreatePlatformUser(user);
+      await getOrCreatePlatformUser(user.uid, user.email || '', user.displayName || '', user.photoURL || '', 'google');
       await updateLastLogin(user.uid);
     } catch {}
     router.push('/organizer/dashboard');

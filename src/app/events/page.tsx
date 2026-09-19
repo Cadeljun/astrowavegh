@@ -154,7 +154,7 @@ const CATEGORIES = ['All', 'Concert', 'Festival', 'Club', 'Corporate', 'Wedding'
 
 export default function EventsPage() {
   const db = useFirestore();
-  const { content } = useCMSContent('events');
+  const { content } = useCMSContent('events', 'hero');
   const [events, setEvents]           = useState<any[]>([]);
   const [loading, setLoading]         = useState(true);
   const [category, setCategory]       = useState('All');

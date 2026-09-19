@@ -9,7 +9,8 @@ import {
   DollarSign, MessageSquare, Quote 
 } from 'lucide-react';
 import { doc, getDoc, collection, query, where, getDocs, addDoc, serverTimestamp, orderBy, limit } from 'firebase/firestore';
-import { db, useAuth } from '@/firebase';
+import { db } from '@/firebase';
+import { useAuth } from '@/context/AuthContext';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';

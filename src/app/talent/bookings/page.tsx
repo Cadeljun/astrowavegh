@@ -1,4 +1,5 @@
 'use client';
+import { X } from 'lucide-react';
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -23,7 +24,8 @@ import {
   FileText
 } from 'lucide-react';
 import { collection, query, where, orderBy, onSnapshot, doc, updateDoc, serverTimestamp, addDoc } from 'firebase/firestore';
-import { db, useAuth } from '@/firebase';
+import { db } from '@/firebase';
+import { useAuth } from '@/context/AuthContext';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';

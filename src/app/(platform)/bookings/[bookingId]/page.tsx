@@ -21,7 +21,8 @@ import {
   CheckCircle
 } from 'lucide-react';
 import { doc } from 'firebase/firestore';
-import { useFirestore, useDoc, useAuth } from '@/firebase';
+import { useFirestore, useDoc } from '@/firebase';
+import { useAuth } from '@/context/AuthContext';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
@@ -49,7 +50,7 @@ export default function BookingDetailPage() {
   const bookingId = params.bookingId as string;
   const db = useFirestore();
 
-  const { data: booking, loading } = useDoc<Booking>(doc(db, 'bookings', bookingId));
+  const { data: booking, loading } = useDoc<Booking>(doc(db, 'bookings', bookingId) as any);
   const [actionLoading, setActionLoading] = useState(false);
   const [talentResponse, setTalentResponse] = useState('');
   const [isPast, setIsPast] = useState(false);
@@ -139,7 +140,7 @@ export default function BookingDetailPage() {
 
              <section className="space-y-8">
                 <MatchBreakdown 
-                  matchPercentage={booking.matchPercentage}
+                  matchPercentage={booking.matchPercentage || 0}
                   locationScore={booking.locationScore || 0}
                   categoryScore={booking.categoryScore || 0}
                   waveContribution={booking.waveScoreContribution || 0}

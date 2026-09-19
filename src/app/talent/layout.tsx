@@ -1,4 +1,5 @@
 'use client';
+import { motion } from 'framer-motion';
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -17,7 +18,7 @@ import {
   Home
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useAuth } from '@/firebase';
+import { useAuth } from '@/context/AuthContext';
 import { useRole } from '@/context/RoleContext';
 import { Badge } from '@/components/ui/Badge';
 import { 

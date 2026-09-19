@@ -1,4 +1,5 @@
 'use client';
+import { Progress } from '@/components/ui/progress';
 
 import React, { useState, useMemo } from 'react';
 import { 

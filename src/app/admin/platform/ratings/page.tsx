@@ -147,7 +147,7 @@ export default function PlatformRatingsPage() {
                             <div className="space-y-0.5">
                                <p className="text-[0.65rem] text-gold uppercase font-bold">{r.organizerName}</p>
                                <p className="text-[0.5rem] text-muted">TO</p>
-                               <p className="text-[0.65rem] text-purple-400 uppercase font-bold">{r.talentName || t.stageName}</p>
+                               <p className="text-[0.65rem] text-purple-400 uppercase font-bold">{r.talentName || r.talentStageName || "Unknown talent"}</p>
                             </div>
                          </td>
                          <td>

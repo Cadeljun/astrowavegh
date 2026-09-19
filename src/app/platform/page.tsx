@@ -34,7 +34,7 @@ function WaveScoreDemo() {
     return d;
   }, [days]);
 
-  const score = useMemo(() => calculateWaveScore(rating, events, lastDate), [rating, events, lastDate]);
+  const score = useMemo(() => calculateWaveScore(rating, events, lastDate).waveScore, [rating, events, lastDate]);
   const rank = getWaveRank(score);
 
   const circumference = 2 * Math.PI * 54;
