@@ -1,6 +1,14 @@
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+function escapeHtml(value: string) {
+  return value.replace(/[&<>'"]/g, (character) => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    "'": '&#39;',
+    '"': '&quot;',
+  }[character] || character));
+}
 
 interface TicketEmailData {
   name: string;
@@ -12,6 +20,12 @@ interface TicketEmailData {
 
 export async function sendTicketEmail(data: TicketEmailData) {
   const { name, email, tickets, amount, quantity } = data;
+  if (!process.env.RESEND_API_KEY) {
+    return { success: false, error: 'Email provider is not configured' };
+  }
+  const resend = new Resend(process.env.RESEND_API_KEY);
+
+  const safeName = escapeHtml(name || 'Guest');
 
   const ticketList = tickets
     .map((t, i) => `${i + 1}. ${t.ticketId} (${t.ticketType})`)
@@ -60,7 +74,7 @@ export async function sendTicketEmail(data: TicketEmailData) {
     <!-- Success Message -->
     <div style="background:rgba(218,175,72,0.05);border:1px solid rgba(218,175,72,0.15);border-radius:12px;padding:24px;text-align:center;margin-bottom:32px;">
       <p style="color:#DAAF48;font-size:18px;font-weight:bold;margin:0 0 8px;">✓ Payment Successful</p>
-      <p style="color:#B4B4B4;font-size:14px;margin:0;">${quantity > 1 ? `${quantity} tickets` : 'Your ticket'} ${quantity > 1 ? 'have' : 'has'} been generated</p>
+            <p style="color:#B4B4B4;font-size:14px;margin:0;">Hi ${safeName}, ${quantity > 1 ? `${quantity} tickets` : 'your ticket'} ${quantity > 1 ? 'have' : 'has'} been generated.</p>
     </div>
 
     <!-- Ticket Cards with QR Codes -->
@@ -115,8 +129,9 @@ export async function sendTicketEmail(data: TicketEmailData) {
 
   try {
     await resend.emails.send({
-      from: 'AstroWave Tickets <tickets@astrowavegh.com>',
+      from: process.env.RESEND_FROM_EMAIL || 'AstroWave Tickets <tickets@astrowavegh.com>',
       to: email,
+      replyTo: process.env.RESEND_REPLY_TO || 'astrowaveevent@gmail.com',
       subject: `🎭 Your Mask Mirage Party Ticket${quantity > 1 ? 's' : ''} — ${tickets[0].ticketId}`,
       html,
       text: `Mask Mirage Party Ticket Confirmation\n\nHi ${name},\n\nYour payment was successful!\n\nTickets:\n${ticketList}\n\nEvent: Mask Mirage Party\nDate: 10 October 2026\nTime: 9:00 PM\nVenue: Coaches Lounge, East Legon\nTotal: GH¢${amount}\n\nShow your ticket at the entrance.\n\n© 2026 AstroWave Entertainment`,

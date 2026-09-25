@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { LayoutDashboard, Calendar, Search, MessageSquare, User, LogOut, BarChart3 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useAuth } from '@/firebase';
+import { useAuth } from '@/context/AuthContext';
 import Logo from '@/components/ui/Logo';
 
 const sidebarItems = [

@@ -1,4 +1,6 @@
 'use client';
+import { AnimatePresence } from 'framer-motion';
+import { formatDistanceToNow } from 'date-fns';
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
@@ -25,7 +27,8 @@ import { Badge } from '@/components/ui/Badge';
 import { Progress } from '@/components/ui/progress';
 import { fadeUp, staggerContainer, scaleIn } from '@/lib/animations';
 import { collection, query, where, orderBy, limit, onSnapshot, doc, updateDoc, getDocs } from 'firebase/firestore';
-import { db, useAuth } from '@/firebase';
+import { db } from '@/firebase';
+import { useAuth } from '@/context/AuthContext';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import PlatformGuard from '@/components/platform/PlatformGuard';

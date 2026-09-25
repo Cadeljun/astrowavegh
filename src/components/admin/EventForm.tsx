@@ -2,11 +2,11 @@
 
 import { useState, useEffect, FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, Upload, X, Grid, Plus, Trash2 } from 'lucide-react'
+import { ArrowLeft, Upload, Grid, Plus, Trash2, Loader2 } from 'lucide-react'
 import { addDocument, updateDocument, getDocument } from '@/lib/firebase/helpers'
 import { useToast } from '@/hooks/use-toast'
 import MediaPickerModal from '@/components/admin/MediaPickerModal'
-import CloudinaryImage from '@/components/ui/CloudinaryImage'
+import { Button } from '@/components/ui/Button'
 
 interface EventFormProps {
   eventId?: string
@@ -74,9 +74,10 @@ export default function EventForm({ eventId }: EventFormProps) {
 
   useEffect(() => {
     if (!eventId) return
+    const id = eventId
     async function loadEvent() {
       try {
-        const event = await getDocument('events', eventId)
+        const event = await getDocument('events', id)
         if (event) {
           const e = event as any
           setData({
@@ -183,17 +184,22 @@ export default function EventForm({ eventId }: EventFormProps) {
       const eventData = {
         ...data,
         coverImage,
+        bannerUrl: coverImage,
         slug,
+        active: data.status === 'published',
+        startDate: data.date ? new Date(data.date) : null,
+        endDate: data.date ? new Date(data.date) : null,
+        price: data.ticketTiers[0]?.price ?? 0,
         date: data.date ? new Date(data.date) : null,
         salesStartDate: data.salesStartDate ? new Date(data.salesStartDate) : null,
         salesEndDate: data.salesEndDate ? new Date(data.salesEndDate) : null,
       }
 
       if (isEdit && eventId) {
-        updateDocument('events', eventId, eventData)
+        await updateDocument('events', eventId, eventData)
         toast({ title: 'Updated', description: 'Event changes saved.' })
       } else {
-        addDocument('events', eventData)
+        await addDocument('events', eventData)
         toast({ title: 'Created', description: 'New event added.' })
       }
       setTimeout(() => router.push('/admin/events'), 1000)

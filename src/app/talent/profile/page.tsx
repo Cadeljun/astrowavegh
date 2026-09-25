@@ -1,4 +1,7 @@
 'use client';
+import { User, DollarSign } from 'lucide-react';
+import { SectionLabel } from '@/components/ui/SectionLabel';
+import { Progress } from '@/components/ui/progress';
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -24,7 +27,8 @@ import {
   Check
 } from 'lucide-react';
 import { doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
-import { db, useAuth } from '@/firebase';
+import { db } from '@/firebase';
+import { useAuth } from '@/context/AuthContext';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';

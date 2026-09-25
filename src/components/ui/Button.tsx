@@ -10,14 +10,18 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
+        default:       'bg-[#00C853] text-white hover:bg-[#00B34A]',
         primary:       'bg-gradient-to-r from-[#00C853] to-[#0EA5E9] text-white shadow-glow-green hover:-translate-y-0.5 hover:shadow-[0_8px_28px_rgba(0,200,83,0.4)]',
         secondary:     'bg-[#0EA5E9] text-white hover:bg-[#38BDF8] hover:-translate-y-0.5 hover:shadow-[0_6px_24px_rgba(14,165,233,0.4)]',
+        destructive:   'bg-red-600 text-white hover:bg-red-700',
+        outline:       'border border-white/15 bg-transparent text-white hover:bg-white/5',
         'outline-dark':'bg-transparent border-2 border-[#C8E6D4] text-[#2A4434] hover:border-[#00C853] hover:text-[#00C853] hover:bg-[#00C853]/5',
         'outline-light':'bg-transparent border-2 border-[#C8E6D4] text-[#2A4434] hover:border-[#00C853] hover:text-[#00C853]',
         ghost:         'bg-transparent border-none text-[#00C853] hover:bg-[#00C853]/8',
         link:          'text-[#00C853] underline-offset-4 hover:underline p-0 h-auto',
       },
       size: {
+        default: 'h-10 px-4 py-2',
         sm:   'h-10 px-4 text-[0.75rem]',
         md:   'h-12 px-6 text-[0.85rem]',
         lg:   'h-14 px-10 text-[1rem]',
@@ -36,16 +40,18 @@ export interface ButtonProps
     VariantProps<typeof buttonVariants> {
   asChild?: boolean;
   loading?: boolean;
+  href?: string;
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, asChild = false, loading = false, children, ...props }, ref) => {
-    const Comp = asChild ? Slot : 'button';
+  ({ className, variant, size, asChild = false, loading = false, href, children, ...props }, ref) => {
+    const Comp: any = asChild ? Slot : href ? 'a' : 'button';
     return (
       <Comp
         className={cn(buttonVariants({ variant, size, className }))}
-        ref={ref}
+        ref={ref as any}
         disabled={props.disabled || loading}
+        href={href}
         {...props}
       >
         {loading ? (

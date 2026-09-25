@@ -3,22 +3,28 @@
 import { AlertTriangle, X } from 'lucide-react'
 
 interface ConfirmModalProps {
-  title: string
+  title?: string
   message: string
   onConfirm: () => void
-  onCancel: () => void
+  onCancel?: () => void
+  onClose?: () => void
+  isOpen?: boolean
   confirmLabel?: string
   danger?: boolean
 }
 
 export default function ConfirmModal({
-  title,
+  title = 'Confirm action',
   message,
   onConfirm,
   onCancel,
+  onClose,
+  isOpen = true,
   confirmLabel = 'Delete',
   danger = true
 }: ConfirmModalProps) {
+  if (!isOpen) return null
+  const handleCancel = onCancel || onClose || (() => undefined)
   return (
     <div className="fixed inset-0 z-[9999]
       flex items-center justify-center p-4"
@@ -27,7 +33,7 @@ export default function ConfirmModal({
       <div
         className="absolute inset-0 
           bg-black/70 backdrop-blur-sm"
-        onClick={onCancel}
+        onClick={handleCancel}
       />
 
       {/* Modal */}
@@ -40,7 +46,7 @@ export default function ConfirmModal({
 
         {/* Close */}
         <button
-          onClick={onCancel}
+          onClick={handleCancel}
           className="absolute top-4 right-4
             text-[#7B7B9A] 
             hover:text-[#F8F8FF]
@@ -75,7 +81,7 @@ export default function ConfirmModal({
         {/* Buttons */}
         <div className="flex gap-3">
           <button
-            onClick={onCancel}
+            onClick={handleCancel}
             className="flex-1 py-2.5 px-4
               border border-[#1E1E2E]
               rounded-md

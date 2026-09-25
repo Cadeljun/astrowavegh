@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils';
 import { Lock } from 'lucide-react';
 
 interface BadgeProps {
-  variant: 'active' | 'coming-soon' | 'live' | 'free';
+  variant: 'active' | 'coming-soon' | 'live' | 'free' | 'default' | 'destructive';
   children: React.ReactNode;
   className?: string;
   theme?: 'dark' | 'light';
@@ -21,6 +21,8 @@ const Badge = ({ variant, children, className, theme = 'dark' }: BadgeProps) => 
       : 'bg-light-surface text-light-muted border-light-border',
     live: 'bg-green-bg-dark text-green border-green-border shadow-[0_0_12px_rgba(0,201,107,0.2)]',
     free: 'bg-cyan-bg-dark text-cyan border-cyan/20',
+    default: 'bg-white/5 text-white/70 border-white/10',
+    destructive: 'bg-red-500/10 text-red-400 border-red-500/20',
   };
 
   return (

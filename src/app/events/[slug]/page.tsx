@@ -8,6 +8,21 @@ import Link from 'next/link';
 import { collection, query, where, getDocs, limit } from 'firebase/firestore';
 import { db } from '@/firebase';
 
+const MASK_MIRAGE_EVENT = {
+  title: 'MASK MIRAGE PARTY',
+  category: 'Nightlife',
+  date: new Date('2026-10-10T21:00:00+00:00'),
+  venue: 'Coaches Lounge, East Legon',
+  city: 'Accra',
+  description: 'A night of mystery, elegance and unforgettable energy. Standard tickets, group passes and complimentary invites are available now.',
+  bannerUrl: 'https://res.cloudinary.com/dmd5bq3va/image/upload/v1786593422/gkbqxs9qvggzxd0ocy77.jpg',
+  ticketTiers: [
+    { tierId: 'standard', name: 'Standard', price: 50, quantity: 100, sold: 0 },
+    { tierId: 'group-4', name: 'Group of 4', price: 180, quantity: 25, sold: 0 },
+    { tierId: 'complimentary', name: 'Complimentary Invite', price: 0.2, quantity: 50, sold: 0 },
+  ],
+};
+
 export default function EventPage() {
   const params = useParams();
   const slug = params?.slug as string;
@@ -29,7 +44,9 @@ export default function EventPage() {
         );
         const snap = await getDocs(q);
         
-        if (snap.empty) {
+        if (snap.empty && slug === 'mask-mirage-party') {
+          setEvent(MASK_MIRAGE_EVENT);
+        } else if (snap.empty) {
           setNotFound(true);
         } else {
           setEvent({ id: snap.docs[0].id, ...snap.docs[0].data() });

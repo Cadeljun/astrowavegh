@@ -18,7 +18,7 @@ import {
 } from 'lucide-react'
 import { 
   CMS_PAGES, 
-  CMSPage,
+  type CMSPage,
   CMSSection,
   CMSField,
   DEFAULT_SETTINGS

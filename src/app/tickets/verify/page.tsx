@@ -5,8 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { CheckCircle, XCircle, Loader2, ArrowLeft, Download, Ticket, Mail, Copy, ExternalLink } from 'lucide-react';
 import Link from 'next/link';
-import { collection, query, where, getDocs } from 'firebase/firestore';
-import { db } from '@/firebase';
+import MaskMirageTicket from '@/components/tickets/MaskMirageTicket';
 
 function VerifyContent() {
   const searchParams = useSearchParams();
@@ -16,6 +15,7 @@ function VerifyContent() {
   const [tickets, setTickets] = useState<any[]>([]);
   const [error, setError] = useState('');
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [emailSent, setEmailSent] = useState<boolean | null>(null);
 
   useEffect(() => {
     if (!reference) {
@@ -31,19 +31,21 @@ function VerifyContent() {
 
       const check = async () => {
         attempts++;
-        
-        // Look for tickets with this payment reference
-        const q = query(
-          collection(db, 'tickets'),
-          where('paymentReference', '==', reference)
-        );
-        const snap = await getDocs(q);
 
-        if (!snap.empty) {
-          const foundTickets = snap.docs.map(d => d.data());
-          setTickets(foundTickets);
-          setStatus('success');
-          return;
+        // The callback is also a safe fulfillment fallback. The server
+        // deduplicates by payment reference, so webhook + callback cannot
+        // create two sets of tickets.
+        try {
+          const fulfillment = await fetch(`/api/paystack/verify?reference=${encodeURIComponent(reference)}`, { cache: 'no-store' });
+          const fulfillmentData = await fulfillment.json();
+          if (fulfillment.ok && fulfillmentData.success && fulfillmentData.tickets?.length) {
+            setTickets(fulfillmentData.tickets);
+            setEmailSent(Boolean(fulfillmentData.emailSent));
+            setStatus('success');
+            return;
+          }
+        } catch (fulfillmentError) {
+          console.warn('Payment verification retry unavailable.', fulfillmentError);
         }
 
         if (attempts < maxAttempts) {
@@ -105,8 +107,8 @@ function VerifyContent() {
             <div className="p-5 rounded-xl mb-8 flex items-center gap-4" style={{ background: 'rgba(0,200,83,0.05)', border: '1px solid rgba(0,200,83,0.15)' }}>
               <Mail size={20} style={{ color: '#00C853' }} />
               <div>
-                <p className="text-sm font-medium" style={{ color: '#F5F5F5' }}>Confirmation email sent</p>
-                <p className="text-xs" style={{ color: '#B4B4B4' }}>{tickets[0]?.email}</p>
+                <p className="text-sm font-medium" style={{ color: '#F5F5F5' }}>{emailSent === false ? 'Email delivery is retrying' : 'Confirmation email sent'}</p>
+                <p className="text-xs" style={{ color: '#B4B4B4' }}>{tickets[0]?.email || 'Check your inbox shortly'}</p>
               </div>
             </div>
 
@@ -164,6 +166,15 @@ function VerifyContent() {
                         Save QR
                       </a>
                     )}
+                  </div>
+                  <div className="mt-5 pt-5 border-t border-white/5">
+                    <MaskMirageTicket
+                      ticketId={ticket.ticketId}
+                      name={ticket.name}
+                      ticketType={ticket.ticketType}
+                      index={index}
+                      total={tickets.length}
+                    />
                   </div>
                 </div>
               ))}

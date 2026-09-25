@@ -4,8 +4,8 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Camera, CheckCircle, XCircle, AlertTriangle, Loader2, LogOut, Users, Ticket, Zap, X, Video, VideoOff } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { collection, onSnapshot, doc, getDoc, updateDoc, serverTimestamp, query, where, getDocs } from 'firebase/firestore';
-import { useFirestore } from '@/firebase';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
+import { auth } from '@/firebase';
 import { isValidTicketId, isValidQRCodeId } from '@/lib/qr';
 
 type ScanResult = {
@@ -21,7 +21,6 @@ type ScanResult = {
 
 export default function ScanPage() {
   const router = useRouter();
-  const db = useFirestore();
   const scannerRef = useRef<HTMLDivElement>(null);
   const scannerInstanceRef = useRef<any>(null);
 
@@ -35,33 +34,44 @@ export default function ScanPage() {
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [lastScanned, setLastScanned] = useState<string | null>(null);
 
-  // Check scanner auth
+  // Firebase Auth is the source of truth; sessionStorage is never trusted.
   useEffect(() => {
-    const isAuth = sessionStorage.getItem('scanner_auth');
-    if (!isAuth) {
-      router.replace('/scan/login');
-    } else {
-      setAuthenticated(true);
-    }
+    return onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        router.replace('/scan/login');
+        return;
+      }
+      try {
+        const token = await user.getIdToken();
+        const response = await fetch('/api/tickets/stats', { headers: { Authorization: `Bearer ${token}` }, cache: 'no-store' });
+        if (!response.ok) throw new Error('Scanner access denied');
+        setAuthenticated(true);
+      } catch {
+        await signOut(auth);
+        router.replace('/scan/login');
+      }
+    });
   }, [router]);
 
   // Load stats
   useEffect(() => {
-    if (!db || !authenticated) return;
-    const unsub = onSnapshot(collection(db, 'tickets'), (snap) => {
-      const tickets = snap.docs.map(d => d.data());
-      const total = tickets.length;
-      const checkedIn = tickets.filter(t => t.status === 'used').length;
-      setStats({ total, checkedIn, remaining: total - checkedIn });
-    });
-    return () => unsub();
-  }, [db, authenticated]);
+    if (!authenticated) return;
+    let cancelled = false;
+    const loadStats = async () => {
+      const user = auth.currentUser;
+      if (!user) return;
+      const token = await user.getIdToken();
+      const response = await fetch('/api/tickets/stats', { headers: { Authorization: `Bearer ${token}` }, cache: 'no-store' });
+      if (response.ok && !cancelled) setStats(await response.json());
+    };
+    loadStats();
+    const interval = window.setInterval(loadStats, 30000);
+    return () => { cancelled = true; window.clearInterval(interval); };
+  }, [authenticated]);
 
   const handleLogout = () => {
     stopCamera();
-    sessionStorage.removeItem('scanner_auth');
-    sessionStorage.removeItem('scanner_user');
-    router.push('/scan/login');
+    signOut(auth).finally(() => router.push('/scan/login'));
   };
 
   // Verify ticket via QR code or ticket ID
@@ -75,110 +85,36 @@ export default function ScanPage() {
     setResult(null);
 
     try {
-      let ticketId = cleanId;
-      let ticketData: any = null;
-
-      // Check if input is a QR code ID
-      if (isValidQRCodeId(cleanId)) {
-        // Step 1: Look up QR code in database
-        const qrRef = doc(db, 'qrcodes', cleanId);
-        const qrSnap = await getDoc(qrRef);
-
-        if (!qrSnap.exists()) {
-          setResult({ status: 'INVALID', message: 'QR code not found' });
-          setVerifying(false);
-          return;
-        }
-
-        const qrData = qrSnap.data();
-
-        // Check if QR code is already used
-        if (qrData.status === 'used') {
-          setResult({ status: 'USED', message: 'This QR code has already been scanned' });
-          setVerifying(false);
-          return;
-        }
-
-        // Step 2: Get ticket linked to this QR code
-        ticketId = qrData.ticketId;
-      }
-
-      // Validate ticket ID format
-      if (!isValidTicketId(ticketId)) {
+      if (isValidQRCodeId(cleanId) || !isValidTicketId(cleanId)) {
         setResult({ status: 'INVALID', message: 'Invalid ticket format' });
         setVerifying(false);
         return;
       }
-
-      // Look up ticket in Firestore
-      const ticketRef = doc(db, 'tickets', ticketId);
-      const ticketSnap = await getDoc(ticketRef);
-
-      if (!ticketSnap.exists()) {
-        setResult({ status: 'INVALID', message: 'Ticket not found' });
-        setVerifying(false);
-        return;
-      }
-
-      ticketData = ticketSnap.data();
-
-      // Check if already used
-      if (ticketData.status === 'used') {
-        setResult({
-          status: 'USED',
-          message: 'Ticket already scanned',
-          ticket: {
-            id: ticketId,
-            name: ticketData.name,
-            ticketType: ticketData.ticketType,
-            checkedInAt: ticketData.checkedInAt,
-          },
-        });
-        setVerifying(false);
-        return;
-      }
-
-      // Check if cancelled
-      if (ticketData.status === 'cancelled') {
-        setResult({ status: 'INVALID', message: 'Ticket has been cancelled' });
-        setVerifying(false);
-        return;
-      }
-
-      // Mark ticket as used
-      await updateDoc(ticketRef, {
-        status: 'used',
-        checkedInAt: serverTimestamp(),
+      const user = auth.currentUser;
+      if (!user) throw new Error('Authentication required');
+      const token = await user.getIdToken();
+      const response = await fetch('/api/tickets/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ ticketId: cleanId }),
       });
-
-      // Mark QR code as used (if it exists)
-      if (ticketData.qrCodeId) {
-        try {
-          const qrRef = doc(db, 'qrcodes', ticketData.qrCodeId);
-          await updateDoc(qrRef, { status: 'used' });
-        } catch (e) {
-          // QR code update failed, but ticket is still valid
-        }
+      const data = await response.json();
+      if (response.status === 401 || response.status === 403) {
+        await signOut(auth);
+        router.replace('/scan/login');
+        return;
       }
+      setResult(data);
 
-      setResult({
-        status: 'VALID',
-        message: 'Ticket valid — entry confirmed',
-        ticket: {
-          id: ticketId,
-          name: ticketData.name,
-          ticketType: ticketData.ticketType,
-        },
-      });
-
-      // Add to recent scans
-      setRecentScans(prev => [{
-        id: ticketId,
-        status: 'VALID',
-        name: ticketData.name || 'Unknown',
-        ticketType: ticketData.ticketType || 'Standard',
-        time: new Date().toLocaleTimeString(),
-      }, ...prev].slice(0, 20));
+      if (data.status === 'VALID' || data.status === 'USED') {
+        setRecentScans(prev => [{
+          id: cleanId,
+          status: data.status,
+          name: data.ticket?.name || 'Unknown',
+          ticketType: data.ticket?.ticketType || 'Standard',
+          time: new Date().toLocaleTimeString(),
+        }, ...prev].slice(0, 20));
+      }
 
     } catch (err) {
       console.error('Verify error:', err);
@@ -186,7 +122,7 @@ export default function ScanPage() {
     } finally {
       setVerifying(false);
     }
-  }, [db, lastScanned]);
+  }, [lastScanned, router]);
 
   // Start camera scanner
   const startCamera = async () => {

@@ -15,8 +15,7 @@ import {
   Image as ImageIcon,
   FolderOpen,
   ExternalLink,
-  Plus,
-  Divider
+  Plus
 } from 'lucide-react';
 import { collection, query, orderBy, limit, doc, deleteDoc, addDoc, serverTimestamp } from 'firebase/firestore';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
