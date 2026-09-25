@@ -15,20 +15,6 @@ const TICKET_TYPES = [
     unit: 'per person',
     badge: null,
   },
-  {
-    id: 'group',
-    name: 'Group of 4',
-    price: 'GH¢180',
-    unit: 'per group',
-    badge: 'Save GH¢20',
-  },
-  {
-    id: 'complimentary',
-    name: 'Complimentary',
-    price: 'GH¢0.20',
-    unit: 'invite only',
-    badge: 'Invite',
-  },
 ];
 
 export default function TicketsPage() {
@@ -160,16 +146,6 @@ export default function TicketsPage() {
             </a>
           ))}
 
-          {/* Table reservation */}
-          <div className="p-5 rounded-xl flex items-center justify-between" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
-            <div>
-              <h3 className="font-display text-base uppercase tracking-wider" style={{ color: '#F5F5F5' }}>Table Reservation</h3>
-              <p className="text-xs" style={{ color: '#B4B4B4' }}>Premium tables with bottle service</p>
-            </div>
-            <span className="px-3 py-1.5 rounded-full text-[0.55rem] font-bold uppercase" style={{ background: 'rgba(218,175,72,0.06)', color: '#DAAF48' }}>
-              Coming Soon
-            </span>
-          </div>
         </motion.div>
 
         {/* ── FOOTER ───────────────────────────────────────── */}
