@@ -37,7 +37,7 @@ export const metadata: Metadata = {
     default: 'AstroWave | Ghana\'s Entertainment Powerhouse',
     template: '%s | AstroWave',
   },
-  description: 'Ghana\'s premier entertainment platform for events, nightlife, talent management, and creative culture in Accra. Find, book, and rate creative talent with AI-powered matching.',
+  description: "Ghana's leading creative entertainment powerhouse and talent management platform.",
   keywords: ['AstroWave', 'Ghana events', 'Accra nightlife', 'talent management', 'DJ booking', 'MC booking', 'event planning Ghana', 'African entertainment', 'creative talent', 'Wave Score'],
   authors: [{ name: 'AstroWave', url: 'https://astrowavegh.com' }],
   creator: 'AstroWave',
@@ -47,7 +47,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: 'AstroWave | Ghana\'s Entertainment Powerhouse',
-    description: 'Ghana\'s premier entertainment platform for events, nightlife, talent management, and creative culture in Accra.',
+    description: "Ghana's leading creative entertainment powerhouse and talent management platform.",
     url: 'https://astrowavegh.com',
     siteName: 'AstroWave',
     locale: 'en_GH',

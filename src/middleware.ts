@@ -70,23 +70,9 @@ export function middleware(request: NextRequest) {
 function addSecurityHeaders(response: NextResponse) {
   response.headers.set('X-DNS-Prefetch-Control', 'on')
   response.headers.set('X-Content-Type-Options', 'nosniff')
-  response.headers.set('X-Frame-Options', 'SAMEORIGIN')
   response.headers.set('X-XSS-Protection', '1; mode=block')
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
-  response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()')
-  response.headers.set(
-    'Content-Security-Policy',
-    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com https://*.firebaseio.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' https://res.cloudinary.com https://images.unsplash.com https://picsum.photos https://placehold.co data: blob:; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://api.cloudinary.com; frame-src 'self' https://*.firebaseapp.com;"
-  )
-  // CORS - restricted to your domains
-  const allowedOrigins = [
-    'https://astrowavegh.com',
-    'https://tickets.astrowavegh.com',
-    'https://scan.astrowavegh.com',
-    'https://admin.astrowavegh.com',
-  ]
-  // Note: Can't read request headers in addSecurityHeaders function
-  // CORS will be handled by individual API routes if needed
+  response.headers.set('Permissions-Policy', 'camera=*, microphone=(), geolocation=()')
   return response
 }
 

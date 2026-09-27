@@ -1,4 +1,10 @@
 {
-  "name": "studio-333894669",
-  "description": "App imported from Firebase Studio"
+  "name": "AstroWave",
+  "description": "Ghana's leading creative entertainment powerhouse and talent management platform.",
+  "requestFramePermissions": [
+    "camera"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
 }
