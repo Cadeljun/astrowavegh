@@ -1,44 +1,17 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Calendar, MapPin, Clock, Ticket, ArrowRight, Loader2, CheckCircle, X, CreditCard, Instagram, Minus, Plus } from 'lucide-react';
-import Link from 'next/link';
-import { useToast } from '@/hooks/use-toast';
-import { trackTicketPurchase } from '@/components/GoogleAnalytics';
-
-const TICKET_TYPES = [
-  {
-    id: 'standard',
-    name: 'Standard',
-    price: 50,
-    unit: 'per person',
-  },
-  {
-    id: 'group',
-    name: 'Group of 4',
-    price: 180,
-    unit: 'per group',
-    badge: 'Save GH¢20',
-    fixedQty: 4,
-  },
-  {
-    id: 'complimentary',
-    name: 'Complimentary',
-    price: 0.20,
-    unit: 'invite only',
-    badge: 'Invite',
-  },
-];
+import { motion } from 'framer-motion';
+import { Calendar, MapPin, Clock, Ticket, ArrowRight, ExternalLink, Instagram, ShieldCheck } from 'lucide-react';
+import { trackBeginCheckout } from '@/components/GoogleAnalytics';
+import { EGOTICKETS_URL } from '@/lib/tickets';
 
 export default function TicketsPage() {
-  const { toast } = useToast();
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
-  const [selectedTicket, setSelectedTicket] = useState<string | null>(null);
-  const [quantity, setQuantity] = useState(1);
-  const [showCheckout, setShowCheckout] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({ name: '', email: '', phone: '' });
+
+  useEffect(() => {
+    trackBeginCheckout();
+  }, []);
 
   useEffect(() => {
     const eventDate = new Date('2026-10-10T21:00:00').getTime();
@@ -56,50 +29,6 @@ export default function TicketsPage() {
     return () => clearInterval(timer);
   }, []);
 
-  const selectedTicketData = TICKET_TYPES.find(t => t.id === selectedTicket);
-  const isGroup = selectedTicketData?.id === 'group';
-  const ticketQty = isGroup ? 4 : quantity;
-  const totalAmount = selectedTicketData ? (isGroup ? selectedTicketData.price : selectedTicketData.price * quantity) : 0;
-
-  const handleSelectTicket = (ticketId: string) => {
-    setSelectedTicket(ticketId);
-    const ticket = TICKET_TYPES.find(t => t.id === ticketId);
-    if (ticket?.fixedQty) {
-      setQuantity(ticket.fixedQty);
-    }
-    setShowCheckout(true);
-  };
-
-  const handlePayment = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedTicketData || !formData.email || !formData.name) {
-      toast({ variant: 'destructive', title: 'Please fill in all fields' });
-      return;
-    }
-    setLoading(true);
-    try {
-      const res = await fetch('/api/paystack/initialize', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: formData.email,
-          amount: totalAmount,
-          ticketType: selectedTicketData.name,
-          name: formData.name,
-          phone: formData.phone,
-          quantity: ticketQty,
-        }),
-      });
-      const data = await res.json();
-      if (!data.success) throw new Error(data.error || 'Payment failed');
-      window.location.href = data.authorization_url;
-    } catch (error: any) {
-      toast({ variant: 'destructive', title: 'Payment Error', description: error.message });
-    } finally {
-      setLoading(false);
-    }
-  };
-
   // Background image from Cloudinary
   const bgImage = 'https://res.cloudinary.com/dmd5bq3va/image/upload/v1789011146/tpjly1tuahsdasbgvzdb.png';
 
@@ -114,21 +43,23 @@ export default function TicketsPage() {
           style={{ opacity: 0.08 }}
         />
       </div>
-      
+
       {/* Subtle glow */}
       <div className="fixed inset-0 z-0 pointer-events-none">
-        <div className="absolute right-0 top-1/3 w-[600px] h-[600px]" style={{ background: 'radial-gradient(circle, rgba(218,175,72,0.06) 0%, transparent 70%)' }} />
+        <div
+          className="absolute right-0 top-1/3 w-[600px] h-[600px]"
+          style={{ background: 'radial-gradient(circle, rgba(218,175,72,0.06) 0%, transparent 70%)' }}
+        />
       </div>
 
       <div className="relative z-10 max-w-2xl mx-auto px-6 py-12">
-
         {/* ── FLYER ───────────────────────────────────────── */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="mb-10"
         >
-          <div className="rounded-2xl overflow-hidden" style={{ border: '1px solid rgba(218,175,72,0.15)' }}>
+          <div className="rounded-2xl overflow-hidden shadow-2xl" style={{ border: '1px solid rgba(218,175,72,0.15)' }}>
             <img
               src="https://res.cloudinary.com/dmd5bq3va/image/upload/v1786593422/gkbqxs9qvggzxd0ocy77.jpg"
               alt="Mask Mirage Party"
@@ -144,7 +75,10 @@ export default function TicketsPage() {
           transition={{ delay: 0.2 }}
           className="text-center mb-10"
         >
-          <h1 className="font-display text-4xl sm:text-5xl uppercase leading-[0.9] mb-3" style={{ color: '#F5F5F5', letterSpacing: '-0.02em' }}>
+          <h1
+            className="font-display text-4xl sm:text-5xl uppercase leading-[0.9] mb-3"
+            style={{ color: '#F5F5F5', letterSpacing: '-0.02em' }}
+          >
             MASK MIRAGE
           </h1>
           <p className="text-sm font-semibold uppercase tracking-[0.2em] mb-6" style={{ color: '#DAAF48' }}>
@@ -160,12 +94,16 @@ export default function TicketsPage() {
               <Clock size={14} style={{ color: '#DAAF48' }} />
               <span className="text-sm font-medium" style={{ color: '#F5F5F5' }}>9:00 PM</span>
             </div>
-            <a href="https://maps.google.com/?q=Coaches+Lounge+East+Legon+Accra+Ghana"
+            <a
+              href="https://maps.google.com/?q=Coaches+Lounge+East+Legon+Accra+Ghana"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+              className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+            >
               <MapPin size={14} style={{ color: '#DAAF48' }} />
-              <span className="text-sm font-medium underline" style={{ color: '#F5F5F5' }}>COACHES LOUNGE, EAST LEGON</span>
+              <span className="text-sm font-medium underline" style={{ color: '#F5F5F5' }}>
+                COACHES LOUNGE, EAST LEGON
+              </span>
             </a>
           </div>
 
@@ -178,10 +116,17 @@ export default function TicketsPage() {
               { value: timeLeft.seconds, label: 'S' },
             ].map((item) => (
               <div key={item.label} className="text-center">
-                <div className="w-14 h-14 rounded-lg flex items-center justify-center mb-1" style={{ background: 'rgba(218,175,72,0.05)', border: '1px solid rgba(218,175,72,0.12)' }}>
-                  <span className="font-display text-xl" style={{ color: '#F5F5F5' }}>{String(item.value).padStart(2, '0')}</span>
+                <div
+                  className="w-14 h-14 rounded-lg flex items-center justify-center mb-1"
+                  style={{ background: 'rgba(218,175,72,0.05)', border: '1px solid rgba(218,175,72,0.12)' }}
+                >
+                  <span className="font-display text-xl" style={{ color: '#F5F5F5' }}>
+                    {String(item.value).padStart(2, '0')}
+                  </span>
                 </div>
-                <p className="text-[0.5rem] font-bold uppercase" style={{ color: '#B4B4B4' }}>{item.label}</p>
+                <p className="text-[0.5rem] font-bold uppercase" style={{ color: '#B4B4B4' }}>
+                  {item.label}
+                </p>
               </div>
             ))}
           </div>
@@ -191,49 +136,98 @@ export default function TicketsPage() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="space-y-3 mb-8"
+          transition={{ delay: 0.3 }}
+          className="space-y-4 mb-10"
         >
-          <p className="text-center text-xs font-bold uppercase tracking-[0.3em] mb-4" style={{ color: '#DAAF48' }}>SELECT TICKET</p>
-
-          {TICKET_TYPES.map((ticket) => (
-            <button
-              key={ticket.id}
-              onClick={() => handleSelectTicket(ticket.id)}
-              className="w-full text-left p-5 rounded-xl flex items-center justify-between transition-all"
-              style={{
-                background: 'rgba(255,255,255,0.03)',
-                border: '1px solid rgba(255,255,255,0.08)',
-              }}
-            >
-              <div>
-                <div className="flex items-center gap-2">
-                  <h3 className="font-display text-lg uppercase tracking-wider" style={{ color: '#F5F5F5' }}>{ticket.name}</h3>
-                  {ticket.badge && (
-                    <span className="px-2 py-0.5 rounded-full text-[0.5rem] font-bold uppercase" style={{ background: 'rgba(218,175,72,0.1)', color: '#DAAF48' }}>
-                      {ticket.badge}
-                    </span>
-                  )}
-                </div>
-                <p className="text-xs mt-1" style={{ color: '#B4B4B4' }}>{ticket.unit}</p>
-              </div>
-              <div className="flex items-center gap-4">
-                <span className="font-display text-2xl" style={{ color: '#F5F5F5' }}>GH¢{ticket.price}</span>
-                <ArrowRight size={16} style={{ color: '#B4B4B4' }} />
-              </div>
-            </button>
-          ))}
-
-          {/* Table reservation */}
-          <div className="p-5 rounded-xl flex items-center justify-between" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
-            <div>
-              <h3 className="font-display text-base uppercase tracking-wider" style={{ color: '#F5F5F5' }}>Table Reservation</h3>
-              <p className="text-xs" style={{ color: '#B4B4B4' }}>Premium tables with bottle service</p>
+          <div className="flex items-center justify-between px-1">
+            <p className="text-xs font-bold uppercase tracking-[0.3em]" style={{ color: '#DAAF48' }}>
+              OFFICIAL TICKETS
+            </p>
+            <div className="flex items-center gap-1.5 text-[0.65rem] font-medium" style={{ color: '#00C853' }}>
+              <span className="w-1.5 h-1.5 rounded-full bg-[#00C853] animate-pulse" />
+              <span>Available Now</span>
             </div>
-            <span className="px-3 py-1.5 rounded-full text-[0.55rem] font-bold uppercase" style={{ background: 'rgba(218,175,72,0.06)', color: '#DAAF48' }}>
-              Coming Soon
-            </span>
           </div>
+
+          {/* Standard Ticket Card linking directly to eGoTickets */}
+          <a
+            href={EGOTICKETS_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => trackBeginCheckout()}
+            className="group block p-6 rounded-2xl transition-all duration-300 relative overflow-hidden"
+            style={{
+              background: 'linear-gradient(135deg, rgba(218,175,72,0.08) 0%, rgba(255,255,255,0.02) 100%)',
+              border: '1px solid rgba(218,175,72,0.3)',
+              boxShadow: '0 8px 30px rgba(0,0,0,0.4)',
+            }}
+          >
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2.5">
+                  <h3 className="font-display text-2xl uppercase tracking-wider" style={{ color: '#F5F5F5' }}>
+                    Standard Ticket
+                  </h3>
+                  <span
+                    className="px-2.5 py-0.5 rounded-full text-[0.6rem] font-bold uppercase tracking-widest"
+                    style={{
+                      background: 'rgba(218,175,72,0.15)',
+                      color: '#DAAF48',
+                      border: '1px solid rgba(218,175,72,0.35)',
+                    }}
+                  >
+                    Standard
+                  </span>
+                </div>
+                <p className="text-xs leading-relaxed" style={{ color: '#B4B4B4' }}>
+                  Per person • Full access to Mask Mirage with top DJs, live entertainment, and immersive masquerade experience.
+                </p>
+                <div className="flex items-center gap-2 pt-1 text-[0.7rem] font-medium" style={{ color: '#DAAF48' }}>
+                  <ShieldCheck size={14} />
+                  <span>Direct checkout via eGoTickets</span>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between sm:justify-end gap-5 pt-4 sm:pt-0 border-t sm:border-t-0 border-white/10">
+                <div className="text-left sm:text-right">
+                  <span className="text-[0.6rem] uppercase tracking-wider block font-semibold" style={{ color: '#B4B4B4' }}>
+                    Price
+                  </span>
+                  <span className="font-display text-3xl sm:text-4xl" style={{ color: '#DAAF48' }}>
+                    GH¢50
+                  </span>
+                </div>
+                <div
+                  className="w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-105 group-hover:bg-[#e4be5c]"
+                  style={{ background: '#DAAF48', color: '#090909' }}
+                >
+                  <ArrowRight size={20} className="transition-transform duration-300 group-hover:translate-x-0.5" />
+                </div>
+              </div>
+            </div>
+          </a>
+
+          {/* Primary Action Button */}
+          <a
+            href={EGOTICKETS_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => trackBeginCheckout()}
+            className="w-full h-14 rounded-xl font-bold text-sm uppercase tracking-widest flex items-center justify-center gap-3 transition-all duration-300 hover:brightness-110 active:scale-[0.99]"
+            style={{
+              background: '#DAAF48',
+              color: '#090909',
+              boxShadow: '0 4px 20px rgba(218,175,72,0.25)',
+            }}
+          >
+            <Ticket size={18} />
+            <span>Register on eGoTickets</span>
+            <ExternalLink size={16} />
+          </a>
+
+          <p className="text-center text-[0.65rem] tracking-wider uppercase pt-2" style={{ color: 'rgba(180,180,180,0.6)' }}>
+            Official Ticketing Partner: <span style={{ color: '#DAAF48' }}>eGoTickets Ghana</span>
+          </p>
         </motion.div>
 
         {/* ── FOOTER ───────────────────────────────────────── */}
@@ -242,127 +236,17 @@ export default function TicketsPage() {
             href="https://instagram.com/astrowaveevent"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 text-xs uppercase tracking-widest transition-all"
+            className="inline-flex items-center gap-2 text-xs uppercase tracking-widest transition-all hover:text-[#DAAF48]"
             style={{ color: '#B4B4B4' }}
           >
             <Instagram size={14} />
             @ASTROWAVEEVENT
           </a>
-          <p className="text-[0.45rem] uppercase tracking-widest" style={{ color: 'rgba(180,180,180,0.25)' }}>
-            © 2026 AstroWave Entertainment
+          <p className="text-[0.5rem] uppercase tracking-widest" style={{ color: 'rgba(180,180,180,0.3)' }}>
+            © 2026 AstroWave Entertainment • All Rights Reserved
           </p>
         </div>
       </div>
-
-      {/* ── CHECKOUT MODAL ────────────────────────────────── */}
-      {showCheckout && selectedTicketData && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
-          <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setShowCheckout(false)} />
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="relative z-10 w-full max-w-md rounded-2xl p-8 max-h-[90vh] overflow-y-auto"
-            style={{ background: '#0A0A0A', border: '1px solid rgba(218,175,72,0.15)' }}
-          >
-            <button onClick={() => setShowCheckout(false)} className="absolute top-4 right-4" style={{ color: '#B4B4B4' }}>
-              <X size={18} />
-            </button>
-
-            <div className="text-center mb-6">
-              <p className="text-[0.55rem] font-bold uppercase tracking-[0.3em] mb-2" style={{ color: '#DAAF48' }}>Complete Purchase</p>
-              <h3 className="font-display text-2xl uppercase" style={{ color: '#F5F5F5' }}>{selectedTicketData.name}</h3>
-            </div>
-
-            {/* Quantity selector (only for standard tickets) */}
-            {!isGroup && (
-              <div className="mb-6">
-                <label className="text-[0.5rem] font-bold uppercase tracking-widest block mb-3 text-center" style={{ color: '#B4B4B4' }}>Number of Tickets</label>
-                <div className="flex items-center justify-center gap-6">
-                  <button
-                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="w-12 h-12 rounded-lg flex items-center justify-center transition-all"
-                    style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
-                  >
-                    <Minus size={18} style={{ color: '#F5F5F5' }} />
-                  </button>
-                  <span className="font-display text-4xl w-16 text-center" style={{ color: '#F5F5F5' }}>{quantity}</span>
-                  <button
-                    onClick={() => setQuantity(Math.min(10, quantity + 1))}
-                    className="w-12 h-12 rounded-lg flex items-center justify-center transition-all"
-                    style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
-                  >
-                    <Plus size={18} style={{ color: '#F5F5F5' }} />
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Price summary */}
-            <div className="p-4 rounded-xl mb-6 text-center" style={{ background: 'rgba(218,175,72,0.05)', border: '1px solid rgba(218,175,72,0.1)' }}>
-              <p className="text-[0.5rem] font-bold uppercase tracking-widest mb-1" style={{ color: '#B4B4B4' }}>
-                {isGroup ? 'Group of 4' : `${quantity} × GH¢${selectedTicketData.price}`}
-              </p>
-              <p className="font-display text-3xl" style={{ color: '#DAAF48' }}>GH¢{totalAmount}</p>
-              {quantity > 1 && !isGroup && (
-                <p className="text-[0.5rem] mt-1" style={{ color: '#B4B4B4' }}>{quantity} tickets will be generated</p>
-              )}
-            </div>
-
-            <form onSubmit={handlePayment} className="space-y-4">
-              <div>
-                <label className="text-[0.5rem] font-bold uppercase tracking-widest block mb-2" style={{ color: '#B4B4B4' }}>Full Name</label>
-                <input
-                  required
-                  className="w-full px-4 py-3 rounded-lg text-sm outline-none"
-                  style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: '#F5F5F5' }}
-                  placeholder="Your name"
-                  value={formData.name}
-                  onChange={e => setFormData({...formData, name: e.target.value})}
-                />
-              </div>
-              <div>
-                <label className="text-[0.5rem] font-bold uppercase tracking-widest block mb-2" style={{ color: '#B4B4B4' }}>Email</label>
-                <input
-                  required
-                  type="email"
-                  className="w-full px-4 py-3 rounded-lg text-sm outline-none"
-                  style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: '#F5F5F5' }}
-                  placeholder="you@email.com"
-                  value={formData.email}
-                  onChange={e => setFormData({...formData, email: e.target.value})}
-                />
-                <p className="text-[0.45rem] mt-1" style={{ color: '#B4B4B4' }}>
-                  {quantity > 1 ? `${quantity} tickets will be sent to this email` : 'Your ticket will be sent here'}
-                </p>
-              </div>
-              <div>
-                <label className="text-[0.5rem] font-bold uppercase tracking-widest block mb-2" style={{ color: '#B4B4B4' }}>Phone</label>
-                <input
-                  required
-                  className="w-full px-4 py-3 rounded-lg text-sm outline-none"
-                  style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: '#F5F5F5' }}
-                  placeholder="+233 xxx xxx xxxx"
-                  value={formData.phone}
-                  onChange={e => setFormData({...formData, phone: e.target.value})}
-                />
-              </div>
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full h-12 rounded-lg font-bold text-sm uppercase tracking-widest transition-all"
-                style={{ background: '#DAAF48', color: '#090909' }}
-              >
-                {loading ? <Loader2 size={16} className="animate-spin mx-auto" /> : `PAY GH¢${totalAmount}`}
-              </button>
-
-              <p className="text-center text-[0.45rem]" style={{ color: '#B4B4B4' }}>
-                Secure payment by Paystack
-              </p>
-            </form>
-          </motion.div>
-        </div>
-      )}
     </div>
   );
 }

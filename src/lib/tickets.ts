@@ -25,20 +25,15 @@ export function isValidTicketIdFormat(id: string): boolean {
 }
 
 /**
- * Ticket types and pricing
+ * Ticket types and pricing - Standard ticket only
  */
+export const EGOTICKETS_URL = 'https://egotickets.com/events/the-mask-mirage-party/register';
+
 export const TICKET_TYPES = {
   STANDARD: {
     id: 'standard',
     name: 'Standard',
     price: 50,
     currency: 'GHS',
-  },
-  GROUP: {
-    id: 'group',
-    name: 'Group of 4',
-    price: 180,
-    currency: 'GHS',
-    fixedQty: 4,
   },
 } as const;

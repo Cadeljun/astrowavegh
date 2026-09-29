@@ -14,8 +14,6 @@ export const MASK_MIRAGE_EVENT = {
 
 const TICKET_PRICES: Record<string, number> = {
   Standard: 50,
-  'Group of 4': 180,
-  Complimentary: 0.2,
 }
 
 cloudinary.config({
@@ -26,7 +24,6 @@ cloudinary.config({
 })
 
 export function getExpectedAmount(ticketType: string, quantity: number) {
-  if (ticketType === 'Group of 4') return quantity === 4 ? 180 : null
   const price = TICKET_PRICES[ticketType]
   return price === undefined ? null : price * quantity
 }

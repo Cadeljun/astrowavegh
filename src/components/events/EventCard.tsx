@@ -12,6 +12,9 @@ import { cn } from '@/lib/utils';
 import { useCMSSettings } from '@/lib/cms/useCMS';
 import { getPlaceholderById } from '@/app/lib/placeholder-images';
 
+import { EGOTICKETS_URL } from '@/lib/tickets';
+import { trackBeginCheckout } from '@/components/GoogleAnalytics';
+
 interface EventCardProps {
   name: string;
   category: string;
@@ -97,11 +100,17 @@ export default function EventCard({
             {description}
           </p>
 
-          <Link href="/contact">
-            <Button variant="primary" size="sm" className="mt-2">
-              Get Tickets
-            </Button>
-          </Link>
+          <Button
+            href={EGOTICKETS_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => trackBeginCheckout()}
+            variant="primary"
+            size="sm"
+            className="inline-flex mt-2"
+          >
+            Get Tickets
+          </Button>
         </div>
       </div>
     </motion.div>

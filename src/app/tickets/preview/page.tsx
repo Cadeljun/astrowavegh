@@ -8,7 +8,7 @@ import { RefreshCw } from 'lucide-react';
 export default function TicketPreviewPage() {
   const [ticketId, setTicketId] = useState(generateTicketId());
   const [name, setName] = useState('Kofi Mensah');
-  const [ticketType, setTicketType] = useState('GENERAL ADMISSION');
+  const [ticketType, setTicketType] = useState('STANDARD');
 
   const regenerate = () => {
     setTicketId(generateTicketId());
@@ -49,10 +49,7 @@ export default function TicketPreviewPage() {
               onChange={e => setTicketType(e.target.value)}
               className="bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white text-sm focus:outline-none focus:border-[#DAAF48]"
             >
-              <option value="GENERAL ADMISSION">GENERAL ADMISSION</option>
-              <option value="VIP">VIP</option>
-              <option value="VVIP">VVIP</option>
-              <option value="GROUP OF 4">GROUP OF 4</option>
+              <option value="STANDARD">STANDARD</option>
             </select>
           </div>
           <div>

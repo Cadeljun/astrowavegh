@@ -9,6 +9,8 @@ import { useFirestore } from '@/firebase';
 import { useCMSContent } from '@/lib/cms/useCMS';
 import { cn } from '@/lib/utils';
 import { format, isPast, isFuture, isToday, differenceInHours } from 'date-fns';
+import { EGOTICKETS_URL } from '@/lib/tickets';
+import { trackBeginCheckout } from '@/components/GoogleAnalytics';
 
 function getStatus(event: any) {
   const start = event.startDate?.toDate?.() ?? new Date(event.startDate);
@@ -38,15 +40,15 @@ const MASK_MIRAGE_FALLBACK = {
   startDate: new Date('2026-10-10T21:00:00+00:00'),
   venue: 'Coaches Lounge, East Legon',
   city: 'Accra',
-  description: 'A night of mystery, elegance and unforgettable energy. Standard tickets, group passes and complimentary invites are available now.',
+  description: 'A night of mystery, elegance and unforgettable energy. Standard tickets are available now on eGoTickets.',
   coverImage: 'https://res.cloudinary.com/dmd5bq3va/image/upload/v1786593422/gkbqxs9qvggzxd0ocy77.jpg',
   slug: 'mask-mirage-party',
   status: 'published',
   active: true,
+  price: 50,
+  ticketLink: EGOTICKETS_URL,
   ticketTiers: [
     { tierId: 'standard', name: 'Standard', price: 50, quantity: 100, sold: 0 },
-    { tierId: 'group-4', name: 'Group of 4', price: 180, quantity: 25, sold: 0 },
-    { tierId: 'complimentary', name: 'Complimentary Invite', price: 0.2, quantity: 50, sold: 0 },
   ],
 };
 
@@ -134,7 +136,8 @@ function EventCard({ event }: { event: any }) {
 
           {event.ticketLink ? (
             <a href={event.ticketLink} target="_blank" rel="noopener noreferrer"
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-[0.6rem] font-bold uppercase tracking-widest text-white transition-all"
+              onClick={() => trackBeginCheckout()}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-[0.6rem] font-bold uppercase tracking-widest text-white transition-all hover:brightness-110"
               style={{ background: 'linear-gradient(135deg, #00C853, #0EA5E9)' }}>
               Get Tickets <ArrowRight size={11} />
             </a>

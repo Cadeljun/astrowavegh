@@ -9,11 +9,27 @@ import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { staggerContainer, fadeUp } from '@/lib/animations';
 import { Calendar, MapPin } from 'lucide-react';
+import { EGOTICKETS_URL } from '@/lib/tickets';
+import { trackBeginCheckout } from '@/components/GoogleAnalytics';
 
 export default function FeaturedEvents() {
   const events = [
-    { title: 'Mask Mirage', category: 'Nightlife', date: 'Dec 24, 2024', venue: 'The Labadi Beach', img: 'https://images.unsplash.com/photo-1514525253361-bee8a187449b?q=80&w=800&h=600&auto=format&fit=crop' },
-    { title: 'Splash & Seduction', category: 'Pool Party', date: 'Jan 1, 2025', venue: 'Skybar 25', img: 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?q=80&w=800&h=600&auto=format&fit=crop' }
+    {
+      title: 'Mask Mirage',
+      category: 'Nightlife',
+      date: 'Oct 10, 2026',
+      venue: 'Coaches Lounge, East Legon',
+      img: 'https://res.cloudinary.com/dmd5bq3va/image/upload/v1786593422/gkbqxs9qvggzxd0ocy77.jpg',
+      ticketUrl: EGOTICKETS_URL,
+    },
+    {
+      title: 'Splash & Seduction',
+      category: 'Pool Party',
+      date: 'Coming Soon',
+      venue: 'Skybar 25',
+      img: 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?q=80&w=800&h=600&auto=format&fit=crop',
+      ticketUrl: '/events',
+    }
   ];
 
   return (
@@ -53,9 +69,26 @@ export default function FeaturedEvents() {
                          <span className="flex items-center gap-2"><MapPin size={14} className="text-green" /> {event.venue}</span>
                       </div>
                    </div>
-                   <Link href="/events" className="inline-block w-full">
-                      <Button variant="primary" className="w-full h-12">Secure Tickets</Button>
-                   </Link>
+                   {event.ticketUrl.startsWith('http') ? (
+                     <Button
+                       href={event.ticketUrl}
+                       target="_blank"
+                       rel="noopener noreferrer"
+                       onClick={() => trackBeginCheckout()}
+                       variant="primary"
+                       className="w-full h-12"
+                     >
+                       Secure Tickets
+                     </Button>
+                   ) : (
+                     <Button
+                       href={event.ticketUrl}
+                       variant="primary"
+                       className="w-full h-12"
+                     >
+                       Secure Tickets
+                     </Button>
+                   )}
                 </div>
               </Card>
             </motion.div>

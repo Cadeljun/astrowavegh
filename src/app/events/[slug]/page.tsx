@@ -3,10 +3,12 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Calendar, MapPin, Clock, Ticket, Loader2, XCircle, ArrowRight, Users } from 'lucide-react';
+import { Calendar, MapPin, Clock, Ticket, Loader2, XCircle, ArrowRight, ExternalLink } from 'lucide-react';
 import Link from 'next/link';
 import { collection, query, where, getDocs, limit } from 'firebase/firestore';
 import { db } from '@/firebase';
+import { EGOTICKETS_URL } from '@/lib/tickets';
+import { trackBeginCheckout } from '@/components/GoogleAnalytics';
 
 const MASK_MIRAGE_EVENT = {
   title: 'MASK MIRAGE PARTY',
@@ -14,12 +16,11 @@ const MASK_MIRAGE_EVENT = {
   date: new Date('2026-10-10T21:00:00+00:00'),
   venue: 'Coaches Lounge, East Legon',
   city: 'Accra',
-  description: 'A night of mystery, elegance and unforgettable energy. Standard tickets, group passes and complimentary invites are available now.',
+  description: 'A night of mystery, elegance and unforgettable energy. Standard tickets are available now on eGoTickets.',
   bannerUrl: 'https://res.cloudinary.com/dmd5bq3va/image/upload/v1786593422/gkbqxs9qvggzxd0ocy77.jpg',
+  ticketLink: EGOTICKETS_URL,
   ticketTiers: [
     { tierId: 'standard', name: 'Standard', price: 50, quantity: 100, sold: 0 },
-    { tierId: 'group-4', name: 'Group of 4', price: 180, quantity: 25, sold: 0 },
-    { tierId: 'complimentary', name: 'Complimentary Invite', price: 0.2, quantity: 50, sold: 0 },
   ],
 };
 
@@ -142,7 +143,7 @@ export default function EventPage() {
             </p>
           )}
 
-          {/* Ticket Tiers */}
+          {/* Ticket Tiers - Standard Ticket */}
           {tiers.length > 0 && (
             <div className="mb-10">
               <h2 className="text-xs font-bold uppercase tracking-[0.3em] mb-4" style={{ color: '#DAAF48' }}>Tickets</h2>
@@ -150,27 +151,48 @@ export default function EventPage() {
                 {tiers.map((tier: any) => {
                   const available = tier.quantity - (tier.sold || 0);
                   const soldOut = available <= 0;
+                  const ticketUrl = event.ticketLink || EGOTICKETS_URL;
                   
                   return (
-                    <div
+                    <a
                       key={tier.tierId || tier.name}
-                      className="p-5 rounded-xl flex items-center justify-between"
+                      href={ticketUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={() => trackBeginCheckout()}
+                      className="group p-5 rounded-xl flex items-center justify-between transition-all duration-300 block hover:border-[#DAAF48]"
                       style={{
-                        background: soldOut ? 'rgba(255,255,255,0.02)' : 'rgba(255,255,255,0.03)',
-                        border: `1px solid ${soldOut ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.08)'}`,
-                        opacity: soldOut ? 0.5 : 1,
+                        background: 'linear-gradient(135deg, rgba(218,175,72,0.06) 0%, rgba(255,255,255,0.02) 100%)',
+                        border: '1px solid rgba(218,175,72,0.25)',
                       }}
                     >
                       <div>
-                        <h3 className="font-display text-lg uppercase" style={{ color: '#F5F5F5' }}>{tier.name}</h3>
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-display text-lg uppercase group-hover:text-[#DAAF48] transition-colors" style={{ color: '#F5F5F5' }}>
+                            {tier.name}
+                          </h3>
+                          <span
+                            className="px-2 py-0.5 rounded-full text-[0.55rem] font-bold uppercase tracking-widest"
+                            style={{
+                              background: 'rgba(218,175,72,0.15)',
+                              color: '#DAAF48',
+                              border: '1px solid rgba(218,175,72,0.35)',
+                            }}
+                          >
+                            Official
+                          </span>
+                        </div>
                         <p className="text-xs mt-1" style={{ color: '#B4B4B4' }}>
-                          {soldOut ? 'Sold Out' : `${available} available`}
+                          Direct checkout via eGoTickets • Instant verification
                         </p>
                       </div>
-                      <div className="text-right">
-                        <p className="font-display text-xl" style={{ color: '#F5F5F5' }}>GH¢{tier.price}</p>
+                      <div className="flex items-center gap-4 text-right">
+                        <p className="font-display text-2xl" style={{ color: '#DAAF48' }}>GH¢{tier.price}</p>
+                        <div className="w-9 h-9 rounded-lg flex items-center justify-center transition-transform group-hover:translate-x-1" style={{ background: '#DAAF48', color: '#090909' }}>
+                          <ArrowRight size={16} />
+                        </div>
                       </div>
-                    </div>
+                    </a>
                   );
                 })}
               </div>
@@ -187,15 +209,18 @@ export default function EventPage() {
             {!isOnSale && salesEnd && now > salesEnd && (
               <p className="text-sm mb-4" style={{ color: '#B4B4B4' }}>Sales have ended</p>
             )}
-            <Link href="/tickets">
-              <button
-                className="px-10 py-4 rounded-xl font-bold text-sm uppercase tracking-widest"
-                style={{ background: '#DAAF48', color: '#090909' }}
-              >
-                <Ticket size={16} className="inline mr-2" />
-                {isOnSale ? 'Get Tickets' : 'View Tickets'}
-              </button>
-            </Link>
+            <a
+              href={event.ticketLink || EGOTICKETS_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => trackBeginCheckout()}
+              className="inline-flex items-center justify-center gap-2 px-10 py-4 rounded-xl font-bold text-sm uppercase tracking-widest transition-all hover:brightness-110 active:scale-[0.99]"
+              style={{ background: '#DAAF48', color: '#090909', boxShadow: '0 4px 20px rgba(218,175,72,0.25)' }}
+            >
+              <Ticket size={16} />
+              <span>{isOnSale ? 'Get Standard Ticket on eGoTickets' : 'View on eGoTickets'}</span>
+              <ExternalLink size={15} />
+            </a>
           </div>
         </motion.div>
       </div>
