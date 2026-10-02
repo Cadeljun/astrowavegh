@@ -154,11 +154,25 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${plusJakarta.variable} ${inter.variable}`} suppressHydrationWarning>
       <head>
+        {/* Google tag (gtag.js) */}
+        <script async src="https://www.googletagmanager.com/gtag/js?id=AW-17839484461" />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+
+gtag('config', 'AW-17839484461');
+gtag('config', 'G-HLZ1DFCZ38');
+`,
+          }}
+        />
+      </head>
+      <body className="antialiased bg-white text-[#0B1F14] min-h-screen selection:bg-[#00C853]/20 selection:text-[#0B1F14]">
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessSchema) }} />
-      </head>
-      <body className="antialiased bg-white text-[#0B1F14] min-h-screen selection:bg-[#00C853]/20 selection:text-[#0B1F14]">
         <GoogleAnalytics />
         <ServiceWorker />
         <FirebaseClientProvider>

@@ -41,6 +41,8 @@ export interface ButtonProps
   asChild?: boolean;
   loading?: boolean;
   href?: string;
+  target?: string;
+  rel?: string;
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(

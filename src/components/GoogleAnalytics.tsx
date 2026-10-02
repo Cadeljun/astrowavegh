@@ -1,32 +1,28 @@
 'use client';
 
-import Script from 'next/script';
+import { useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 
-const GA_MEASUREMENT_ID = 'G-HLZ1DFCZ38';
+export const GA_MEASUREMENT_ID = 'G-HLZ1DFCZ38';
 export const GOOGLE_TAG_ID = 'AW-17839484461';
 export const BEGIN_CHECKOUT_CONVERSION_ID = 'AW-17839484461/B6cECI2CjNkbEK3cw7pC';
 
+/**
+ * Route listener for Google Analytics.
+ * Note: The master Google Tag (gtag.js) script is loaded once in <head> inside RootLayout.
+ */
 export default function GoogleAnalytics() {
-  return (
-    <>
-      {/* Single gtag.js loader for Google Tag AW-17839484461 & GA4 */}
-      <Script
-        src={`https://www.googletagmanager.com/gtag/js?id=${GOOGLE_TAG_ID}`}
-        strategy="afterInteractive"
-      />
-      <Script id="google-tags" strategy="afterInteractive">
-        {`
-          window.dataLayer = window.dataLayer || [];
-          function gtag(){dataLayer.push(arguments);}
-          gtag('js', new Date());
-          gtag('config', '${GOOGLE_TAG_ID}');
-          gtag('config', '${GA_MEASUREMENT_ID}', {
-            page_path: window.location.pathname,
-          });
-        `}
-      </Script>
-    </>
-  );
+  const pathname = usePathname();
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && typeof (window as any).gtag === 'function') {
+      (window as any).gtag('config', GA_MEASUREMENT_ID, {
+        page_path: pathname,
+      });
+    }
+  }, [pathname]);
+
+  return null;
 }
 
 // Track Begin checkout conversion (Google Ads AW-17839484461)
@@ -46,7 +42,6 @@ export const trackBeginCheckout = (_event?: any) => {
 // Track custom events safely
 export const trackEvent = (action: string, category?: string, label?: string, value?: number) => {
   if (typeof window !== 'undefined' && typeof (window as any).gtag === 'function') {
-    // Prevent accidental event objects being passed as action
     if (typeof action !== 'string') return;
     try {
       (window as any).gtag('event', action, {
@@ -64,7 +59,7 @@ export const trackEvent = (action: string, category?: string, label?: string, va
 export const trackTicketPurchase = (ticketType: string, amount: number, quantity: number) => {
   trackBeginCheckout();
   trackEvent('purchase', 'tickets', ticketType, amount);
-  if (typeof window !== 'undefined' && (window as any).gtag) {
+  if (typeof window !== 'undefined' && typeof (window as any).gtag === 'function') {
     (window as any).gtag('event', 'purchase', {
       currency: 'GHS',
       value: amount,
@@ -72,7 +67,7 @@ export const trackTicketPurchase = (ticketType: string, amount: number, quantity
         item_name: `Mask Mirage - ${ticketType}`,
         item_category: 'Tickets',
         quantity: quantity,
-        price: amount / quantity,
+        price: amount / (quantity || 1),
       }],
     });
   }
@@ -80,7 +75,7 @@ export const trackTicketPurchase = (ticketType: string, amount: number, quantity
 
 // Track page view (for SPA navigation)
 export const trackPageView = (url: string) => {
-  if (typeof window !== 'undefined' && (window as any).gtag) {
+  if (typeof window !== 'undefined' && typeof (window as any).gtag === 'function') {
     (window as any).gtag('config', GA_MEASUREMENT_ID, {
       page_path: url,
     });
