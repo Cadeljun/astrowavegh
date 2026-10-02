@@ -5,6 +5,7 @@ import {
   query, 
   getDocs, 
   getDoc,
+  setDoc,
   limit, 
   orderBy, 
   where, 
@@ -144,6 +145,29 @@ export async function addDocument(path: string, data: any) {
       path: colRef.path,
       operation: 'create',
       requestResourceData: addData,
+    });
+    errorEmitter.emit('permission-error', permissionError);
+    throw serverError;
+  }
+}
+
+/**
+ * Sets/upserts a document in a collection with an explicit ID.
+ */
+export async function setDocument(path: string, id: string, data: any) {
+  const docRef = doc(db, path, id);
+  const setData = {
+    ...data,
+    updatedAt: serverTimestamp(),
+  };
+
+  try {
+    await setDoc(docRef, setData, { merge: true });
+  } catch (serverError) {
+    const permissionError = new FirestorePermissionError({
+      path: docRef.path,
+      operation: 'update',
+      requestResourceData: setData,
     });
     errorEmitter.emit('permission-error', permissionError);
     throw serverError;

@@ -16,7 +16,7 @@ const MASK_MIRAGE_EVENT = {
   date: new Date('2026-10-10T21:00:00+00:00'),
   venue: 'Coaches Lounge, East Legon',
   city: 'Accra',
-  description: 'A night of mystery, elegance and unforgettable energy. Standard tickets are available now on eGoTickets.',
+  description: 'A night of mystery, elegance and unforgettable energy. ALMOST SOLD OUT — GRAB YOUR TICKETS NOW!',
   bannerUrl: 'https://res.cloudinary.com/dmd5bq3va/image/upload/v1786593422/gkbqxs9qvggzxd0ocy77.jpg',
   ticketLink: EGOTICKETS_URL,
   ticketTiers: [
@@ -183,7 +183,7 @@ export default function EventPage() {
                           </span>
                         </div>
                         <p className="text-xs mt-1" style={{ color: '#B4B4B4' }}>
-                          Direct checkout via eGoTickets • Instant verification
+                          Instant digital pass • Instant verification
                         </p>
                       </div>
                       <div className="flex items-center gap-4 text-right">
@@ -218,7 +218,7 @@ export default function EventPage() {
               style={{ background: '#DAAF48', color: '#090909', boxShadow: '0 4px 20px rgba(218,175,72,0.25)' }}
             >
               <Ticket size={16} />
-              <span>{isOnSale ? 'Get Standard Ticket on eGoTickets' : 'View on eGoTickets'}</span>
+              <span>{isOnSale ? 'GRAB YOUR TICKETS NOW' : 'View Ticket Info'}</span>
               <ExternalLink size={15} />
             </a>
           </div>

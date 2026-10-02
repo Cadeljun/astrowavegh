@@ -17,18 +17,31 @@ const links = [
 ];
 
 export default function Navbar() {
-  const [isScrolled, setIsScrolled] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
   const { user, logout } = useAuth();
   const isHeroPage = ['/', '/events', '/platform', '/management', '/about'].includes(pathname);
-  const isDark = isHeroPage && !isScrolled && !isOpen;
+  const isDark = isHeroPage && !isOpen;
 
   useEffect(() => {
-    const onScroll = () => setIsScrolled(window.scrollY > 48);
-    onScroll();
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
+    let prev = window.scrollY;
+    const handleScroll = () => {
+      const current = window.scrollY;
+      if (current <= 20) {
+        setIsVisible(true);
+      } else if (current > prev && current > 60) {
+        // Scrolling DOWN -> disappear
+        setIsVisible(false);
+      } else if (current < prev) {
+        // Scrolling UP -> appear
+        setIsVisible(true);
+      }
+      prev = current;
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   useEffect(() => {
@@ -42,8 +55,8 @@ export default function Navbar() {
 
   return (
     <nav className={cn(
-      'fixed left-0 top-0 z-[1000] w-full px-5 transition-all duration-300 sm:px-8 lg:px-12',
-      isScrolled || !isHeroPage ? 'bg-[#F7F4EC]/95 shadow-[0_12px_35px_rgba(16,35,29,0.07)] backdrop-blur-xl' : 'bg-transparent',
+      'fixed left-0 top-0 z-[1000] w-full px-5 bg-transparent transition-all duration-300 sm:px-8 lg:px-12',
+      isVisible ? 'translate-y-0 opacity-100 pointer-events-auto' : '-translate-y-full opacity-0 pointer-events-none'
     )}>
       <div className="mx-auto flex h-[76px] max-w-[1440px] items-center justify-between lg:h-[88px]">
         <Logo height={31} variant={isDark ? 'white' : 'dark'} />
@@ -54,7 +67,7 @@ export default function Navbar() {
             return (
               <Link key={link.href} href={link.href} className={cn(
                 'relative py-2 text-[0.65rem] font-extrabold uppercase tracking-[0.17em] transition-colors',
-                isDark ? 'text-white/65 hover:text-white' : 'text-[#354B40] hover:text-[#10231D]',
+                isDark ? 'text-white/75 hover:text-white drop-shadow-sm' : 'text-[#354B40] hover:text-[#10231D]',
                 active && (isDark ? 'text-[#C7FF51]' : 'text-[#849F28]'),
               )}>
                 {link.name}
@@ -62,7 +75,7 @@ export default function Navbar() {
               </Link>
             );
           })}
-          {user ? (
+          {user && (
             <div className="ml-2 flex items-center gap-4">
               <Link href="/organizer/dashboard" className={cn(
                 'rounded-full border px-5 py-2.5 text-[0.63rem] font-extrabold uppercase tracking-[0.16em] transition',
@@ -70,8 +83,6 @@ export default function Navbar() {
               )}>Dashboard</Link>
               <button type="button" onClick={logout} aria-label="Sign out" className={cn('transition-colors', isDark ? 'text-white/45 hover:text-white' : 'text-[#68786C] hover:text-[#10231D]')}><LogOut size={17} /></button>
             </div>
-          ) : (
-            <Link href="/auth/login" className="ml-2 inline-flex items-center rounded-full bg-[#C7FF51] px-5 py-3 text-[0.63rem] font-extrabold uppercase tracking-[0.16em] text-[#10231D] transition hover:bg-[#F2FFC8]">Access portal</Link>
           )}
         </div>
 
@@ -86,9 +97,11 @@ export default function Navbar() {
           <div className="flex flex-col gap-5">
             {links.map(link => <Link key={link.href} href={link.href} onClick={() => setIsOpen(false)} className={cn('font-display text-5xl uppercase leading-none tracking-[-0.03em]', pathname === link.href ? 'text-[#849F28]' : 'text-[#10231D]')}>{link.name}</Link>)}
           </div>
-          <div className="mt-auto border-t border-[#D8D8C9] pt-6">
-            {user ? <Link href="/organizer/dashboard" onClick={() => setIsOpen(false)} className="flex h-14 items-center justify-center rounded-full bg-[#10231D] text-sm font-extrabold uppercase tracking-[0.16em] text-[#C7FF51]">Open dashboard</Link> : <Link href="/auth/login" onClick={() => setIsOpen(false)} className="flex h-14 items-center justify-center rounded-full bg-[#10231D] text-sm font-extrabold uppercase tracking-[0.16em] text-[#C7FF51]">Access portal</Link>}
-          </div>
+          {user && (
+            <div className="mt-auto border-t border-[#D8D8C9] pt-6">
+              <Link href="/organizer/dashboard" onClick={() => setIsOpen(false)} className="flex h-14 items-center justify-center rounded-full bg-[#10231D] text-sm font-extrabold uppercase tracking-[0.16em] text-[#C7FF51]">Open dashboard</Link>
+            </div>
+          )}
         </div>
       )}
     </nav>

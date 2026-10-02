@@ -40,7 +40,7 @@ const MASK_MIRAGE_FALLBACK = {
   startDate: new Date('2026-10-10T21:00:00+00:00'),
   venue: 'Coaches Lounge, East Legon',
   city: 'Accra',
-  description: 'A night of mystery, elegance and unforgettable energy. Standard tickets are available now on eGoTickets.',
+  description: 'A night of mystery, elegance and unforgettable energy. ALMOST SOLD OUT — GRAB YOUR TICKETS NOW!',
   coverImage: 'https://res.cloudinary.com/dmd5bq3va/image/upload/v1786593422/gkbqxs9qvggzxd0ocy77.jpg',
   slug: 'mask-mirage-party',
   status: 'published',

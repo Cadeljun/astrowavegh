@@ -20,6 +20,7 @@ const navGroups = [
     color: '#FFD166',
     items: [
       { label: 'Dashboard',       href: '/admin/dashboard',        icon: LayoutDashboard },
+      { label: 'Events',          href: '/admin/events',           icon: Calendar },
       { label: 'Tickets',         href: '/admin/tickets',          icon: Ticket },
       { label: 'CMS Content',     href: '/admin/cms',              icon: Edit3 },
       { label: 'Brand & Media',   href: '/dev/brand-assets',       icon: ImageIcon },

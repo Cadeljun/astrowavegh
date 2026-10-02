@@ -139,17 +139,20 @@ export default function TicketsPage() {
           transition={{ delay: 0.3 }}
           className="space-y-4 mb-10"
         >
+          {/* Urgency Header */}
           <div className="flex items-center justify-between px-1">
-            <p className="text-xs font-bold uppercase tracking-[0.3em]" style={{ color: '#DAAF48' }}>
-              OFFICIAL TICKETS
-            </p>
-            <div className="flex items-center gap-1.5 text-[0.65rem] font-medium" style={{ color: '#00C853' }}>
-              <span className="w-1.5 h-1.5 rounded-full bg-[#00C853] animate-pulse" />
-              <span>Available Now</span>
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#EF4444] animate-ping" />
+              <p className="text-xs sm:text-sm font-extrabold uppercase tracking-[0.25em] text-[#EF4444]">
+                ALMOST SOLD OUT!!
+              </p>
+            </div>
+            <div className="flex items-center gap-1.5 text-[0.68rem] font-bold uppercase tracking-wider text-[#DAAF48]">
+              <span>Limited Passes Remaining</span>
             </div>
           </div>
 
-          {/* Standard Ticket Card linking directly to eGoTickets */}
+          {/* Standard Ticket Card linking directly to checkout */}
           <a
             href={EGOTICKETS_URL}
             target="_blank"
@@ -182,9 +185,8 @@ export default function TicketsPage() {
                 <p className="text-xs leading-relaxed" style={{ color: '#B4B4B4' }}>
                   Per person • Full access to Mask Mirage with top DJs, live entertainment, and immersive masquerade experience.
                 </p>
-                <div className="flex items-center gap-2 pt-1 text-[0.7rem] font-medium" style={{ color: '#DAAF48' }}>
-                  <ShieldCheck size={14} />
-                  <span>Direct checkout via eGoTickets</span>
+                <div className="flex items-center gap-2 pt-1 text-[0.7rem] font-semibold text-[#DAAF48]">
+                  <span>Instant digital pass • Fast track entry</span>
                 </div>
               </div>
 
@@ -213,21 +215,16 @@ export default function TicketsPage() {
             target="_blank"
             rel="noopener noreferrer"
             onClick={() => trackBeginCheckout()}
-            className="w-full h-14 rounded-xl font-bold text-sm uppercase tracking-widest flex items-center justify-center gap-3 transition-all duration-300 hover:brightness-110 active:scale-[0.99]"
+            className="w-full h-14 rounded-xl font-extrabold text-sm uppercase tracking-widest flex items-center justify-center gap-3 transition-all duration-300 hover:brightness-110 active:scale-[0.99] text-[#090909]"
             style={{
               background: '#DAAF48',
-              color: '#090909',
-              boxShadow: '0 4px 20px rgba(218,175,72,0.25)',
+              boxShadow: '0 4px 20px rgba(218,175,72,0.3)',
             }}
           >
             <Ticket size={18} />
-            <span>Register on eGoTickets</span>
-            <ExternalLink size={16} />
+            <span>GRAB YOUR TICKETS NOW</span>
+            <ArrowRight size={18} />
           </a>
-
-          <p className="text-center text-[0.65rem] tracking-wider uppercase pt-2" style={{ color: 'rgba(180,180,180,0.6)' }}>
-            Official Ticketing Partner: <span style={{ color: '#DAAF48' }}>eGoTickets Ghana</span>
-          </p>
         </motion.div>
 
         {/* ── FOOTER ───────────────────────────────────────── */}

@@ -39,7 +39,7 @@ export function middleware(request: NextRequest) {
 
   // ── ADMIN SUBDOMAIN ───────────────────────────────────────────
   if (isAdminSubdomain) {
-    const isAllowed = ['/admin', '/auth', '/_next', '/api'].some(r => pathname.startsWith(r)) || pathname.includes('.')
+    const isAllowed = ['/admin', '/auth', '/dev', '/_next', '/api'].some(r => pathname.startsWith(r)) || pathname.includes('.')
     if (!isAllowed) {
       return NextResponse.redirect(new URL('/admin/dashboard', request.url))
     }

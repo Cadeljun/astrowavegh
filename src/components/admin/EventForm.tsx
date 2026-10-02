@@ -3,7 +3,7 @@
 import { useState, useEffect, FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft, Upload, Grid, Plus, Trash2, Loader2 } from 'lucide-react'
-import { addDocument, updateDocument, getDocument } from '@/lib/firebase/helpers'
+import { addDocument, updateDocument, setDocument, getDocument } from '@/lib/firebase/helpers'
 import { useToast } from '@/hooks/use-toast'
 import MediaPickerModal from '@/components/admin/MediaPickerModal'
 import { Button } from '@/components/ui/Button'
@@ -95,6 +95,22 @@ export default function EventForm({ eventId }: EventFormProps) {
             ticketTiers: e.ticketTiers || [],
           })
           if (e.coverImage) setImagePreview(e.coverImage)
+        } else if (id === 'mask-mirage-party') {
+          setData({
+            title: 'MASK MIRAGE PARTY',
+            category: 'Nightlife',
+            date: '2026-10-10T21:00',
+            venue: 'Coaches Lounge, East Legon',
+            city: 'Accra',
+            description: 'A night of mystery, elegance and unforgettable energy. ALMOST SOLD OUT — GRAB YOUR TICKETS NOW!',
+            coverImage: 'https://res.cloudinary.com/dmd5bq3va/image/upload/v1786593422/gkbqxs9qvggzxd0ocy77.jpg',
+            slug: 'mask-mirage-party',
+            status: 'published',
+            salesStartDate: '2026-10-01T00:00',
+            salesEndDate: '2026-10-10T21:00',
+            ticketTiers: [{ tierId: 'standard', name: 'Standard', price: 50, quantity: 100, sold: 0 }],
+          })
+          setImagePreview('https://res.cloudinary.com/dmd5bq3va/image/upload/v1786593422/gkbqxs9qvggzxd0ocy77.jpg')
         }
       } catch {
         toast({ variant: 'destructive', title: 'Error', description: 'Failed to load event' })
@@ -196,7 +212,7 @@ export default function EventForm({ eventId }: EventFormProps) {
       }
 
       if (isEdit && eventId) {
-        await updateDocument('events', eventId, eventData)
+        await setDocument('events', eventId, eventData)
         toast({ title: 'Updated', description: 'Event changes saved.' })
       } else {
         await addDocument('events', eventData)

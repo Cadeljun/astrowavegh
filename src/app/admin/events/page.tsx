@@ -11,11 +11,28 @@ import {
   getCollection,
   deleteDocument,
   updateDocument,
+  setDocument,
   formatTimestamp
 } from '@/lib/firebase/helpers'
 import { orderBy } from 'firebase/firestore'
 import ConfirmModal from 
   '@/components/admin/ConfirmModal'
+
+const MASK_MIRAGE_DEFAULT_EVENT: Event = {
+  id: 'mask-mirage-party',
+  title: 'MASK MIRAGE PARTY',
+  name: 'MASK MIRAGE PARTY',
+  category: 'Nightlife',
+  date: '2026-10-10T21:00:00.000Z',
+  startDate: '2026-10-10T21:00:00.000Z',
+  venue: 'Coaches Lounge, East Legon',
+  coverImage: 'https://res.cloudinary.com/dmd5bq3va/image/upload/v1786593422/gkbqxs9qvggzxd0ocy77.jpg',
+  active: true,
+  status: 'published',
+  shortDescription: 'A night of mystery, elegance and unforgettable energy. ALMOST SOLD OUT — GRAB YOUR TICKETS NOW!',
+  description: 'A night of mystery, elegance and unforgettable energy. ALMOST SOLD OUT — GRAB YOUR TICKETS NOW!',
+  createdAt: new Date('2026-10-01T00:00:00.000Z'),
+}
 
 interface Event {
   id: string
@@ -69,16 +86,33 @@ export default function AdminEventsPage() {
   const loadEvents = async () => {
     setLoading(true)
     try {
-      const data = await getCollection(
-        'events', 
-        [orderBy('createdAt', 'desc')]
+      let data: any[] = []
+      try {
+        data = await getCollection('events', [orderBy('createdAt', 'desc')])
+      } catch {
+        // Fallback without orderBy
+        data = await getCollection('events')
+      }
+      
+      let list = (data as Event[]).map(normalizeEvent)
+      const hasMaskMirage = list.some(
+        e => e.id === 'mask-mirage-party' || e.title?.toLowerCase().includes('mask mirage')
       )
-      setEvents((data as Event[]).map(normalizeEvent))
+
+      if (!hasMaskMirage) {
+        list = [MASK_MIRAGE_DEFAULT_EVENT, ...list]
+        // Auto-seed into Firestore so it's persisted permanently
+        setDocument('events', 'mask-mirage-party', {
+          ...MASK_MIRAGE_DEFAULT_EVENT,
+          slug: 'mask-mirage-party',
+          city: 'Accra',
+          ticketTiers: [{ tierId: 'standard', name: 'Standard', price: 50, quantity: 100, sold: 0 }],
+        }).catch(() => {})
+      }
+
+      setEvents(list)
     } catch (error) {
-      showToast(
-        'Failed to load events', 
-        'error'
-      )
+      setEvents([MASK_MIRAGE_DEFAULT_EVENT])
     } finally {
       setLoading(false)
     }
@@ -119,7 +153,7 @@ export default function AdminEventsPage() {
   const toggleActive = async (event: Event) => {
     try {
       const nextActive = !event.active
-      await updateDocument('events', event.id, {
+      await setDocument('events', event.id, {
         active: nextActive,
         status: nextActive ? 'published' : 'draft',
       })

@@ -214,7 +214,7 @@ export default function HomePage() {
   const textY = useTransform(scrollYProgress, [0, 1], ['0%', '8%']);
 
   const { content: heroContent } = useCMSContent('home', 'hero', {
-    label: "Ghana's creative signal",
+    label: '',
     heading: 'VIBES BEYOND THE HORIZON',
     subtext: 'AI-powered talent matching for the nights, stages and stories that move Ghana forward.',
   });
@@ -277,10 +277,6 @@ export default function HomePage() {
         <motion.div style={{ y: textY }} className="relative z-10 mx-auto w-full max-w-[1440px] px-6 pb-16 pt-28 sm:px-10 lg:px-16 lg:pt-20">
           <div className="grid items-center gap-14 lg:grid-cols-[minmax(0,1.05fr)_minmax(320px,0.65fr)] lg:gap-20">
             <div className="max-w-3xl">
-              <div className="mb-8 flex items-center gap-3 text-[0.62rem] font-bold uppercase tracking-[0.28em] text-[#C7FF51]">
-                <span className="h-2 w-2 rounded-full bg-[#C7FF51] shadow-[0_0_18px_rgba(199,255,81,0.8)]" />
-                {heroContent.label}
-              </div>
               <h1 className="max-w-4xl font-display text-[clamp(3.9rem,9vw,8.5rem)] uppercase leading-[0.84] tracking-[-0.055em] text-[#F7F4EC]">
                 Find the<br />
                 <span className="text-[#C7FF51]">energy</span><br />
